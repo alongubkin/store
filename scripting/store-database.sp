@@ -92,8 +92,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	
 	CreateNative("Store_GiveCredits", Native_GiveCredits);
 	CreateNative("Store_GiveCreditsToUsers", Native_GiveCreditsToUsers);	
-	CreateNative("Store_GiveItem", Native_GiveItem);
-	
+
 	CreateNative("Store_BuyItem", Native_BuyItem);
 	CreateNative("Store_UseItem", Native_UseItem);
 	
@@ -119,6 +118,23 @@ public OnPluginStart()
 	ConnectSQL();
 }
 
+/**
+* Registers a player in the database:
+* 
+* - If the player is already in the database, his name will be updated according
+*   to the 'name' parameter provided.
+*
+* - If the player is not in the database (for example, a new player who just joined
+*   the server for the first time), he will be added using the account ID and name 
+*   provided.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param accountId		The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+* @param name          The name of the player.
+*
+* @noreturn
+*/
 Register(accountId, const String:name[] = "")
 {
 	decl String:safeName[2 * 32 + 1];
@@ -131,6 +147,22 @@ Register(accountId, const String:name[] = "")
 	SQL_TQuery(g_hSQL, T_EmptyCallback, query);
 }
 
+/**
+* Registers a player in the database, provided his client index only. 
+*
+* This method converts the client index provided to an account id, retrieves 
+* the player's name, and calls Store_Register using that information.
+*
+* The logic of registering a player is explained in the Store_Register documentation.
+*
+* The store-core module calls this method every time a player joins the server.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param client		    Client index.
+*
+* @noreturn
+*/
 RegisterClient(client)
 {
 	decl String:name[64];
@@ -148,6 +180,35 @@ public T_EmptyCallback(Handle:owner, Handle:hndl, const String:error[], any:data
 	}
 }
 
+/**
+* Retrieves all item categories from the database. 
+*
+* The store-database module builds a cache of the categories retrieved the first time 
+* this method is called, for faster access the next time it's called.
+*
+* You can set the loadFromCache parameter of this method to false to retrieve categories
+* from the database and not from the cache.
+*
+* The store-core module calls this method when it is loaded to build a cache of 
+* categories.
+*
+* It also provides the store_reloaditems command to reload items and categories 
+* from the database. 
+*
+* To use this method, you can provide a callback for when the categories are loaded.
+* The callback will provide an array of the categories' IDs. You can then loop the array,
+* and find info about each category using the Store_GetCategory* methods.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param callback		    A callback which will be called when the categories are loaded.
+* @param plugin				The plugin owner of the callback.
+* @param loadFromCache     	Whether to load categories from cache. If false, the method will 
+*                          	query the database and rebuild its cache.
+* @param data              	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 GetCategories(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, Handle:plugin = INVALID_HANDLE, bool:loadFromCache = true, any:data = 0)
 {
 	if (loadFromCache && g_categoryCount != -1)
@@ -223,6 +284,36 @@ GetCategoryIndex(id)
 	return -1;
 }
 
+/**
+* Retrieves items from the database. 
+*
+* The store-database module builds a cache of the items retrieved the first time 
+* this method is called, for faster access the next time it's called.
+*
+* You can set the loadFromCache parameter of this method to false to retrieve categories
+* from the database and not from the cache.
+*
+* The store-core module calls this method when it is loaded to build a cache of 
+* categories.
+*
+* It also provides the store_reloaditems command to reload items and categories 
+* from the database. 
+*
+* To use this method, you can provide a callback for when the items are loaded.
+* The callback will provide an array of the items' IDs. You can then loop the array,
+* and find info about each item using the Store_GetItem* methods.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param callback		    A callback which will be called when the items are loaded.
+* @param plugin				The plugin owner of the callback.
+* @param categoryId        	Filter the items returned by a category ID.
+* @param loadFromCache     	Whether to load items from cache. If false, the method will 
+*                          	query the database and rebuild its cache.
+* @param data              	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 GetItems(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, Handle:plugin = INVALID_HANDLE, categoryId = -1, bool:loadFromCache = true, any:data = 0)
 {	
 	if (loadFromCache && g_itemCount != -1)
@@ -321,6 +412,42 @@ GetItemIndex(id)
 	return -1;
 }
 
+/**
+* Retrieves loadouts from the database. 
+*
+* The store-database module builds a cache of the loadouts retrieved the first time 
+* this method is called, for faster access the next time it's called.
+*
+* You can set the loadFromCache parameter of this method to false to retrieve loadouts
+* from the database and not from the cache.
+*
+* You can use the filter parameter to filter loadouts returned by the following properties:
+*  - game (string)
+*  - team (cell)
+*  - class (string)
+*
+* To use it, set it to a trie with some or all of the above properties.
+* IMPORTANT: You are *not* resposible for closing the filter trie's handle, 
+*            the store-database module is.
+* 
+* The store-loadout module calls this method when it is loaded to build a cache of 
+* loadouts.
+*
+* To use this method, you can provide a callback for when the items are loaded.
+* The callback will provide an array of the loadouts' IDs. You can then loop the array,
+* and find info about each item using the Store_GetLoadout* methods.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param filter            	A trie which will be used to filter the loadouts returned.
+* @param callback		   	A callback which will be called when the items are loaded.
+* @param plugin				The plugin owner of the callback.
+* @param loadFromCache     	Whether to load items from cache. If false, the method will 
+*                          	query the database and rebuild its cache.
+* @param data              	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 GetLoadouts(Handle:filter, Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, Handle:plugin = INVALID_HANDLE, bool:loadFromCache = true, any:data = 0)
 {
 	if (loadFromCache && g_loadoutCount != -1 && callback != Store_GetItemsCallback:INVALID_HANDLE)
@@ -343,8 +470,8 @@ GetLoadouts(Handle:filter, Store_GetItemsCallback:callback = Store_GetItemsCallb
 		{	
 			if (
 				(!gameFilter || StrEqual(game, "") || StrEqual(g_loadouts[loadout][LoadoutGame], "") || StrEqual(game, g_loadouts[loadout][LoadoutGame])) &&
-			 	(!classFilter || StrEqual(class, "") || StrEqual(g_loadouts[loadout][LoadoutClass], "") || StrEqual(class, g_loadouts[loadout][LoadoutClass]))
-				//!teamFilter || team == -1 || team == g_loadouts[loadout][LoadoutTeam])
+			 	(!classFilter || StrEqual(class, "") || StrEqual(g_loadouts[loadout][LoadoutClass], "") || StrEqual(class, g_loadouts[loadout][LoadoutClass])) &&
+				(!teamFilter || team == -1 || team == g_loadouts[loadout][LoadoutTeam])
 				)
 			{
 				ids[count] = g_loadouts[loadout][LoadoutId];
@@ -418,15 +545,43 @@ GetLoadoutIndex(id)
 	return -1;
 }
 
+/**
+* Retrieves items of a specific player in a specific category. 
+*
+* To use this method, you can provide a callback for when the items are loaded.
+* The callback will provide an array of the items' IDs. You can then loop the array,
+* and find info about each item using the Store_GetItem* methods.
+* 
+* The items returned by this method are grouped by the item's name. That means that 
+* if a player has multiple items with the same name (the unique identifier of the item, NOT its 
+* display name), then the array will only have one element of that item.
+*
+* To determine how many items the player has of the same name, the callback provides the
+* itemCount[] array.
+*
+* To deremine whether or not an item is equipped in the loadout specified, the callback
+* provides the equipped[] array.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+* @param categoryId        	The category of the items you want to retrieve.
+* @param loadoutId         	The loadout which will be used to determine whether an item is equipped or not.
+* @param callback		    A callback which will be called when the items are loaded.
+* @param plugin				The plugin owner of the callback.
+* @param data              	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 GetUserItems(accountId, categoryId, loadoutId, Store_GetUserItemsCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
-	WritePackCell(pack, accountId);
-	WritePackCell(pack, categoryId);
-	WritePackCell(pack, loadoutId);	
-	WritePackCell(pack, _:callback);
-	WritePackCell(pack, _:plugin);
-	WritePackCell(pack, _:data);
+	WritePackCell(pack, accountId); // 0 
+	WritePackCell(pack, categoryId); // 8
+	WritePackCell(pack, loadoutId);	// 16
+	WritePackCell(pack, _:callback); // 24
+	WritePackCell(pack, _:plugin); // 32
+	WritePackCell(pack, _:data); // 40
 	
 	if (g_itemCount == -1)
 	{
@@ -446,12 +601,12 @@ public GetUserItemsLoadCallback(ids[], count, any:pack)
 {
 	ResetPack(pack);
 	
-	new accountId = ReadPackCell(pack);
-	new categoryId = ReadPackCell(pack);
-	new loadoutId = ReadPackCell(pack);
-	new Store_GetUserItemsCallback:callback = Store_GetUserItemsCallback:ReadPackCell(pack);
-	new Handle:plugin = Handle:ReadPackCell(pack);
-	new arg = ReadPackCell(pack);
+	new accountId = ReadPackCell(pack); 
+	new categoryId = ReadPackCell(pack); 
+	new loadoutId = ReadPackCell(pack); 
+	new Store_GetUserItemsCallback:callback = Store_GetUserItemsCallback:ReadPackCell(pack); 
+	new Handle:plugin = Handle:ReadPackCell(pack); 
+	new arg = ReadPackCell(pack); 
 	
 	CloseHandle(pack);
 	
@@ -466,10 +621,8 @@ public T_GetUserItemsCallback(Handle:owner, Handle:hndl, const String:error[], a
 		return;
 	}
 	
-	ResetPack(pack);
-	
-	new accountId = ReadPackCell(pack);
-	new categoryId = ReadPackCell(pack);
+	SetPackPosition(pack, 16);	
+
 	new loadoutId = ReadPackCell(pack);	
 	new Store_GetUserItemsCallback:callback = Store_GetUserItemsCallback:ReadPackCell(pack);
 	new Handle:plugin = Handle:ReadPackCell(pack);
@@ -503,6 +656,18 @@ public T_GetUserItemsCallback(Handle:owner, Handle:hndl, const String:error[], a
 	Call_Finish();
 }
 
+/**
+* Retrieves the amount of credits that a player currently has.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+* @param callback		    A callback which will be called when the credits amount is loaded.
+* @param plugin				The plugin owner of the callback.
+* @param data              	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 GetCredits(accountId, Store_GetCreditsCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
@@ -541,14 +706,31 @@ public T_GetCreditsCallback(Handle:owner, Handle:hndl, const String:error[], any
 	}
 }
 
+/**
+* Buys an item for a player, using his credits.
+* 
+* To determine whether or not the process of buying that item was successful,
+* use the 'success' parameter that is provided by the callback.
+* A false value of that parameter probably means that the user didn't have enough credits.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+* @param itemId            	The ID of the item to buy.
+* @param callback		    A callback which will be called when the operation is finished.
+* @param plugin				The plugin owner of the callback.
+* @param data              	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 BuyItem(accountId, itemId, Store_BuyItemCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
-	WritePackCell(pack, itemId);
-	WritePackCell(pack, accountId);
-	WritePackCell(pack, _:callback);
-	WritePackCell(pack, _:plugin);
-	WritePackCell(pack, _:data);
+	WritePackCell(pack, itemId); // 0
+	WritePackCell(pack, accountId); // 8
+	WritePackCell(pack, _:callback); // 16
+	WritePackCell(pack, _:plugin); // 24
+	WritePackCell(pack, _:data); // 32
 	
 	GetCredits(accountId, T_BuyItemGetCreditsCallback, INVALID_HANDLE, pack);
 }
@@ -557,9 +739,9 @@ public T_BuyItemGetCreditsCallback(credits, any:pack)
 {
 	ResetPack(pack);
 	
-	new itemId = ReadPackCell(pack);
-	new accountId = ReadPackCell(pack);
-	new Store_BuyItemCallback:callback = Store_BuyItemCallback:ReadPackCell(pack);
+	new itemId = ReadPackCell(pack); 
+	new accountId = ReadPackCell(pack); 
+	new Store_BuyItemCallback:callback = Store_BuyItemCallback:ReadPackCell(pack); 
 	new Handle:plugin = Handle:ReadPackCell(pack);
 	new arg = ReadPackCell(pack);
 	
@@ -581,10 +763,6 @@ public T_BuyItemGiveCreditsCallback(accountId, any:pack)
 	ResetPack(pack);
 	
 	new itemId = ReadPackCell(pack);
-	new accountId = ReadPackCell(pack);
-	new Store_BuyItemCallback:callback = Store_BuyItemCallback:ReadPackCell(pack);
-	new Handle:plugin = Handle:ReadPackCell(pack);
-	new arg = ReadPackCell(pack);
 	
 	decl String:query[255];
 	Format(query, sizeof(query), "INSERT INTO store_users_items (user_id, item_id) SELECT store_users.id AS userId, '%d' AS item_id FROM store_users WHERE auth = %d", itemId, accountId);
@@ -600,10 +778,8 @@ public T_BuyItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
 		return;
 	}
 	
-	ResetPack(pack);
+	SetPackPosition(pack, 16);
 	
-	new itemId = ReadPackCell(pack);
-	new accountId = ReadPackCell(pack);
 	new Store_BuyItemCallback:callback = Store_BuyItemCallback:ReadPackCell(pack);
 	new Handle:plugin = Handle:ReadPackCell(pack);
 	new arg = ReadPackCell(pack);
@@ -616,6 +792,19 @@ public T_BuyItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
 	Call_Finish();	
 }
 
+/**
+* Uses an item for a player (deletes one 'copy' of the item from his inventory.)
+* 
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+* @param itemId            	The ID of the item to use.
+* @param callback		    A callback which will be called when the operation is finished.
+* @param plugin				The plugin owner of the callback.
+* @param data              	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 UseItem(accountId, itemId, Store_UseItemCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
@@ -656,6 +845,20 @@ public T_UseItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
 	Call_Finish();	
 }
 
+/**
+* Equips an item for a player in a loadout.
+* 
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+* @param itemId            	The ID of the item to equip.
+* @param loadoutId         	The loadout to equip the item in.
+* @param callback		    A callback which will be called when the operation is finished.
+* @param plugin				The plugin owner of the callback.
+* @param data              	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 EquipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
@@ -704,6 +907,20 @@ public T_EquipItemCallback(Handle:owner, Handle:hndl, const String:error[], any:
 	Call_Finish();	
 }
 
+/**
+* Unequips an item for a player in a loadout.
+* 
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+* @param itemId            	The ID of the item to unequip.
+* @param loadoutId         	The loadout to unequip the item in.
+* @param callback		    A callback which will be called when the operation is finished.
+* @param plugin				The plugin owner of the callback.
+* @param data             	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 UnequipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
@@ -747,6 +964,36 @@ public T_UnequipItemCallback(Handle:owner, Handle:hndl, const String:error[], an
 	Call_Finish();	
 }
 
+/**
+* Retrieves equipped items of a specific player in a specific type. 
+*
+* To use this method, you can provide a callback for when the items are loaded.
+* The callback will provide an array of the items' IDs. You can then loop the array,
+* and find info about each item using the Store_GetItem* methods.
+* 
+* The items returned by this method are grouped by the item's name. That means that 
+* if a player has multiple items with the same name (the unique identifier of the item, NOT its 
+* display name), then the array will only have one element of that item.
+*
+* To determine how many items the player has of the same name, the callback provides the
+* itemCount[] array.
+*
+* To deremine whether or not an item is equipped in the loadout specified, the callback
+* provides the equipped[] array.
+*
+* For a full example of a usage of this method, see the store-inventory module.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+* @param type              	The category of the items you want to retrieve.
+* @param loadoutId         	The loadout which will be used to determine whether an item is equipped or not.
+* @param callback		    A callback which will be called when the items are loaded.
+* @param plugin				The plugin owner of the callback.
+* @param data              	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 GetEquippedItemsByType(accountId, const String:type[], loadoutId, Store_GetItemsCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
@@ -793,6 +1040,22 @@ public T_GetEquippedItemsByTypeCallback(Handle:owner, Handle:hndl, const String:
 	Call_Finish();	
 }
 
+/**
+* Gives a player a specific amount of credits. 
+* 
+* You can also set the credits parameter to a negative value to take credits
+* from the player.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+* @param credits           	The amount of credits to give to the player.
+* @param callback		    A callback which will be called when the operation is finished.
+* @param plugin				The plugin owner of the callback.
+* @param data              	Extra data value to pass to the callback.
+*
+* @noreturn
+*/
 GiveCredits(accountId, credits, Store_GiveCreditsCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
@@ -830,6 +1093,20 @@ public T_GiveCreditsCallback(Handle:owner, Handle:hndl, const String:error[], an
 	Call_Finish();	
 }
 
+/**
+* Gives multiple players a specific amount of credits. 
+* 
+* You can also set the credits parameter to a negative value to take credits
+* from the players.
+*
+* As with all other store-database methods, this method is completely asynchronous.
+*
+* @param accountIds	    	The account IDs of the players, use Store_GetClientAccountID to convert a client index to account ID.
+* @param accountIdsLength  	Players count.
+* @param credits           	The amount of credits to give to the players.
+*
+* @noreturn
+*/
 GiveCreditsToUsers(accountIds[], accountIdsLength, credits)
 {
 	decl String:query[2048];
@@ -846,11 +1123,6 @@ GiveCreditsToUsers(accountIds[], accountIdsLength, credits)
 	Format(query, sizeof(query), "%s)", query);	
 	
 	SQL_TQuery(g_hSQL, T_EmptyCallback, query);	
-}
-
-GiveItem(accountId, itemId)
-{
-	
 }
 
 ConnectSQL()
@@ -1107,9 +1379,4 @@ public Native_GiveCreditsToUsers(Handle:plugin, params)
 	GetNativeArray(1, accountIds, length);
 	
 	GiveCreditsToUsers(accountIds, length, GetNativeCell(3));
-}
-
-public Native_GiveItem(Handle:plugin, params)
-{
-	GiveItem(GetNativeCell(1), GetNativeCell(2));
 }

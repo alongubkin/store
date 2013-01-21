@@ -71,7 +71,7 @@ public OnMapStart()
 	}
 }
 
-/*
+/**
  * The database is ready to use.
  */
 public Store_OnDatabaseInitialized()
@@ -157,8 +157,6 @@ public Store_OnReloadItemsPost()
 
 /**
  * Load plugin config.
- *
- * @noreturn
  */
 LoadConfig() 
 {

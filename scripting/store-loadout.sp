@@ -19,14 +19,28 @@ new Handle:g_lastClientLoadout;
 
 new bool:g_databaseInitialized = false;
 
+/**
+ * Called before plugin is loaded.
+ * 
+ * @param myself    The plugin handle.
+ * @param late      True if the plugin was loaded after map change, false on map start.
+ * @param error     Error message if load failed.
+ * @param err_max   Max length of the error message.
+ *
+ * @return          APLRes_Success for load success, APLRes_Failure or APLRes_SilentFailure otherwise.
+ */
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
+	CreateNative("Store_OpenLoadoutMenu", Native_OpenLoadoutMenu)
 	CreateNative("Store_GetClientLoadout", Native_GetClientLoadout)
 	
 	RegPluginLibrary("store-loadout");	
 	return APLRes_Success;
 }
 
+/**
+ * Plugin is loading.
+ */
 public OnPluginStart()
 {
 	LoadConfig();
@@ -43,6 +57,9 @@ public OnPluginStart()
 	AddCommandListener(Command_Say, "say_team");
 }
 
+/**
+ * The map is starting.
+ */
 public OnMapStart()
 {
 	if (g_databaseInitialized)
@@ -51,12 +68,18 @@ public OnMapStart()
 	}
 }
 
+/**
+ * The database is ready to use.
+ */
 public Store_OnDatabaseInitialized()
 {
 	g_databaseInitialized = true;
 	Store_GetLoadouts(INVALID_HANDLE, Store_GetItemsCallback:INVALID_HANDLE, false);
 }
 
+/**
+ * Called once a client's saved cookies have been loaded from the database.
+ */
 public OnClientCookiesCached(client)
 {
 	decl String:buffer[12];
@@ -65,6 +88,9 @@ public OnClientCookiesCached(client)
 	g_clientLoadout[client] = StringToInt(buffer);
 }
 
+/**
+ * Load plugin config.
+ */
 LoadConfig() 
 {
 	new Handle:kv = CreateKeyValues("root");
@@ -86,18 +112,15 @@ LoadConfig()
 	CloseHandle(kv);
 }
 
-public OnMainMenuLoadoutClick(client, const String:value[])
-{
-	OpenLoadoutMenu(client);
-}
-
-public Event_PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
-{
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (g_clientLoadout[client] == 0 || !IsLoadoutAvailableFor(client, g_clientLoadout[client]))
-		FindOptimalLoadoutFor(client);
-}
-
+/**
+ * Called when a client has typed a message to the chat.
+ *
+ * @param client		Client index.
+ * @param command		Command name, lower case.
+ * @param args          Argument count. 
+ *
+ * @return				Action to take.
+ */
 public Action:Command_Say(client, const String:command[], args)
 {
 	if (0 < client <= MaxClients && !IsClientInGame(client)) 
@@ -123,6 +146,25 @@ public Action:Command_Say(client, const String:command[], args)
 	return Plugin_Continue;
 }
 
+public OnMainMenuLoadoutClick(client, const String:value[])
+{
+	OpenLoadoutMenu(client);
+}
+
+public Event_PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
+{
+	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+	if (g_clientLoadout[client] == 0 || !IsLoadoutAvailableFor(client, g_clientLoadout[client]))
+		FindOptimalLoadoutFor(client);
+}
+
+/**
+ * Opens the loadout menu for a client.
+ *
+ * @param client			Client index.
+ *
+ * @noreturn
+ */
 OpenLoadoutMenu(client)
 {
 	new Handle:filter = CreateTrie();
@@ -266,6 +308,11 @@ public FindOptimalLoadoutCallback(ids[], count, any:serial)
 	{
 		Store_LogWarning("No loadout found.");
 	}	
+}
+
+public Native_OpenLoadoutMenu(Handle:plugin, params)
+{       
+	OpenLoadoutMenu(GetNativeCell(1));
 }
 
 public Native_GetClientLoadout(Handle:plugin, params)

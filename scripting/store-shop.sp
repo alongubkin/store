@@ -7,6 +7,16 @@
 new String:g_currencyName[64];
 new String:g_menuCommands[32][32];
 
+/**
+ * Called before plugin is loaded.
+ * 
+ * @param myself    The plugin handle.
+ * @param late      True if the plugin was loaded after map change, false on map start.
+ * @param error     Error message if load failed.
+ * @param err_max   Max length of the error message.
+ *
+ * @return          APLRes_Success for load success, APLRes_Failure or APLRes_SilentFailure otherwise.
+ */
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	CreateNative("Store_OpenShop", Native_OpenShop);
@@ -16,6 +26,9 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	return APLRes_Success;
 }
 
+/**
+ * Plugin is loading.
+ */
 public OnPluginStart()
 {
 	LoadConfig();
@@ -25,11 +38,17 @@ public OnPluginStart()
 	AddCommandListener(Command_Say, "say_team");
 }
 
+/**
+ * Configs just finished getting executed.
+ */
 public OnConfigsExecuted()
 {    
 	Store_GetCurrencyName(g_currencyName, sizeof(g_currencyName));
 }
 
+/**
+ * Load plugin config.
+ */
 LoadConfig() 
 {
 	new Handle:kv = CreateKeyValues("root");
@@ -56,6 +75,15 @@ public OnMainMenuShopClick(client, const String:value[])
 	OpenShop(client);
 }
 
+/**
+ * Called when a client has typed a message to the chat.
+ *
+ * @param client		Client index.
+ * @param command		Command name, lower case.
+ * @param args          Argument count. 
+ *
+ * @return				Action to take.
+ */
 public Action:Command_Say(client, const String:command[], args)
 {
 	if (0 < client <= MaxClients && !IsClientInGame(client)) 
@@ -81,6 +109,13 @@ public Action:Command_Say(client, const String:command[], args)
 	return Plugin_Continue;
 }
 
+/**
+* Opens the shop menu for a client.
+*
+* @param client			Client index.
+*
+* @noreturn
+*/
 OpenShop(client)
 {
 	Store_GetCategories(GetCategoriesCallback, true, GetClientSerial(client));
@@ -101,7 +136,6 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		decl String:requiredPlugin[32];
 		Store_GetCategoryPluginRequired(ids[category], requiredPlugin, sizeof(requiredPlugin));
 		
-		new typeIndex;
 		if (!Store_IsItemTypeRegistered(requiredPlugin))
 			continue;
 			
@@ -146,6 +180,14 @@ public ShopMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
 	}
 }
 
+/**
+* Opens the shop menu for a client in a specific category.
+*
+* @param client			Client index.
+* @param categoryId		The category that you want to open.
+*
+* @noreturn
+*/
 OpenShopCategory(client, categoryId)
 {
 	new Handle:pack = CreateDataPack();
@@ -228,8 +270,6 @@ public ShopCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 public OnBuyItemComplete(bool:success, any:serial)
 {
 	// TODO: Colored errors here.
-	// PrintToChat(client, message);
-	
 	new client = GetClientFromSerial(serial);
 	
 	if (client == 0)

@@ -9,6 +9,16 @@ new String:g_menuCommands[32][32];
 new Handle:g_itemTypes;
 new Handle:g_itemTypeNameIndex;
 
+/**
+ * Called before plugin is loaded.
+ * 
+ * @param myself    The plugin handle.
+ * @param late      True if the plugin was loaded after map change, false on map start.
+ * @param error     Error message if load failed.
+ * @param err_max   Max length of the error message.
+ *
+ * @return          APLRes_Success for load success, APLRes_Failure or APLRes_SilentFailure otherwise.
+ */
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	CreateNative("Store_OpenInventory", Native_OpenInventory);
@@ -23,18 +33,21 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	return APLRes_Success;
 }
 
+/**
+ * Plugin is loading.
+ */
 public OnPluginStart()
 {
 	LoadConfig();
 	Store_AddMainMenuItem("Inventory", _, _, OnMainMenuInventoryClick, 4);
 	
-	/*g_itemTypes = CreateArray();
-	g_itemTypeNameIndex = CreateTrie();*/
-	
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say_team");
 }
 
+/**
+ * Load plugin config.
+ */
 LoadConfig() 
 {
 	new Handle:kv = CreateKeyValues("root");
@@ -61,6 +74,15 @@ public OnMainMenuInventoryClick(client, const String:value[])
 	OpenInventory(client);
 }
 
+/**
+ * Called when a client has typed a message to the chat.
+ *
+ * @param client		Client index.
+ * @param command		Command name, lower case.
+ * @param args          Argument count. 
+ *
+ * @return				Action to take.
+ */
 public Action:Command_Say(client, const String:command[], args)
 {
 	if (0 < client <= MaxClients && !IsClientInGame(client)) 
@@ -86,6 +108,13 @@ public Action:Command_Say(client, const String:command[], args)
 	return Plugin_Continue;
 }
 
+/**
+* Opens the inventory menu for a client.
+*
+* @param client			Client index.
+*
+* @noreturn
+*/
 OpenInventory(client)
 {
 	Store_GetCategories(GetCategoriesCallback, true, GetClientSerial(client));
@@ -151,6 +180,14 @@ public InventoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
 	}
 }
 
+/**
+* Opens the inventory menu for a client in a specific category.
+*
+* @param client			Client index.
+* @param categoryId		The category that you want to open.
+*
+* @noreturn
+*/
 OpenInventoryCategory(client, categoryId, slot = 0)
 {
 	new Handle:pack = CreateDataPack();
@@ -336,7 +373,24 @@ public UseItemCallback(accountId, itemId, any:pack)
 	OpenInventoryCategory(client, Store_GetItemCategory(itemId));
 }
 
-RegisterItemType(const String:type[], Handle:plugin, Store_ItemUseCallback:useCallback, Store_ItemGetAttributesCallback:attrsCallback = 0)
+/**
+* Registers an item type. 
+*
+* A type of an item defines its behaviour. Once you register a type, 
+* the store will provide two callbacks for you:
+* 	- Use callback: called when a player selects your item in his inventory.
+*	- Attributes callback: called when the store loads the attributes of your item (optional).
+*
+* It is recommended that each plugin registers *one* item type. 
+*
+* @param type			Item type unique identifer - maximum 32 characters, no whitespaces, lower case only.
+* @param plugin			The plugin owner of the callback(s).
+* @param useCallback	Called when a player selects your item in his inventory.
+* @param attrsCallback	Called when the store loads the attributes of your item.
+*
+* @noreturn
+*/
+RegisterItemType(const String:type[], Handle:plugin, Store_ItemUseCallback:useCallback, Store_ItemGetAttributesCallback:attrsCallback = Store_ItemGetAttributesCallback:0)
 {
 	if (g_itemTypes == INVALID_HANDLE)
 	{
@@ -347,9 +401,9 @@ RegisterItemType(const String:type[], Handle:plugin, Store_ItemUseCallback:useCa
 		g_itemTypeNameIndex = CreateTrie();
 		
 	new Handle:itemType = CreateDataPack();
-	WritePackCell(itemType, _:plugin);
-	WritePackCell(itemType, _:useCallback);
-	WritePackCell(itemType, _:attrsCallback);
+	WritePackCell(itemType, _:plugin); // 0
+	WritePackCell(itemType, _:useCallback); // 8
+	WritePackCell(itemType, _:attrsCallback); // 16
 
 	new index = PushArrayCell(g_itemTypes, itemType);
 	SetTrieValue(g_itemTypeNameIndex, type, index);
@@ -404,7 +458,8 @@ public Native_CallItemAttrsCallback(Handle:plugin, params)
 	ResetPack(pack);
 	
 	new Handle:callbackPlugin = Handle:ReadPackCell(pack);
-	ReadPackCell(pack);
+	
+	SetPackPosition(pack, 16);
 	
 	new callback = ReadPackCell(pack);
 

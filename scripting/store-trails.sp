@@ -24,6 +24,16 @@ new bool:g_zombieReloaded;
 
 new Handle:g_trailsNameIndex = INVALID_HANDLE;
 
+/**
+ * Called before plugin is loaded.
+ * 
+ * @param myself    The plugin handle.
+ * @param late      True if the plugin was loaded after map change, false on map start.
+ * @param error     Error message if load failed.
+ * @param err_max   Max length of the error message.
+ *
+ * @return          APLRes_Success for load success, APLRes_Failure or APLRes_SilentFailure otherwise.
+ */
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	MarkNativeAsOptional("ZR_IsClientHuman"); 
@@ -32,6 +42,9 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	return APLRes_Success;
 }
 
+/**
+ * Plugin is loading.
+ */
 public OnPluginStart()
 {
 	Store_RegisterItemType("trails", Store_ItemUseCallback:OnEquip, Store_ItemGetAttributesCallback:LoadItem);
@@ -49,6 +62,9 @@ public OnPluginStart()
 	}
 }
 
+/** 
+ * Called when a new API library is loaded.
+ */
 public OnLibraryAdded(const String:name[])
 {
 	if (StrEqual(name, "zombiereloaded"))
@@ -57,6 +73,9 @@ public OnLibraryAdded(const String:name[])
 	}
 }
 
+/** 
+ * Called when an API library is removed.
+ */
 public OnLibraryRemoved(const String:name[])
 {
 	if (StrEqual(name, "zombiereloaded"))
@@ -65,14 +84,16 @@ public OnLibraryRemoved(const String:name[])
 	}
 }
 
+/**
+ * The map is ending.
+ */
 public OnMapEnd()
 {
 	for (new client = 0; client < MaxClients; client++)
 	{
 		if (IsValidEntity(g_SpriteModel[client]))
-		{
 			RemoveEdict(g_SpriteModel[client]);
-		}
+		
 		g_SpriteModel[client] = -1;
 	}
 }
@@ -99,7 +120,7 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	
 	CloseHandle(json);
 
-	if(strcmp(g_trails[g_trailCount][Material], "") != 0 && (FileExists(g_trails[g_trailCount][Material]) || FileExists(g_trails[g_trailCount][Material], true)))
+	if (strcmp(g_trails[g_trailCount][Material], "") != 0 && (FileExists(g_trails[g_trailCount][Material]) || FileExists(g_trails[g_trailCount][Material], true)))
 	{
 		decl String:_sBuffer[PLATFORM_MAX_PATH];
 		strcopy(_sBuffer, sizeof(_sBuffer), g_trails[g_trailCount][Material]);
@@ -227,6 +248,7 @@ public Action:GiveTrail(Handle:timer, any:client)
 		return Plugin_Continue;
 		
 	Store_GetEquippedItemsByType(Store_GetClientAccountID(client), "trails", Store_GetClientLoadout(client), OnGetPlayerTrail, GetClientSerial(client));
+	return Plugin_Handled;
 }
 
 public OnGetPlayerTrail(ids[], count, any:serial)

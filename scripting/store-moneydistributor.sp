@@ -1,6 +1,9 @@
 #include <sourcemod>
 #include <store>
 
+/**
+ * Called when all plugins are loaded.
+ */
 public OnAllPluginsLoaded() 
 {
 	CreateTimer(180.0, ForgivePoints, _, TIMER_REPEAT);

@@ -1,7 +1,13 @@
+#if defined _store_logging_included
+  #endinput
+#endif
+#define _store_logging_included
+
 /**
  * Logging levels
  */
-enum Store_LogLevel {
+enum Store_LogLevel 
+{
 	Store_LogLevelNone = 0,  /**< Logging disabled */
 	Store_LogLevelError,     /**< Log only errors */
 	Store_LogLevelWarning,   /**< Log errors and warnings */
@@ -73,8 +79,6 @@ native Store_LogInfo(const String:format[] , any:...);
  */
 native Store_LogDebug(const String:format[] , any:...);
 
-
-
 /**
  * Logs a particularly low-level trace message to the Store log file. Trace logs are low-level
  * messages primarily used by developers to trace the execution of their plugins. They typically
@@ -87,7 +91,8 @@ native Store_LogDebug(const String:format[] , any:...);
  */
 native Store_LogTrace(const String:format[] , any:...);
 
-public SharedPlugin:__pl_store_logging = {
+public SharedPlugin:__pl_store_logging = 
+{
 	name = "store-logging",
 	file = "store-logging.smx",
 #if defined REQUIRE_PLUGIN
@@ -98,7 +103,8 @@ public SharedPlugin:__pl_store_logging = {
 };
 
 #if defined REQUIRE_PLUGIN
-public __pl_store_logging_SetNTVOptional() {
+public __pl_store_logging_SetNTVOptional() 
+{
 	MarkNativeAsOptional("Store_GetLogLevel");
 	MarkNativeAsOptional("Store_Log");
 	MarkNativeAsOptional("Store_LogError");

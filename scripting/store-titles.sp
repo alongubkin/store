@@ -18,11 +18,24 @@ new g_clientTitles[MAXPLAYERS+1];
 
 new Handle:g_titlesNameIndex = INVALID_HANDLE;
 
+/**
+ * Plugin is loading.
+ */
 public OnPluginStart()
 {
 	Store_RegisterItemType("title", Store_ItemUseCallback:OnEquip, Store_ItemGetAttributesCallback:LoadItem);
 }
 
+/**
+ * Called once a client is authorized and fully in-game, and 
+ * after all post-connection authorizations have been performed.  
+ *
+ * This callback is gauranteed to occur on all clients, and always 
+ * after each OnClientPutInServer() call.
+ *
+ * @param client		Client index.
+ * @noreturn
+ */
 public OnClientPostAdminCheck(client)
 {
 	g_clientTitles[client] = -1;
@@ -38,7 +51,7 @@ public Store_OnReloadItems()
 	g_titleCount = 0;
 }
 
-public OnGetPlayerTitle(ids[], count, any:serial)
+public OnGetPlayerTitle(titles[], count, any:serial)
 {
 	new client = GetClientFromSerial(serial);
 	
@@ -48,7 +61,7 @@ public OnGetPlayerTitle(ids[], count, any:serial)
 	for (new index = 0; index < count; index++)
 	{
 		decl String:itemName[32];
-		Store_GetItemName(ids[index], itemName, sizeof(itemName));
+		Store_GetItemName(titles[index], itemName, sizeof(itemName));
 		
 		new title = -1;
 		if (!GetTrieValue(g_titlesNameIndex, itemName, title))

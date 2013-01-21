@@ -31,7 +31,7 @@ forward Store_OnReloadItemsPost();
 * As with all other store-database methods, this method is completely asynchronous.
 *
 * @param accountId		The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
-* @param name          The name of the player.
+* @param name          	The name of the player.
 *
 * @noreturn
 */
@@ -92,9 +92,9 @@ native Store_RegisterClient(client);
 * As with all other store-database methods, this method is completely asynchronous.
 *
 * @param callback		    A callback which will be called when the categories are loaded.
-* @param loadFromCache     Whether to load categories from cache. If false, the method will 
-*                          query the database and rebuild its cache.
-* @param data              Extra data value to pass to the callback.
+* @param loadFromCache     	Whether to load categories from cache. If false, the method will 
+*                          	query the database and rebuild its cache.
+* @param data              	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -179,10 +179,10 @@ native Store_GetCategoryPluginRequired(id, String:pluginRequired[], maxlength);
 * As with all other store-database methods, this method is completely asynchronous.
 *
 * @param callback		    A callback which will be called when the items are loaded.
-* @param categoryId        Filter the items returned by a category ID.
-* @param loadFromCache     Whether to load items from cache. If false, the method will 
-*                          query the database and rebuild its cache.
-* @param data              Extra data value to pass to the callback.
+* @param categoryId        	Filter the items returned by a category ID.
+* @param loadFromCache     	Whether to load items from cache. If false, the method will 
+*                          	query the database and rebuild its cache.
+* @param data              	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -338,11 +338,11 @@ native Store_GetItemCategory(id);
 *
 * As with all other store-database methods, this method is completely asynchronous.
 *
-* @param filter            A trie which will be used to filter the loadouts returned.
-* @param callback		    A callback which will be called when the items are loaded.
-* @param loadFromCache     Whether to load items from cache. If false, the method will 
-*                          query the database and rebuild its cache.
-* @param data              Extra data value to pass to the callback.
+* @param filter            	A trie which will be used to filter the loadouts returned.
+* @param callback		   	A callback which will be called when the items are loaded.
+* @param loadFromCache     	Whether to load items from cache. If false, the method will 
+*                          	query the database and rebuild its cache.
+* @param data              	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -444,10 +444,10 @@ native Store_GetLoadoutTeam(id);
 * As with all other store-database methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
-* @param categoryId        The category of the items you want to retrieve.
-* @param loadoutId         The loadout which will be used to determine whether an item is equipped or not.
+* @param categoryId        	The category of the items you want to retrieve.
+* @param loadoutId         	The loadout which will be used to determine whether an item is equipped or not.
 * @param callback		    A callback which will be called when the items are loaded.
-* @param data              Extra data value to pass to the callback.
+* @param data              	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -460,7 +460,7 @@ native Store_GetUserItems(accountId, categoryId, loadoutId, Store_GetUserItemsCa
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param callback		    A callback which will be called when the credits amount is loaded.
-* @param data              Extra data value to pass to the callback.
+* @param data              	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -475,9 +475,9 @@ native Store_GetCredits(accountId, Store_GetCreditsCallback:callback, any:data =
 * As with all other store-database methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
-* @param credits           The amount of credits to give to the player.
+* @param credits           	The amount of credits to give to the player.
 * @param callback		    A callback which will be called when the operation is finished.
-* @param data              Extra data value to pass to the callback.
+* @param data              	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -491,9 +491,9 @@ native Store_GiveCredits(accountId, credits, Store_GiveCreditsCallback:callback,
 *
 * As with all other store-database methods, this method is completely asynchronous.
 *
-* @param accountIds	    The account IDs of the players, use Store_GetClientAccountID to convert a client index to account ID.
-* @param accountIdsLength  Players count.
-* @param credits           The amount of credits to give to the players.
+* @param accountIds	    	The account IDs of the players, use Store_GetClientAccountID to convert a client index to account ID.
+* @param accountIdsLength  	Players count.
+* @param credits           	The amount of credits to give to the players.
 *
 * @noreturn
 */
@@ -509,9 +509,9 @@ native Store_GiveCreditsToUsers(accountIds[], accountIdsLength, credits);
 * As with all other store-database methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
-* @param itemId            The ID of the item to buy.
+* @param itemId            	The ID of the item to buy.
 * @param callback		    A callback which will be called when the operation is finished.
-* @param data              Extra data value to pass to the callback.
+* @param data              	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -523,9 +523,9 @@ native Store_BuyItem(accountId, itemId, Store_BuyItemCallback:callback, any:data
 * As with all other store-database methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
-* @param itemId            The ID of the item to use.
+* @param itemId            	The ID of the item to use.
 * @param callback		    A callback which will be called when the operation is finished.
-* @param data              Extra data value to pass to the callback.
+* @param data              	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -537,10 +537,10 @@ native Store_UseItem(accountId, itemId, Store_UseItemCallback:callback, any:data
 * As with all other store-database methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
-* @param itemId            The ID of the item to equip.
-* @param loadoutId         The loadout to equip the item in.
+* @param itemId            	The ID of the item to equip.
+* @param loadoutId         	The loadout to equip the item in.
 * @param callback		    A callback which will be called when the operation is finished.
-* @param data              Extra data value to pass to the callback.
+* @param data              	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -552,10 +552,10 @@ native Store_EquipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:cal
 * As with all other store-database methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
-* @param itemId            The ID of the item to unequip.
-* @param loadoutId         The loadout to unequip the item in.
+* @param itemId            	The ID of the item to unequip.
+* @param loadoutId         	The loadout to unequip the item in.
 * @param callback		    A callback which will be called when the operation is finished.
-* @param data              Extra data value to pass to the callback.
+* @param data             	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -603,10 +603,10 @@ native Store_UnequipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:c
 * As with all other store-database methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
-* @param type              The category of the items you want to retrieve.
-* @param loadoutId         The loadout which will be used to determine whether an item is equipped or not.
+* @param type              	The category of the items you want to retrieve.
+* @param loadoutId         	The loadout which will be used to determine whether an item is equipped or not.
 * @param callback		    A callback which will be called when the items are loaded.
-* @param data              Extra data value to pass to the callback.
+* @param data              	Extra data value to pass to the callback.
 *
 * @noreturn
 */
@@ -664,7 +664,6 @@ public __pl_store_database_SetNTVOptional()
 	MarkNativeAsOptional("Store_GetCredits");
 	
 	MarkNativeAsOptional("Store_GiveCredits");
-	MarkNativeAsOptional("Store_GiveItem");
 	
 	MarkNativeAsOptional("Store_BuyItem");
 	MarkNativeAsOptional("Store_UseItem");
