@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS `store_items` (
   `type` varchar(32) NOT NULL,
   `loadout_slot` varchar(32) default NULL,
   `price` int(11) NOT NULL,
-  `category_id` int(11) NOT NULL
+  `category_id` int(11) NOT NULL,
+  `attrs` varchar(1024) default NULL, 
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=150 ;
 
@@ -42,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `store_loadouts` (
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
 
-INSERT INTO `loadouts` (`displayName`, `game`, `class`, `team`) VALUES
+INSERT INTO `store_loadouts` (`display_name`, `game`, `class`, `team`) VALUES
 ('A', NULL, NULL, NULL),
 ('B', NULL, NULL, NULL),
 ('C', NULL, NULL, NULL);
