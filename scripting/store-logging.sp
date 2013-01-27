@@ -1,5 +1,6 @@
 #pragma semicolon 1
 
+#include <store/store-core>
 #include <store/store-logging>
 
 #define PLUGIN_NAME_RESERVED_LENGTH 33
@@ -25,6 +26,15 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
     
 	return APLRes_Success;
 }
+
+public Plugin:myinfo =
+{
+	name        = "[Store] Logging",
+	author      = "alongub",
+	description = "Logging component for [Store]",
+	version     = PL_VERSION,
+	url         = "https://github.com/alongubkin/store"
+};
 
 public OnPluginStart() 
 {

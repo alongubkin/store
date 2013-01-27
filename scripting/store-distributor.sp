@@ -6,6 +6,15 @@
 new Float:g_timeInSeconds;
 new g_creditsPerTick;
 
+public Plugin:myinfo =
+{
+	name        = "[Store] Distributor",
+	author      = "alongub",
+	description = "Distributor component for [Store]",
+	version     = PL_VERSION,
+	url         = "https://github.com/alongubkin/store"
+};
+
 /**
  * Plugin is loading.
  */

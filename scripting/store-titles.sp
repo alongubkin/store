@@ -19,6 +19,15 @@ new g_clientTitles[MAXPLAYERS+1];
 
 new Handle:g_titlesNameIndex = INVALID_HANDLE;
 
+public Plugin:myinfo =
+{
+	name        = "[Store] Titles",
+	author      = "alongub",
+	description = "Titles component for [Store]",
+	version     = PL_VERSION,
+	url         = "https://github.com/alongubkin/store"
+};
+
 /**
  * Plugin is loading.
  */

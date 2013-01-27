@@ -43,6 +43,15 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	return APLRes_Success;
 }
 
+public Plugin:myinfo =
+{
+	name        = "[Store] Trails",
+	author      = "alongub",
+	description = "Trails component for [Store]",
+	version     = PL_VERSION,
+	url         = "https://github.com/alongubkin/store"
+};
+
 /**
  * Plugin is loading.
  */

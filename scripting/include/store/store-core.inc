@@ -3,6 +3,8 @@
 #endif
 #define _store_core_included
 
+#define PL_VERSION "1.0.0-alpha"
+
 funcenum Store_MenuItemClickCallback
 {
 	public(client, const String:value[])

@@ -1,6 +1,7 @@
 #pragma semicolon 1
 
 #include <sourcemod>
+#include <store/store-core>
 #include <store/store-logging>
 #include <store/store-backend>
 
@@ -46,6 +47,15 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	RegPluginLibrary("store");	
 	return APLRes_Success;
 }
+
+public Plugin:myinfo =
+{
+	name        = "[Store] Core",
+	author      = "alongub",
+	description = "Core component for [Store]",
+	version     = PL_VERSION,
+	url         = "https://github.com/alongubkin/store"
+};
 
 /**
  * Plugin is loading.
