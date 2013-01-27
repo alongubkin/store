@@ -77,7 +77,7 @@ public OnPluginStart()
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "LookupAttachment");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
-	g_hLookupAttachment = EndPrepSDKCall()	
+	g_hLookupAttachment = EndPrepSDKCall();
 }
 
 public OnLibraryAdded(const String:name[])
@@ -243,7 +243,7 @@ public OnGetPlayerEquipment(ids[], count, any:serial)
 		if (loadoutSlotIndex == -1)
 			loadoutSlotIndex = PushArrayString(g_loadoutSlotList, loadoutSlot);
 		
-		Unequip(client, loadoutSlotIndex)
+		Unequip(client, loadoutSlotIndex);
 		
 		if (!g_zombieReloaded || (g_zombieReloaded && ZR_IsClientHuman(client)))
 			Equip(client, loadoutSlotIndex, itemName);

@@ -1,0 +1,355 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+		]
+	},
+	"buffers":
+	[
+		{
+			"contents": "#pragma semicolon 1\n\n#include <sourcemod>\n#include <store/store-logging>\n#include <store/store-database>\n\n#define MAX_MENU_ITEMS	32\n\nenum MenuItem\n{\n	String:MenuItemDisplayName[32],\n	String:MenuItemDescription[128],\n	String:MenuItemValue[64],\n	Handle:MenuItemPlugin,\n	Store_MenuItemClickCallback:MenuItemCallback,\n	MenuItemOrder\n}\n\nnew String:g_currencyName[64];\nnew String:g_menuCommands[32][32];\n\nnew g_menuItems[MAX_MENU_ITEMS + 1][MenuItem];\nnew g_menuItemCount = 0;\n\nnew bool:g_databaseInitialized = false;\nnew bool:g_allPluginsLoaded = false;\n\nnew bool:g_reloadItemsRequested = false;\n\n/**\n * Called before plugin is loaded.\n * \n * @param myself    The plugin handle.\n * @param late      True if the plugin was loaded after map change, false on map start.\n * @param error     Error message if load failed.\n * @param err_max   Max length of the error message.\n *\n * @return          APLRes_Success for load success, APLRes_Failure or APLRes_SilentFailure otherwise.\n */\npublic APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)\n{\n	CreateNative(\"Store_OpenMainMenu\", Native_OpenMainMenu);\n	CreateNative(\"Store_AddMainMenuItem\", Native_AddMainMenuItem);\n	CreateNative(\"Store_GetCurrencyName\", Native_GetCurrencyName);\n	\n	RegPluginLibrary(\"store\");	\n	return APLRes_Success;\n}\n\n/**\n * Plugin is loading.\n */\npublic OnPluginStart()\n{\n	LoadConfig();\n	\n	AddCommandListener(Command_Say, \"say\");\n	AddCommandListener(Command_Say, \"say_team\");\n	\n	RegAdminCmd(\"store_reloaditems\", Command_ReloadItems, ADMFLAG_RCON, \"Reloads store item cache.\");\n\n	g_allPluginsLoaded = false;\n}\n\n/**\n * The map is starting.\n */\npublic OnMapStart()\n{\n	if (g_databaseInitialized)\n	{\n		RefreshItemCache();\n	}\n}\n\n/**\n * The database is ready to use.\n */\npublic Store_OnDatabaseInitialized()\n{\n	g_databaseInitialized = true;\n	RefreshItemCache();\n}\n\n/**\n * Configs just finished getting executed.\n */\npublic OnConfigsExecuted()\n{\n	SortMainMenuItems();\n	g_allPluginsLoaded = true;\n}\n\n/**\n * Called once a client is authorized and fully in-game, and \n * after all post-connection authorizations have been performed.  \n *\n * This callback is gauranteed to occur on all clients, and always \n * after each OnClientPutInServer() call.\n *\n * @param client		Client index.\n * @noreturn\n */\npublic OnClientPostAdminCheck(client)\n{	\n	Store_RegisterClient(client);\n}\n\n/**\n * Called when a client has typed a message to the chat.\n *\n * @param client		Client index.\n * @param command		Command name, lower case.\n * @param args          Argument count. \n *\n * @return				Action to take.\n */\npublic Action:Command_Say(client, const String:command[], args)\n{\n	if (0 < client <= MaxClients && !IsClientInGame(client)) \n		return Plugin_Continue;   \n	a\n	decl String:text[256];\n	GetCmdArgString(text, sizeof(text));\n	StripQuotes(text);\n	\n	for (new index = 0; index < sizeof(g_menuCommands); index++) \n	{\n		if (StrEqual(g_menuCommands[index], text))\n		{\n			OpenMainMenu(client);\n			\n			if (command[0] == 0x2F)\n				return Plugin_Handled;\n			\n			return Plugin_Continue;\n		}        \n	}\n	\n	return Plugin_Continue;\n}\n\npublic Action:Command_ReloadItems(client, args)\n{\n	g_reloadItemsRequested = true;\n	RefreshItemCache();\n	\n	return Plugin_Handled;\n}\n\npublic Store_OnReloadItemsPost() \n{\n	if (g_reloadItemsRequested)\n	{\n		PrintToChatAll(\"Items reloaded successfully.\");\n		g_reloadItemsRequested = false;\n	}\n}\n\n/**\n * Load plugin config.\n */\nLoadConfig() \n{\n	new Handle:kv = CreateKeyValues(\"root\");\n	\n	decl String:path[100];\n	BuildPath(Path_SM, path, sizeof(path), \"configs/store/core.cfg\");\n	\n	if (!FileToKeyValues(kv, path)) \n	{\n		CloseHandle(kv);\n		SetFailState(\"Can't read config file %s\", path);\n	}\n\n	decl String:menuCommands[255];\n	KvGetString(kv, \"mainmenu_commands\", menuCommands, sizeof(menuCommands));\n\n	ExplodeString(menuCommands, \" \", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));\n	\n	KvGetString(kv, \"currency_name\", g_currencyName, sizeof(g_currencyName));\n	\n	CloseHandle(kv);\n}\n\n/**\n * Query the database for items and categories, so that\n * the store-database module will have a cache of them.\n *\n * @noreturn\n */\nRefreshItemCache()\n{\n	Store_GetCategories(Store_GetItemsCallback:INVALID_HANDLE, false);\n	Store_GetItems(Store_GetItemsCallback:INVALID_HANDLE, -1, false);\n}\n\n/**\n * Adds an item to the main menu. \n *\n * @param displayName		The text of the item, as it is shown to the player.\n * @param description		A short description of the item.\n * @param value				Item information string that will be sent to the callback.\n * @param plugin			The plugin owner of the callback.\n * @param callback			Callback to the item click event.\n * @param order				Preferred position of the item in the menu.\n *\n * @noreturn\n */ \nAddMainMenuItem(const String:displayName[], const String:description[] = \"\", const String:value[] = \"\", Handle:plugin = INVALID_HANDLE, Store_MenuItemClickCallback:callback, order = 32)\n{\n	new item;\n	\n	for (; item <= g_menuItemCount; item++)\n	{\n		if (item == g_menuItemCount || StrEqual(g_menuItems[item][MenuItemDisplayName], displayName))\n			break;\n	}\n	\n	strcopy(g_menuItems[item][MenuItemDisplayName], 32, displayName);\n	strcopy(g_menuItems[item][MenuItemDescription], 128, description);\n	strcopy(g_menuItems[item][MenuItemValue], 64, value);   \n	g_menuItems[item][MenuItemPlugin] = plugin;\n	g_menuItems[item][MenuItemCallback] = callback;\n	g_menuItems[item][MenuItemOrder] = order;\n\n	if (item == g_menuItemCount)\n		g_menuItemCount++;\n	\n	if (g_allPluginsLoaded)\n		SortMainMenuItems();\n}\n\n/**\n * Sort menu items by their preffered order.\n *\n * @noreturn\n */ \nSortMainMenuItems()\n{\n	new sortIndex = sizeof(g_menuItems) - 1;\n	\n	for (new x = 0; x < g_menuItemCount; x++) \n	{\n		for (new y = 0; y < g_menuItemCount; y++) \n		{\n			if (g_menuItems[x][MenuItemOrder] < g_menuItems[y][MenuItemOrder])\n			{\n				g_menuItems[sortIndex] = g_menuItems[x];\n				g_menuItems[x] = g_menuItems[y];\n				g_menuItems[y] = g_menuItems[sortIndex];\n			}\n		}\n	}\n}\n\n/**\n * Opens the main menu for a player.\n *\n * @param client		Client Index\n *\n * @noreturn\n */\nOpenMainMenu(client)\n{	\n	Store_GetCredits(Store_GetClientAccountID(client), OnGetCreditsComplete, GetClientSerial(client));\n}\n\npublic OnGetCreditsComplete(credits, any:serial)\n{\n	new client = GetClientFromSerial(serial);\n	\n	if (client == 0)\n		return;\n		\n	new Handle:menu = CreateMenu(MainMenuSelectHandle);\n	SetMenuTitle(menu, \"You have %d %s.\\n \\n\", credits, g_currencyName);\n	\n	for (new item = 0; item < g_menuItemCount; item++)\n	{\n		decl String:text[255];  \n		Format(text, sizeof(text), \"%d %s\\n%s\", item, g_menuItems[item][MenuItemDisplayName], g_menuItems[item][MenuItemDescription]);\n				\n		AddMenuItem(menu, g_menuItems[item][MenuItemValue], g_menuItems[item][MenuItemDisplayName]);\n	}\n	\n	SetMenuExitButton(menu, true);\n	DisplayMenu(menu, client, 30);\n}\n\npublic MainMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)\n{\n	switch (action)\n	{\n		case MenuAction_Select:\n		{\n			Call_StartFunction(g_menuItems[slot][MenuItemPlugin], Function:g_menuItems[slot][MenuItemCallback]);\n			Call_PushCell(client);\n			Call_PushString(g_menuItems[slot][MenuItemValue]);\n			Call_Finish();\n		}\n		case MenuAction_End:\n		{\n			CloseHandle(menu);\n		}\n	}\n}\n\npublic Native_OpenMainMenu(Handle:plugin, params)\n{       \n	OpenMainMenu(GetNativeCell(1));\n}\n\npublic Native_AddMainMenuItem(Handle:plugin, params)\n{\n	decl String:displayName[32];\n	GetNativeString(1, displayName, sizeof(displayName));\n	\n	decl String:description[128];\n	GetNativeString(2, description, sizeof(description));\n	\n	decl String:value[64];\n	GetNativeString(3, value, sizeof(value));\n	\n	AddMainMenuItem(displayName, description, value, plugin, Store_MenuItemClickCallback:GetNativeCell(4), GetNativeCell(5));\n}\n\npublic Native_GetCurrencyName(Handle:plugin, params)\n{       \n	SetNativeString(1, g_currencyName, GetNativeCell(2));\n}",
+			"file": "scripting/store-core.sp",
+			"file_size": 7839,
+			"file_write_time": 130037842868991376,
+			"settings":
+			{
+				"buffer_size": 7840,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripting/store-database.sp",
+			"settings":
+			{
+				"buffer_size": 43764,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripting/store-equipment.sp",
+			"settings":
+			{
+				"buffer_size": 12033,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripting/store-inventory.sp",
+			"settings":
+			{
+				"buffer_size": 12065,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripting/store-loadout.sp",
+			"settings":
+			{
+				"buffer_size": 7970,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/sublime-sourcepawn-master/SPCompletions.sublime-settings",
+			"settings":
+			{
+				"buffer_size": 119,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Users/Alon/Documents/GitHub/store/store.sublime-project",
+		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/User/Preferences.sublime-settings",
+		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/SourcePawn/SourcePawn.sublime-build",
+		"/C/Users/Alon/AppData/Local/Temp/7zOAF29.tmp/st2generator.sp",
+		"/C/Users/Alon/Desktop/st2generator.sp",
+		"/C/Users/Alon/AppData/Local/Temp/7zE90A1.tmp/st2generator.sp"
+	],
+	"find":
+	{
+		"height": 0.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "scripting/store-core.sp",
+					"settings":
+					{
+						"buffer_size": 7840,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2532,
+								2532
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1335.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "scripting/store-database.sp",
+					"settings":
+					{
+						"buffer_size": 43764,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								34678,
+								34678
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 15030.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "scripting/store-equipment.sp",
+					"settings":
+					{
+						"buffer_size": 12033,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6443,
+								6443
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 3450.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "scripting/store-inventory.sp",
+					"settings":
+					{
+						"buffer_size": 12065,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								377,
+								377
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 135.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "scripting/store-loadout.sp",
+					"settings":
+					{
+						"buffer_size": 7970,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2018,
+								2018
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 660.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/sublime-sourcepawn-master/SPCompletions.sublime-settings",
+					"settings":
+					{
+						"buffer_size": 119,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								114,
+								114
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 98.0
+	},
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true
+}

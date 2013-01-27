@@ -146,7 +146,7 @@ Register(accountId, const String:name[] = "")
 	Format(query, sizeof(query), "INSERT INTO store_users (auth, name, credits) VALUES (%d, '%s', 0) ON DUPLICATE KEY UPDATE name = '%s';", accountId, safeName, safeName);
 
 	Store_LogError(query);
-	SQL_TQuery(g_hSQL, T_EmptyCallback, query_, DBPrio_High);
+	SQL_TQuery(g_hSQL, T_EmptyCallback, query, _, DBPrio_High);
 }
 
 /**
@@ -1025,7 +1025,7 @@ public T_GetEquippedItemsByTypeCallback(Handle:owner, Handle:hndl, const String:
 	new index = 0;
 	while (SQL_FetchRow(hndl))
 	{
-		ids[index] = SQL_FetchInt(hndl, 0)
+		ids[index] = SQL_FetchInt(hndl, 0);
 		index++;
 	}
 	

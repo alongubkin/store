@@ -33,8 +33,8 @@ new bool:g_databaseInitialized = false;
  */
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
-	CreateNative("Store_OpenLoadoutMenu", Native_OpenLoadoutMenu)
-	CreateNative("Store_GetClientLoadout", Native_GetClientLoadout)
+	CreateNative("Store_OpenLoadoutMenu", Native_OpenLoadoutMenu);
+	CreateNative("Store_GetClientLoadout", Native_GetClientLoadout);
 	
 	RegPluginLibrary("store-loadout");	
 	return APLRes_Success;
@@ -129,7 +129,7 @@ public Action:Command_Say(client, const String:command[], args)
 		return Plugin_Continue;   
 	
 	decl String:text[256];
-	GetCmdArgString(text, sizeof(text))
+	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
 	
 	for (new index = 0; index < sizeof(g_menuCommands); index++) 
@@ -181,7 +181,7 @@ OpenLoadoutMenu(client)
 		SetTrieString(filter, "class", className);
 	}
 	
-	Store_GetLoadouts(filter, GetLoadoutsCallback, true, client)
+	Store_GetLoadouts(filter, GetLoadoutsCallback, true, client);
 }
 
 public GetLoadoutsCallback(ids[], count, any:client)
