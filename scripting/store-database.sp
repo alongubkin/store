@@ -213,8 +213,11 @@ public T_EmptyCallback(Handle:owner, Handle:hndl, const String:error[], any:data
 */
 GetCategories(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, Handle:plugin = INVALID_HANDLE, bool:loadFromCache = true, any:data = 0)
 {
-	if (loadFromCache && g_categoryCount != -1 && callback != Store_GetItemsCallback:INVALID_HANDLE)
+	if (loadFromCache && g_categoryCount != -1)
 	{
+		if (callback == Store_GetItemsCallback:INVALID_HANDLE)
+			return;
+
 		new categories[g_categoryCount];
 		new count = 0;
 		
@@ -314,9 +317,12 @@ GetCategoryIndex(id)
 * @noreturn
 */
 GetItems(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, Handle:plugin = INVALID_HANDLE, categoryId = -1, bool:loadFromCache = true, any:data = 0)
-{	
-	if (loadFromCache && g_itemCount != -1 && callback != Store_GetItemsCallback:INVALID_HANDLE)
+{
+	if (loadFromCache && g_itemCount != -1)
 	{
+		if (callback == Store_GetItemsCallback:INVALID_HANDLE)
+			return;
+
 		new items[g_itemCount];
 		new count = 0;
 		
@@ -446,8 +452,11 @@ GetItemIndex(id)
 */
 GetLoadouts(Handle:filter, Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, Handle:plugin = INVALID_HANDLE, bool:loadFromCache = true, any:data = 0)
 {
-	if (loadFromCache && g_loadoutCount != -1 && callback != Store_GetItemsCallback:INVALID_HANDLE)
+	if (loadFromCache && g_loadoutCount != -1)
 	{
+		if (callback == Store_GetItemsCallback:INVALID_HANDLE)
+			return;
+
 		new loadouts[g_loadoutCount];
 		new count = 0;
 		
