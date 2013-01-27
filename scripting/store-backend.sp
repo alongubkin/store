@@ -143,8 +143,7 @@ Register(accountId, const String:name[] = "")
 	
 	decl String:query[255];
 	Format(query, sizeof(query), "INSERT INTO store_users (auth, name, credits) VALUES (%d, '%s', 0) ON DUPLICATE KEY UPDATE name = '%s';", accountId, safeName, safeName);
-
-	Store_LogError(query);
+	
 	SQL_TQuery(g_hSQL, T_EmptyCallback, query, _, DBPrio_High);
 }
 
