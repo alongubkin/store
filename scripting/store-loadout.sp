@@ -46,7 +46,14 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 public OnPluginStart()
 {
 	LoadConfig();
-	Store_AddMainMenuItem("Loadout", _, _, OnMainMenuLoadoutClick);
+
+	LoadTranslations("common.phrases");
+	LoadTranslations("store.phrases");
+
+	decl String:menuItemName[32];
+	Format(menuItemName, sizeof(menuItemName), "%t", "Loadout");
+
+	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuLoadoutClick);
 	
 	g_clientLoadoutChangedForward = CreateGlobalForward("Store_OnClientLoadoutChanged", ET_Event, Param_Cell);
 	g_lastClientLoadout = RegClientCookie("lastClientLoadout", "Client loadout", CookieAccess_Protected);

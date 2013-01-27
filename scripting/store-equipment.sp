@@ -74,6 +74,9 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
  */
 public OnPluginStart()
 {
+	LoadTranslations("common.phrases");
+	LoadTranslations("store.phrases");
+
 	Store_RegisterItemType("equipment", Store_ItemUseCallback:OnEquip, Store_ItemGetAttributesCallback:LoadItem);
 	
 	g_loadoutSlotList = CreateArray(ByteCountToCells(32));
@@ -309,13 +312,13 @@ public bool:OnEquip(client, itemId, bool:equipped)
 	
 	if (!IsPlayerAlive(client))
 	{
-		PrintToChat(client, "You must be alive to equip this item.");
+		PrintToChat(client, "%t", "Must be alive to equip");
 		return false;
 	}
 	
 	if (g_zombieReloaded && !ZR_IsClientHuman(client))
 	{
-		PrintToChat(client, "You must be a human to equip this item.");
+		PrintToChat(client, "%t", "Must be human to equip");	
 		return false;
 	}
 	
@@ -338,7 +341,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
-		PrintToChat(client, "You have unequipped the %s.", displayName);
+		PrintToChat(client, "%t", "Unequipped item", displayName);
 		return true;
 	}
 	else
@@ -349,7 +352,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
-		PrintToChat(client, "You have equipped the %s.", displayName);
+		PrintToChat(client, "%t", "Equipped item", displayName);
 		return true;
 	}
 }
@@ -361,13 +364,13 @@ bool:Equip(client, loadoutSlot, const String:name[])
 	new equipment = -1;
 	if (!GetTrieValue(g_equipmentNameIndex, name, equipment))
 	{
-		PrintToChat(client, "No equipment attributes found.");
+		PrintToChat(client, "%t", "No item attributes");
 		return false;
 	}
 	
 	if (!LookupAttachment(client, g_equipment[equipment][EquipmentAttachment])) 
 	{
-		PrintToChat(client, "You player model doesn't support equipment. %s", g_equipment[equipment][EquipmentAttachment]);
+		PrintToChat(client, "%t", "Player model unsupported");
 		return false;
 	}
 	

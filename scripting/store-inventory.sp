@@ -41,8 +41,15 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 public OnPluginStart()
 {
 	LoadConfig();
-	Store_AddMainMenuItem("Inventory", _, _, OnMainMenuInventoryClick, 4);
-	
+
+	LoadTranslations("common.phrases");
+	LoadTranslations("store.phrases");
+
+	decl String:menuItemName[32];
+	Format(menuItemName, sizeof(menuItemName), "%t", "Inventory");
+
+	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuInventoryClick, 4);
+
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say_team");
 }
@@ -130,7 +137,7 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		return;
 	
 	new Handle:menu = CreateMenu(InventoryMenuSelectHandle);
-	SetMenuTitle(menu, "Inventory\n \n");
+	SetMenuTitle(menu, "%T\n \n", "Inventory", client);
 		
 	for (new category = 0; category < count; category++)
 	{
@@ -217,7 +224,7 @@ public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutI
 		
 	if (count == 0)
 	{
-		PrintToChat(client, "You don't have any items in this category.");
+		PrintToChat(client, "%t", "No items in this category");
 		OpenInventory(client);
 		
 		return;
@@ -227,7 +234,7 @@ public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutI
 	Store_GetCategoryDisplayName(categoryId, categoryDisplayName, sizeof(categoryDisplayName));
 		
 	new Handle:menu = CreateMenu(InventoryCategoryMenuSelectHandle);
-	SetMenuTitle(menu, "Inventory - %s\n \n", categoryDisplayName);
+	SetMenuTitle(menu, "%T - %s\n \n", "Inventory", client, categoryDisplayName);
 	
 	for (new item = 0; item < count; item++)
 	{
@@ -287,7 +294,7 @@ public InventoryCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client,
 			
 			if (itemTypeIndex == -1)
 			{
-				PrintToChat(client, "The item type '%s' wasn't registered by any plugin.", type);
+				PrintToChat(client, "%t", "Item type not registered", type);
 				Store_LogWarning("The item type '%s' wasn't registered by any plugin.", type);
 				
 				OpenInventoryCategory(client, Store_GetItemCategory(id));

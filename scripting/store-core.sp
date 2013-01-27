@@ -54,6 +54,9 @@ public OnPluginStart()
 {
 	LoadConfig();
 	
+	LoadTranslations("common.phrases");
+	LoadTranslations("store.phrases");
+
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say_team");
 	
@@ -274,7 +277,7 @@ public OnGetCreditsComplete(credits, any:serial)
 		return;
 		
 	new Handle:menu = CreateMenu(MainMenuSelectHandle);
-	SetMenuTitle(menu, "You have %d %s.\n \n", credits, g_currencyName);
+	SetMenuTitle(menu, "%T\n \n", "Store Menu Title", client, credits, g_currencyName);
 	
 	for (new item = 0; item < g_menuItemCount; item++)
 	{

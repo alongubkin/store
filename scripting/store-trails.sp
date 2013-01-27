@@ -48,6 +48,9 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
  */
 public OnPluginStart()
 {
+	LoadTranslations("common.phrases");
+	LoadTranslations("store.phrases");
+
 	Store_RegisterItemType("trails", Store_ItemUseCallback:OnEquip, Store_ItemGetAttributesCallback:LoadItem);
 
 	g_zombieReloaded = LibraryExists("zombiereloaded");
@@ -143,13 +146,13 @@ public bool:OnEquip(client, itemId, bool:equipped)
 	
 	if (!IsPlayerAlive(client))
 	{
-		PrintToChat(client, "You must be alive to equip this item.");
+		PrintToChat(client, "%t", "Must be alive to equip");
 		return false;
 	}
 	
 	if (g_zombieReloaded && !ZR_IsClientHuman(client))
 	{
-		PrintToChat(client, "You must be a human to equip this item.");	
+		PrintToChat(client, "%t", "Must be human to equip");	
 		return false;
 	}
 	
@@ -166,7 +169,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
-		PrintToChat(client, "You have unequipped the %s.", displayName);
+		PrintToChat(client, "%t", "Unequipped item", displayName);
 	}
 	else
 	{
@@ -178,7 +181,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
-		PrintToChat(client, "You have equipped the %s.", displayName);	
+		PrintToChat(client, "%t", "Equipped item", displayName);
 	}
 	
 	return true;
@@ -283,7 +286,7 @@ bool:Equip(client, const String:name[])
 	new trail = -1;
 	if (!GetTrieValue(g_trailsNameIndex, name, trail))
 	{
-		PrintToChat(client, "No trail attributes found.");
+		PrintToChat(client, "%t", "No item attributes");
 		return false;
 	}
 	

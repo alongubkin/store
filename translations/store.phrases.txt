@@ -1,0 +1,71 @@
+"Phrases"
+{
+	"Store Menu Title"
+	{
+		"#format"			"{1:d},{2:s}"
+		"en"				"You have {1} {2}."
+	}
+
+	"Inventory"
+	{
+		"en"				"Inventory"	
+	}
+
+	"Shop"
+	{
+		"en"				"Shop"	
+	}
+
+	"Loadout"
+	{
+		"en"				"Loadout"	
+	}
+
+	"No items in this category"
+	{
+		"en"				"There are no items in this category."
+	}
+
+	"Item type not registered"
+	{
+		"#format"			"{1:s}"
+		"en"				"The item type '{1}' wasn't registered by any plugin."
+	}
+
+	"Not enough credits"
+	{
+		"en"				"You don't have enough credits to buy this item."
+	}
+
+	"No item attributes"
+	{
+		"en"				"No item attributes found."
+	}
+
+	"Equipped item"
+	{
+		"#format"			"{1:s}"
+		"en"				"You have equipped {1}."
+	}
+
+	"Unequipped item"
+	{
+		"#format"			"{1:s}"
+		"en"				"You have unequipped {1}."
+	}
+
+	"Must be alive to equip"
+	{
+		"en"				"You must be alive to equip this item."
+	}
+
+	"Must be human to equip"
+	{
+		"en"				"You must be a human to equip this item."	
+	}
+
+	"Player model unsupported"
+	{
+		"en"				"You player model doesn't support equipment."
+	}
+}

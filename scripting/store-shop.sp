@@ -34,7 +34,14 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 public OnPluginStart()
 {
 	LoadConfig();
-	Store_AddMainMenuItem("Shop", _, _, OnMainMenuShopClick, 2);
+
+	LoadTranslations("common.phrases");
+	LoadTranslations("store.phrases");
+
+	decl String:menuItemName[32];
+	Format(menuItemName, sizeof(menuItemName), "%t", "Shop");
+
+	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuShopClick, 2);
 	
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say_team");
@@ -131,20 +138,20 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		return;
 		
 	new Handle:menu = CreateMenu(ShopMenuSelectHandle);
-	SetMenuTitle(menu, "Shop\n \n");
+	SetMenuTitle(menu, "%T\n \n", "Shop", client);
 	
 	for (new category = 0; category < count; category++)
 	{
-		decl String:requiredPlugin[32];
+		decl String:requiredPlugin[STORE_MAX_REQUIREPLUGIN_LENGTH];
 		Store_GetCategoryPluginRequired(ids[category], requiredPlugin, sizeof(requiredPlugin));
 		
 		if (!Store_IsItemTypeRegistered(requiredPlugin))
 			continue;
 			
-		decl String:displayName[64];
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetCategoryDisplayName(ids[category], displayName, sizeof(displayName));
 
-		decl String:description[128];
+		decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
 		Store_GetCategoryDescription(ids[category], description, sizeof(description));
 
 		decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
@@ -215,7 +222,7 @@ public GetItemsCallback(ids[], count, any:pack)
 	
 	if (count == 0)
 	{
-		PrintToChat(client, "There are no items in this category.");
+		PrintToChat(client, "%t", "No items in this category");
 		OpenShop(client);
 		
 		return;
@@ -225,7 +232,7 @@ public GetItemsCallback(ids[], count, any:pack)
 	Store_GetCategoryDisplayName(categoryId, categoryDisplayName, sizeof(categoryDisplayName));
 		
 	new Handle:menu = CreateMenu(ShopCategoryMenuSelectHandle);
-	SetMenuTitle(menu, "Shop - %s\n \n", categoryDisplayName);
+	SetMenuTitle(menu, "%T - %s\n \n", "Shop", client, categoryDisplayName);
 
 	for (new item = 0; item < count; item++)
 	{		
@@ -279,7 +286,7 @@ public OnBuyItemComplete(bool:success, any:serial)
 	
 	if (!success)
 	{
-		PrintToChat(client, "You don't have enough credits to buy this item.");
+		PrintToChat(client, "%t", "Not enough credits");
 	}
 	
 	OpenShop(client);
