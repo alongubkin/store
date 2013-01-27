@@ -43,6 +43,12 @@ public OnClientPostAdminCheck(client)
 	Store_GetEquippedItemsByType(Store_GetClientAccountID(client), "title", Store_GetClientLoadout(client), OnGetPlayerTitle, GetClientSerial(client));
 }
 
+public Store_OnClientLoadoutChanged(client)
+{
+	g_clientTitles[client] = -1;
+	Store_GetEquippedItemsByType(Store_GetClientAccountID(client), "title", Store_GetClientLoadout(client), OnGetPlayerTitle, GetClientSerial(client));
+}
+
 public Store_OnReloadItems() 
 {
 	if (g_titlesNameIndex != INVALID_HANDLE)

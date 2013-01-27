@@ -253,6 +253,11 @@ public Action:GiveTrail(Handle:timer, any:client)
 	return Plugin_Handled;
 }
 
+public Store_OnClientLoadoutChanged(client)
+{
+	Store_GetEquippedItemsByType(Store_GetClientAccountID(client), "trails", Store_GetClientLoadout(client), OnGetPlayerTrail, GetClientSerial(client));
+}
+
 public OnGetPlayerTrail(ids[], count, any:serial)
 {
 	new client = GetClientFromSerial(serial);

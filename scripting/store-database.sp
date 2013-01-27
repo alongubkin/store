@@ -360,7 +360,7 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 		Store_LogError("SQL Error on GetItems: %s", error);
 		return;
 	}
-	
+
 	Call_StartForward(g_reloadItemsForward);
 	Call_Finish();
 	
@@ -475,8 +475,8 @@ GetLoadouts(Handle:filter, Store_GetItemsCallback:callback = Store_GetItemsCallb
 		{	
 			if (
 				(!gameFilter || StrEqual(game, "") || StrEqual(g_loadouts[loadout][LoadoutGame], "") || StrEqual(game, g_loadouts[loadout][LoadoutGame])) &&
-			 	(!classFilter || StrEqual(class, "") || StrEqual(g_loadouts[loadout][LoadoutClass], "") || StrEqual(class, g_loadouts[loadout][LoadoutClass])) &&
-				(!teamFilter || team == -1 || team == g_loadouts[loadout][LoadoutTeam])
+			 	(!classFilter || StrEqual(class, "") || StrEqual(g_loadouts[loadout][LoadoutClass], "") || StrEqual(class, g_loadouts[loadout][LoadoutClass]))
+				// (!teamFilter || team == -1 || team == g_loadouts[loadout][LoadoutTeam])
 				)
 			{
 				loadouts[count] = g_loadouts[loadout][LoadoutId];
