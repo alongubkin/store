@@ -115,8 +115,7 @@ public OnPluginStart()
 	
 	g_reloadItemsForward = CreateGlobalForward("Store_OnReloadItems", ET_Event);
 	g_reloadItemsPostForward = CreateGlobalForward("Store_OnReloadItemsPost", ET_Event);
-		
-	// LoadConfig();
+	
 	ConnectSQL();
 }
 
@@ -130,7 +129,7 @@ public OnPluginStart()
 *   the server for the first time), he will be added using the account ID and name 
 *   provided.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param name          The name of the player.
@@ -159,7 +158,7 @@ Register(accountId, const String:name[] = "")
 *
 * The store-core module calls this method every time a player joins the server.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param client		    Client index.
 *
@@ -191,7 +190,7 @@ public T_EmptyCallback(Handle:owner, Handle:hndl, const String:error[], any:data
 /**
 * Retrieves all item categories from the database. 
 *
-* The store-database module builds a cache of the categories retrieved the first time 
+* The store-backend module builds a cache of the categories retrieved the first time 
 * this method is called, for faster access the next time it's called.
 *
 * You can set the loadFromCache parameter of this method to false to retrieve categories
@@ -207,7 +206,7 @@ public T_EmptyCallback(Handle:owner, Handle:hndl, const String:error[], any:data
 * The callback will provide an array of the categories' IDs. You can then loop the array,
 * and find info about each category using the Store_GetCategory* methods.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param callback		    A callback which will be called when the categories are loaded.
 * @param plugin				The plugin owner of the callback.
@@ -295,7 +294,7 @@ GetCategoryIndex(id)
 /**
 * Retrieves items from the database. 
 *
-* The store-database module builds a cache of the items retrieved the first time 
+* The store-backend module builds a cache of the items retrieved the first time 
 * this method is called, for faster access the next time it's called.
 *
 * You can set the loadFromCache parameter of this method to false to retrieve categories
@@ -311,7 +310,7 @@ GetCategoryIndex(id)
 * The callback will provide an array of the items' IDs. You can then loop the array,
 * and find info about each item using the Store_GetItem* methods.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param callback		    A callback which will be called when the items are loaded.
 * @param plugin				The plugin owner of the callback.
@@ -423,7 +422,7 @@ GetItemIndex(id)
 /**
 * Retrieves loadouts from the database. 
 *
-* The store-database module builds a cache of the loadouts retrieved the first time 
+* The store-backend module builds a cache of the loadouts retrieved the first time 
 * this method is called, for faster access the next time it's called.
 *
 * You can set the loadFromCache parameter of this method to false to retrieve loadouts
@@ -436,7 +435,7 @@ GetItemIndex(id)
 *
 * To use it, set it to a trie with some or all of the above properties.
 * IMPORTANT: You are *not* resposible for closing the filter trie's handle, 
-*            the store-database module is.
+*            the store-backend module is.
 * 
 * The store-loadout module calls this method when it is loaded to build a cache of 
 * loadouts.
@@ -445,7 +444,7 @@ GetItemIndex(id)
 * The callback will provide an array of the loadouts' IDs. You can then loop the array,
 * and find info about each item using the Store_GetLoadout* methods.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param filter            	A trie which will be used to filter the loadouts returned.
 * @param callback		   	A callback which will be called when the items are loaded.
@@ -573,7 +572,7 @@ GetLoadoutIndex(id)
 * To deremine whether or not an item is equipped in the loadout specified, the callback
 * provides the equipped[] array.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param categoryId        	The category of the items you want to retrieve.
@@ -670,7 +669,7 @@ public T_GetUserItemsCallback(Handle:owner, Handle:hndl, const String:error[], a
 /**
 * Retrieves the amount of credits that a player currently has.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param callback		    A callback which will be called when the credits amount is loaded.
@@ -724,7 +723,7 @@ public T_GetCreditsCallback(Handle:owner, Handle:hndl, const String:error[], any
 * use the 'success' parameter that is provided by the callback.
 * A false value of that parameter probably means that the user didn't have enough credits.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param itemId            	The ID of the item to buy.
@@ -806,7 +805,7 @@ public T_BuyItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
 /**
 * Uses an item for a player (deletes one 'copy' of the item from his inventory.)
 * 
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param itemId            	The ID of the item to use.
@@ -859,7 +858,7 @@ public T_UseItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
 /**
 * Equips an item for a player in a loadout.
 * 
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param itemId            	The ID of the item to equip.
@@ -921,7 +920,7 @@ public T_EquipItemCallback(Handle:owner, Handle:hndl, const String:error[], any:
 /**
 * Unequips an item for a player in a loadout.
 * 
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param itemId            	The ID of the item to unequip.
@@ -994,7 +993,7 @@ public T_UnequipItemCallback(Handle:owner, Handle:hndl, const String:error[], an
 *
 * For a full example of a usage of this method, see the store-inventory module.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param type              	The category of the items you want to retrieve.
@@ -1057,7 +1056,7 @@ public T_GetEquippedItemsByTypeCallback(Handle:owner, Handle:hndl, const String:
 * You can also set the credits parameter to a negative value to take credits
 * from the player.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param credits           	The amount of credits to give to the player.
@@ -1110,7 +1109,7 @@ public T_GiveCreditsCallback(Handle:owner, Handle:hndl, const String:error[], an
 * You can also set the credits parameter to a negative value to take credits
 * from the players.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountIds	    	The account IDs of the players, use Store_GetClientAccountID to convert a client index to account ID.
 * @param accountIdsLength  	Players count.

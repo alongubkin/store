@@ -40,7 +40,7 @@ forward Store_OnReloadItemsPost();
 *   the server for the first time), he will be added using the account ID and name 
 *   provided.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param name          	The name of the player.
@@ -59,7 +59,7 @@ native Store_Register(accountId, const String:name[] = "");
 *
 * The store-core module calls this method every time a player joins the server.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param client		    Client index.
 *
@@ -70,7 +70,7 @@ native Store_RegisterClient(client);
 /**
 * Retrieves all item categories from the database. 
 *
-* The store-database module builds a cache of the categories retrieved the first time 
+* The store-backend module builds a cache of the categories retrieved the first time 
 * this method is called, for faster access the next time it's called.
 *
 * You can set the loadFromCache parameter of this method to false to retrieve categories
@@ -101,7 +101,7 @@ native Store_RegisterClient(client);
 *      }
 *  }
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param callback		    A callback which will be called when the categories are loaded.
 * @param loadFromCache     	Whether to load categories from cache. If false, the method will 
@@ -115,7 +115,7 @@ native Store_GetCategories(Store_GetItemsCallback:callback = Store_GetItemsCallb
 /**
 * Retrieves a category's display name by its ID.
 *
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all categories.
 * 
 * @param id                Category's ID.
@@ -129,7 +129,7 @@ native Store_GetCategoryDisplayName(id, String:displayName[], maxlength);
 /**
 * Retrieves a category's description by its ID.
 *
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all categories.
 * 
 * @param id                Category's ID.
@@ -143,7 +143,7 @@ native Store_GetCategoryDescription(id, String:description[], maxlength);
 /**
 * Retrieves the plugin name that is required for a specific category. 
 *
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all categories.
 * 
 * @param id                Category's ID.
@@ -157,7 +157,7 @@ native Store_GetCategoryPluginRequired(id, String:pluginRequired[], maxlength);
 /**
 * Retrieves items from the database. 
 *
-* The store-database module builds a cache of the items retrieved the first time 
+* The store-backend module builds a cache of the items retrieved the first time 
 * this method is called, for faster access the next time it's called.
 *
 * You can set the loadFromCache parameter of this method to false to retrieve categories
@@ -188,7 +188,7 @@ native Store_GetCategoryPluginRequired(id, String:pluginRequired[], maxlength);
 *      }
 *  }
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param callback		    A callback which will be called when the items are loaded.
 * @param categoryId        	Filter the items returned by a category ID.
@@ -208,7 +208,7 @@ native Store_GetItems(Store_GetItemsCallback:callback = Store_GetItemsCallback:I
 * its display name is what actually displayed in the store UI (which
 * doesnt has to be unique).
 * 
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all items.
 * 
 * @param id                Category's ID.
@@ -227,7 +227,7 @@ native Store_GetItemName(id, String:name[], maxlength);
 * its display name is what actually displayed in the store UI (which
 * doesnt has to be unique).
 * 
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all items.
 * 
 * @param id                Category's ID.
@@ -241,7 +241,7 @@ native Store_GetItemDisplayName(id, String:displayName[], maxlength);
 /**
 * Retrieves an item's description by its ID.
 * 
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all items.
 * 
 * @param id                Category's ID.
@@ -255,7 +255,7 @@ native Store_GetItemDescription(id, String:description[], maxlength);
 /**
 * Retrieves an item's type by its ID.
 * 
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all items.
 * 
 * @param id                Category's ID.
@@ -269,7 +269,7 @@ native Store_GetItemType(id, String:type[], maxlength);
 /**
 * Retrieves an item's loadout slot by its ID.
 * 
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all items.
 * 
 * @param id                Category's ID.
@@ -283,7 +283,7 @@ native Store_GetItemLoadoutSlot(id, String:loadoutSlot[], maxlength);
 /**
 * Retrieves an item's price by its ID.
 * 
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all items.
 * 
 * @param id                Category's ID.
@@ -295,7 +295,7 @@ native Store_GetItemPrice(id);
 /**
 * Retrieves an item's category by its ID.
 * 
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all items.
 * 
 * @param id                Category's ID.
@@ -307,7 +307,7 @@ native Store_GetItemCategory(id);
 /**
 * Retrieves loadouts from the database. 
 *
-* The store-database module builds a cache of the loadouts retrieved the first time 
+* The store-backend module builds a cache of the loadouts retrieved the first time 
 * this method is called, for faster access the next time it's called.
 *
 * You can set the loadFromCache parameter of this method to false to retrieve loadouts
@@ -320,7 +320,7 @@ native Store_GetItemCategory(id);
 *
 * To use it, set it to a trie with some or all of the above properties.
 * IMPORTANT: You are *not* resposible for closing the filter trie's handle, 
-*            the store-database module is.
+*            the store-backend module is.
 * 
 * The store-loadout module calls this method when it is loaded to build a cache of 
 * loadouts.
@@ -348,7 +348,7 @@ native Store_GetItemCategory(id);
 *      }
 *  }
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param filter            	A trie which will be used to filter the loadouts returned.
 * @param callback		   	A callback which will be called when the items are loaded.
@@ -363,7 +363,7 @@ native Store_GetLoadouts(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:
 /**
 * Retrieves a loadout's display name by its ID.
 *
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all loadouts.
 * 
 * @param id                Category's ID.
@@ -377,7 +377,7 @@ native Store_GetLoadoutDisplayName(id, String:displayName[], maxlength);
 /**
 * Retrieves a loadout's game by its ID.
 *
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all loadouts.
 * 
 * @param id                Category's ID.
@@ -391,7 +391,7 @@ native Store_GetLoadoutGame(id, String:game[], maxlength);
 /**
 * Retrieves a loadout's class by its ID.
 *
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all loadouts.
 * 
 * @param id                Category's ID.
@@ -405,7 +405,7 @@ native Store_GetLoadoutClass(id, String:class[], maxlength);
 /**
 * Retrieves a loadout's team by its ID.
 *
-* IMPORTANT: This method only works if the store-database module has a cache
+* IMPORTANT: This method only works if the store-backend module has a cache
 * of all loadouts.
 * 
 * @param id                Category's ID.
@@ -453,7 +453,7 @@ native Store_GetLoadoutTeam(id);
 *
 * For a full example of a usage of this method, see the store-inventory module.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param categoryId        	The category of the items you want to retrieve.
@@ -468,7 +468,7 @@ native Store_GetUserItems(accountId, categoryId, loadoutId, Store_GetUserItemsCa
 /**
 * Retrieves the amount of credits that a player currently has.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param callback		    A callback which will be called when the credits amount is loaded.
@@ -484,7 +484,7 @@ native Store_GetCredits(accountId, Store_GetCreditsCallback:callback, any:data =
 * You can also set the credits parameter to a negative value to take credits
 * from the player.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param credits           	The amount of credits to give to the player.
@@ -501,7 +501,7 @@ native Store_GiveCredits(accountId, credits, Store_GiveCreditsCallback:callback,
 * You can also set the credits parameter to a negative value to take credits
 * from the players.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountIds	    	The account IDs of the players, use Store_GetClientAccountID to convert a client index to account ID.
 * @param accountIdsLength  	Players count.
@@ -518,7 +518,7 @@ native Store_GiveCreditsToUsers(accountIds[], accountIdsLength, credits);
 * use the 'success' parameter that is provided by the callback.
 * A false value of that parameter probably means that the user didn't have enough credits.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param itemId            	The ID of the item to buy.
@@ -532,7 +532,7 @@ native Store_BuyItem(accountId, itemId, Store_BuyItemCallback:callback, any:data
 /**
 * Uses an item for a player (deletes one 'copy' of the item from his inventory.)
 * 
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param itemId            	The ID of the item to use.
@@ -546,7 +546,7 @@ native Store_UseItem(accountId, itemId, Store_UseItemCallback:callback, any:data
 /**
 * Equips an item for a player in a loadout.
 * 
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param itemId            	The ID of the item to equip.
@@ -561,7 +561,7 @@ native Store_EquipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:cal
 /**
 * Unequips an item for a player in a loadout.
 * 
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param itemId            	The ID of the item to unequip.
@@ -612,7 +612,7 @@ native Store_UnequipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:c
 *
 * For a full example of a usage of this method, see the store-inventory module.
 *
-* As with all other store-database methods, this method is completely asynchronous.
+* As with all other store-backend methods, this method is completely asynchronous.
 *
 * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
 * @param type              	The category of the items you want to retrieve.
