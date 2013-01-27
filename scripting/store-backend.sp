@@ -252,6 +252,8 @@ public T_GetCategoriesCallback(Handle:owner, Handle:hndl, const String:error[], 
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+		
 		Store_LogError("SQL Error on GetCategories: %s", error);
 		return;
 	}
@@ -361,6 +363,8 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+			
 		Store_LogError("SQL Error on GetItems: %s", error);
 		return;
 	}
@@ -510,6 +514,8 @@ public T_GetLoadoutsCallback(Handle:owner, Handle:hndl, const String:error[], an
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+		
 		Store_LogError("SQL Error on GetLoadouts: %s", error);
 		return;
 	}
@@ -626,6 +632,8 @@ public T_GetUserItemsCallback(Handle:owner, Handle:hndl, const String:error[], a
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+		
 		Store_LogError("SQL Error on GetUserItems: %s", error);
 		return;
 	}
@@ -694,6 +702,8 @@ public T_GetCreditsCallback(Handle:owner, Handle:hndl, const String:error[], any
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+		
 		Store_LogError("SQL Error on GetCredits: %s", error);
 		return;
 	}
@@ -783,6 +793,8 @@ public T_BuyItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+		
 		Store_LogError("SQL Error on BuyItem: %s", error);
 		return;
 	}
@@ -833,6 +845,8 @@ public T_UseItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+		
 		Store_LogError("SQL Error on UseItem: %s", error);
 		return;
 	}
@@ -893,6 +907,8 @@ public T_EquipItemCallback(Handle:owner, Handle:hndl, const String:error[], any:
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+		
 		Store_LogError("SQL Error on EquipItem: %s", error);
 		return;
 	}
@@ -950,6 +966,8 @@ public T_UnequipItemCallback(Handle:owner, Handle:hndl, const String:error[], an
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+		
 		Store_LogError("SQL Error on UnequipItem: %s", error);
 		return;
 	}
@@ -1020,6 +1038,8 @@ public T_GetEquippedItemsByTypeCallback(Handle:owner, Handle:hndl, const String:
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+		
 		Store_LogError("SQL Error on GetEquippedItemsByType: %s", error);
 		return;
 	}
@@ -1083,6 +1103,8 @@ public T_GiveCreditsCallback(Handle:owner, Handle:hndl, const String:error[], an
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		CloseHandle(pack);
+		
 		Store_LogError("SQL Error on GiveCredits: %s", error);
 		return;
 	}
