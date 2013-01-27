@@ -100,7 +100,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_UnequipItem", Native_UnequipItem);   
 	CreateNative("Store_GetEquippedItemsByType", Native_GetEquippedItemsByType);
 	
-	RegPluginLibrary("store-database");	
+	RegPluginLibrary("store-database");
 	return APLRes_Success;
 }
 
@@ -144,7 +144,7 @@ Register(accountId, const String:name[] = "")
 	Format(query, sizeof(query), "INSERT INTO store_users (auth, name, credits) VALUES (%d, '%s', 0) ON DUPLICATE KEY UPDATE name = '%s';", accountId, safeName, safeName);
 
 	Store_LogError(query);
-	SQL_TQuery(g_hSQL, T_EmptyCallback, query);
+	SQL_TQuery(g_hSQL, T_EmptyCallback, query_, DBPrio_High);
 }
 
 /**
@@ -211,25 +211,22 @@ public T_EmptyCallback(Handle:owner, Handle:hndl, const String:error[], any:data
 */
 GetCategories(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, Handle:plugin = INVALID_HANDLE, bool:loadFromCache = true, any:data = 0)
 {
-	if (loadFromCache && g_categoryCount != -1)
+	if (loadFromCache && g_categoryCount != -1 && callback != Store_GetItemsCallback:INVALID_HANDLE)
 	{
-		if (callback != Store_GetItemsCallback:INVALID_HANDLE)
+		new categories[g_categoryCount];
+		new count = 0;
+		
+		for (new category = 0; category < g_categoryCount; category++)
 		{
-			new ids[g_categoryCount];
-			new count = 0;
-			
-			for (new category = 0; category < g_categoryCount; category++)
-			{
-				ids[count] = g_categories[category][CategoryId];
-				count++;
-			}
-			
-			Call_StartFunction(plugin, Function:callback);
-			Call_PushArray(ids, count);
-			Call_PushCell(count);
-			Call_PushCell(data);
-			Call_Finish();
+			categories[count] = g_categories[category][CategoryId];
+			count++;
 		}
+		
+		Call_StartFunction(plugin, Function:callback);
+		Call_PushArray(categories, count);
+		Call_PushCell(count);
+		Call_PushCell(data);
+		Call_Finish();
 	}
 	else
 	{
@@ -316,28 +313,25 @@ GetCategoryIndex(id)
 */
 GetItems(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, Handle:plugin = INVALID_HANDLE, categoryId = -1, bool:loadFromCache = true, any:data = 0)
 {	
-	if (loadFromCache && g_itemCount != -1)
+	if (loadFromCache && g_itemCount != -1 && callback != Store_GetItemsCallback:INVALID_HANDLE)
 	{
-		if (callback != Store_GetItemsCallback:INVALID_HANDLE)
+		new items[g_itemCount];
+		new count = 0;
+		
+		for (new item = 0; item < g_itemCount; item++)
 		{
-			new ids[g_itemCount];
-			new count = 0;
-			
-			for (new item = 0; item < g_itemCount; item++)
+			if (categoryId == -1 || categoryId == g_items[item][ItemCategoryId])
 			{
-				if (categoryId == -1 || categoryId == g_items[item][ItemCategoryId])
-				{
-					ids[count] = g_items[item][ItemId];
-					count++;
-				}
+				items[count] = g_items[item][ItemId];
+				count++;
 			}
-			
-			Call_StartFunction(plugin, Function:callback);
-			Call_PushArray(ids, count);
-			Call_PushCell(count);
-			Call_PushCell(data);
-			Call_Finish();
 		}
+		
+		Call_StartFunction(plugin, Function:callback);
+		Call_PushArray(items, count);
+		Call_PushCell(count);
+		Call_PushCell(data);
+		Call_Finish();
 	}
 	else
 	{
@@ -452,7 +446,7 @@ GetLoadouts(Handle:filter, Store_GetItemsCallback:callback = Store_GetItemsCallb
 {
 	if (loadFromCache && g_loadoutCount != -1 && callback != Store_GetItemsCallback:INVALID_HANDLE)
 	{
-		new ids[g_loadoutCount];
+		new loadouts[g_loadoutCount];
 		new count = 0;
 		
 		decl String:game[32];
@@ -474,13 +468,13 @@ GetLoadouts(Handle:filter, Store_GetItemsCallback:callback = Store_GetItemsCallb
 				(!teamFilter || team == -1 || team == g_loadouts[loadout][LoadoutTeam])
 				)
 			{
-				ids[count] = g_loadouts[loadout][LoadoutId];
+				loadouts[count] = g_loadouts[loadout][LoadoutId];
 				count++;
 			}
 		}
 		
 		Call_StartFunction(plugin, Function:callback);
-		Call_PushArray(ids, count);
+		Call_PushArray(loadouts, count);
 		Call_PushCell(count);
 		Call_PushCell(data);
 		Call_Finish();
@@ -594,7 +588,7 @@ GetUserItems(accountId, categoryId, loadoutId, Store_GetUserItemsCallback:callba
 	decl String:query[512];
 	Format(query, sizeof(query), "SELECT item_id, EXISTS(SELECT * FROM store_users_items_loadouts WHERE store_users_items_loadouts.useritem_id = store_users_items.id AND store_users_items_loadouts.loadout_id = %d) AS equipped, COUNT(*) AS count FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_users.auth = %d AND store_items.category_id = %d GROUP BY item_id", loadoutId, accountId, categoryId);
 	
-	SQL_TQuery(g_hSQL, T_GetUserItemsCallback, query, pack);
+	SQL_TQuery(g_hSQL, T_GetUserItemsCallback, query, pack, DBPrio_High);
 }
 
 public GetUserItemsLoadCallback(ids[], count, any:pack)
@@ -767,7 +761,7 @@ public T_BuyItemGiveCreditsCallback(accountId, any:pack)
 	decl String:query[255];
 	Format(query, sizeof(query), "INSERT INTO store_users_items (user_id, item_id) SELECT store_users.id AS userId, '%d' AS item_id FROM store_users WHERE auth = %d", itemId, accountId);
 
-	SQL_TQuery(g_hSQL, T_BuyItemCallback, query, pack);	
+	SQL_TQuery(g_hSQL, T_BuyItemCallback, query, pack, DBPrio_High);	
 }
 
 public T_BuyItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
@@ -817,7 +811,7 @@ UseItem(accountId, itemId, Store_UseItemCallback:callback, Handle:plugin = INVAL
 	decl String:query[255];
 	Format(query, sizeof(query), "DELETE FROM store_users_items WHERE store_users_items.item_id = %d AND store_users_items.userId IN (SELECT store_users.id FROM store_users WHERE store_users.auth = %d) LIMIT 1", itemId, accountId);
 	
-	SQL_TQuery(g_hSQL, T_UseItemCallback, query, pack);	
+	SQL_TQuery(g_hSQL, T_UseItemCallback, query, pack, DBPrio_High);	
 }
 
 public T_UseItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
@@ -877,7 +871,7 @@ public EquipUnequipItemCallback(accountId, itemId, loadoutId, any:pack)
 	decl String:query[255];
 	Format(query, sizeof(query), "INSERT INTO store_users_items_loadouts (loadout_id, useritem_id) SELECT %d AS loadout_id, users_items.id FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id WHERE store_users.auth = %d AND store_users_items.item_id = %d LIMIT 1", loadoutId, accountId, itemId);
 	
-	SQL_TQuery(g_hSQL, T_EquipItemCallback, query, pack);	
+	SQL_TQuery(g_hSQL, T_EquipItemCallback, query, pack, DBPrio_High);	
 }
 
 public T_EquipItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
@@ -934,7 +928,7 @@ UnequipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:callback, Hand
 	decl String:query[512];
 	Format(query, sizeof(query), "DELETE store_users_items_loadouts FROM store_users_items_loadouts INNER JOIN store_users_items ON store_users_items.id = users_items_loadouts.useritem_id INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_users.auth = %d AND store_items.loadout_slot = (SELECT loadout_slot from store_items WHERE store_items.id = %d) AND store_users_items_loadouts.loadout_id = %d", accountId, itemId, loadoutId);
 	
-	SQL_TQuery(g_hSQL, T_UnequipItemCallback, query, pack);	
+	SQL_TQuery(g_hSQL, T_UnequipItemCallback, query, pack, DBPrio_High);	
 }
 
 public T_UnequipItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
@@ -1004,7 +998,7 @@ GetEquippedItemsByType(accountId, const String:type[], loadoutId, Store_GetItems
 	decl String:query[512];
 	Format(query, sizeof(query), "SELECT store_items.id FROM store_users_items INNER JOIN store_items ON store_items.id = store_users_items.item_id INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_users_items_loadouts ON store_users_items_loadouts.useritem_id = store_users_items.id WHERE store_users.auth = %d AND store_items.type = '%s' AND store_users_items_loadouts.loadout_id = %d", accountId, type, loadoutId);
 	
-	SQL_TQuery(g_hSQL, T_GetEquippedItemsByTypeCallback, query, pack);	
+	SQL_TQuery(g_hSQL, T_GetEquippedItemsByTypeCallback, query, pack, DBPrio_High);	
 }
 
 public T_GetEquippedItemsByTypeCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
