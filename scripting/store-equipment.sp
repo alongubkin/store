@@ -51,6 +51,16 @@ new g_playerModelCount = 0;
 
 new g_iEquipment[MAXPLAYERS+1][32];
 
+/**
+ * Called before plugin is loaded.
+ * 
+ * @param myself    The plugin handle.
+ * @param late      True if the plugin was loaded after map change, false on map start.
+ * @param error     Error message if load failed.
+ * @param err_max   Max length of the error message.
+ *
+ * @return          APLRes_Success for load success, APLRes_Failure or APLRes_SilentFailure otherwise.
+ */
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	MarkNativeAsOptional("ZR_IsClientHuman"); 
@@ -59,6 +69,9 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	return APLRes_Success;
 }
 
+/**
+ * Plugin is loading.
+ */
 public OnPluginStart()
 {
 	Store_RegisterItemType("equipment", Store_ItemUseCallback:OnEquip, Store_ItemGetAttributesCallback:LoadItem);
@@ -79,6 +92,9 @@ public OnPluginStart()
 	g_hLookupAttachment = EndPrepSDKCall();
 }
 
+/** 
+ * Called when a new API library is loaded.
+ */
 public OnLibraryAdded(const String:name[])
 {
 	if (StrEqual(name, "zombiereloaded"))
@@ -87,6 +103,9 @@ public OnLibraryAdded(const String:name[])
 	}
 }
 
+/** 
+ * Called when an API library is removed.
+ */
 public OnLibraryRemoved(const String:name[])
 {
 	if (StrEqual(name, "zombiereloaded"))
@@ -118,11 +137,30 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 	return Plugin_Continue;
 }
 
+/**
+ * Called after a player has become a zombie.
+ * 
+ * @param client            The client that was infected.
+ * @param attacker          The the infecter. (-1 if there is no infecter)
+ * @param motherInfect      If the client is a mother zombie.
+ * @param respawnOverride   True if the respawn cvar was overridden.
+ * @param respawn           The value that respawn was overridden with.
+ */
 public ZR_OnClientInfected(client, attacker, bool:motherInfect, bool:respawnOverride, bool:respawn)
 {
 	UnequipAll(client);
 }
 
+/**
+ * Called right before ZR is about to respawn a player.
+ * Here you can modify any variable or stop the action entirely.
+ * 
+ * @param client            The client index.
+ * @param condition         Respawn condition. See ZR_RespawnCondition for
+ *                          details.
+ *
+ * @return      Plugin_Handled to block respawn.
+ */
 public ZR_OnClientRespawned(client, ZR_RespawnCondition:condition)
 {
 	UnequipAll(client);
