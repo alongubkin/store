@@ -428,7 +428,7 @@ UnequipAll(client)
 
 public Action:ShouldHide(ent, client)
 {
-	/*if (g_toggleEffects)
+	if (g_toggleEffects)
 		if (!ShowClientEffects(client))
 			return Plugin_Handled;
 			
@@ -445,7 +445,7 @@ public Action:ShouldHide(ent, client)
 			if(ent == g_iEquipment[GetEntPropEnt(client, Prop_Send, "m_hObserverTarget")][index])
 				return Plugin_Handled;
 		}
-	}*/
+	}
 	
 	return Plugin_Continue;
 }
