@@ -130,7 +130,7 @@ public Action:Command_Say(client, const String:command[], args)
 		{
 			OpenMainMenu(client);
 			
-			if (command[0] == 0x2F)
+			if (text[0] == 0x2F)
 				return Plugin_Handled;
 			
 			return Plugin_Continue;
