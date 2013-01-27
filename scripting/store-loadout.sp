@@ -4,7 +4,7 @@
 #include <clientprefs>
 #include <store/store-core>
 #include <store/store-logging>
-#include <store/store-database>
+#include <store/store-backend>
 #undef REQUIRE_EXTENSIONS
 #include <tf2_stocks>
 

@@ -4,7 +4,7 @@
 #define _store_included
 
 #include <store/store-core>
-#include <store/store-database>
+#include <store/store-backend>
 #include <store/store-inventory>
 #include <store/store-shop>
 #include <store/store-loadout>

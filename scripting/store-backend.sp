@@ -1,7 +1,7 @@
 #pragma semicolon 1
 
 #include <store/store-logging>
-#include <store/store-database>
+#include <store/store-backend>
 #include <store/store-inventory>
 
 #define MAX_CATEGORIES	32
@@ -102,7 +102,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_UnequipItem", Native_UnequipItem);   
 	CreateNative("Store_GetEquippedItemsByType", Native_GetEquippedItemsByType);
 	
-	RegPluginLibrary("store-database");
+	RegPluginLibrary("store-backend");
 	return APLRes_Success;
 }
 

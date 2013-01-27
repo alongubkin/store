@@ -1,7 +1,7 @@
-#if defined _store_service_included
+#if defined _store_backend_included
 #endinput
 #endif
-#define _store_service_included
+#define _store_backend_included
 
 #define STORE_MAX_NAME_LENGTH			32
 #define STORE_MAX_DISPLAY_NAME_LENGTH	64
@@ -643,10 +643,10 @@ stock Store_GetClientAccountID(client)
 	return Store_GetAccountIDFromAuthString(buffer);
 }
 
-public SharedPlugin:__pl_store_database =
+public SharedPlugin:__pl_store_backend =
 {
-	name = "store-database",
-	file = "store-database.smx",
+	name = "store-backend",
+	file = "store-backend.smx",
 #if defined REQUIRE_PLUGIN
 	required = 1,
 #else
@@ -655,7 +655,7 @@ public SharedPlugin:__pl_store_database =
 };
 
 #if defined REQUIRE_PLUGIN
-public __pl_store_database_SetNTVOptional()
+public __pl_store_backend_SetNTVOptional()
 {
 	MarkNativeAsOptional("Store_Register");
 	MarkNativeAsOptional("Store_RegisterClient");

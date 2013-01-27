@@ -2,7 +2,7 @@
 
 #include <sourcemod>
 #include <store/store-logging>
-#include <store/store-database>
+#include <store/store-backend>
 
 #define MAX_MENU_ITEMS	32
 
