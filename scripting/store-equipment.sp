@@ -3,6 +3,7 @@
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
+#include <smartdm>
 #include <store>
 
 #undef REQUIRE_PLUGIN
@@ -181,6 +182,7 @@ public LoadEquipment()
 			if (strcmp(g_equipment[g_equipmentCount][EquipmentModelPath], "") != 0 && (FileExists(g_equipment[g_equipmentCount][EquipmentModelPath]) || FileExists(g_equipment[g_equipmentCount][EquipmentModelPath], true)))
 			{
 				PrecacheModel(g_equipment[g_equipmentCount][EquipmentModelPath], true);
+				Downloader_AddFileToDownloadsTable(g_equipment[g_equipmentCount][EquipmentModelPath]);
 			}
       		
 			if (KvJumpToKey(kv, "playermodels"))
