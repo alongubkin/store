@@ -9,8 +9,7 @@ enum Title
 {
 	String:TitleName[32],
 	String:TitleText[64],
-	String:TitleColor[10],
-	String:TitleAlign[10]
+	String:TitleColor[10]
 }
 
 new g_titles[1024][Title];
@@ -86,8 +85,7 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	new Handle:json = json_load(attrs);
 	json_object_get_string(json, "text", g_titles[g_titleCount][TitleText], 64);
 	json_object_get_string(json, "color", g_titles[g_titleCount][TitleColor], 10);	
-	json_object_get_string(json, "align", g_titles[g_titleCount][TitleAlign], 10);	
-	
+
 	CloseHandle(json);
 
 	g_titleCount++;
@@ -130,16 +128,8 @@ public bool:OnEquip(client, itemId, bool:equipped)
 public Action:OnChatMessage(&author, Handle:recipients, String:name[], String:message[])
 {
 	if (g_clientTitles[author] != -1)
-	{
-		if (StrEqual(g_titles[g_clientTitles[author]][TitleAlign], "right"))
-		{
-			Format(name, MAXLENGTH_NAME, "\x03%s \x08%s%s", name, g_titles[g_clientTitles[author]][TitleColor], g_titles[g_clientTitles[author]][TitleText]);
-		}
-		else
-		{			
-			Format(name, MAXLENGTH_NAME, "\x08%s%s\x03 %s", g_titles[g_clientTitles[author]][TitleColor], g_titles[g_clientTitles[author]][TitleText], name);
-		}
-		
+	{		
+		Format(name, MAXLENGTH_NAME, "\x08%s%s\x03 %s", g_titles[g_clientTitles[author]][TitleColor], g_titles[g_clientTitles[author]][TitleText], name);		
 		return Plugin_Changed;
 	}
 	
