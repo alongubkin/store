@@ -1,3 +1,5 @@
+#pragma semicolon 1
+
 #include <sourcemod>
 #include <store/store-logging>
 #include <store/store-database>

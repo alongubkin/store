@@ -1,3 +1,5 @@
+#pragma semicolon 1
+
 #include <store/store-logging>
 
 #define PLUGIN_NAME_RESERVED_LENGTH 33
