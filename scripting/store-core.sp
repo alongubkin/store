@@ -119,7 +119,7 @@ public Action:Command_Say(client, const String:command[], args)
 {
 	if (0 < client <= MaxClients && !IsClientInGame(client)) 
 		return Plugin_Continue;   
-	a
+
 	decl String:text[256];
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
