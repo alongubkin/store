@@ -181,6 +181,11 @@ public Action:SpawnTimer(Handle:timer, any:serial)
 	return Plugin_Continue;
 }
 
+public Store_OnClientLoadoutChanged(client)
+{
+	Store_GetEquippedItemsByType(Store_GetClientAccountID(client), "equipment", Store_GetClientLoadout(client), OnGetPlayerEquipment, GetClientSerial(client));
+}
+
 public Store_OnReloadItems() 
 {
 	if (g_equipmentNameIndex != INVALID_HANDLE)
