@@ -11,19 +11,19 @@
 enum Category
 {
 	CategoryId,
-	String:CategoryDisplayName[64],
-	String:CategoryDescription[128],
-	String:CategoryRequirePlugin[32]
+	String:CategoryDisplayName[STORE_MAX_DISPLAY_NAME_LENGTH],
+	String:CategoryDescription[STORE_MAX_DESCRIPTION_LENGTH],
+	String:CategoryRequirePlugin[STORE_MAX_REQUIREPLUGIN_LENGTH]
 }
 
 enum Item
 {
 	ItemId,
-	String:ItemName[32],
-	String:ItemDisplayName[64],
-	String:ItemDescription[128],
-	String:ItemType[32],
-	String:ItemLoadoutSlot[32],
+	String:ItemName[STORE_MAX_NAME_LENGTH],
+	String:ItemDisplayName[STORE_MAX_DISPLAY_NAME_LENGTH],
+	String:ItemDescription[STORE_MAX_DESCRIPTION_LENGTH],
+	String:ItemType[STORE_MAX_TYPE_LENGTH],
+	String:ItemLoadoutSlot[STORE_MAX_LOADOUTSLOT_LENGTH],
 	ItemPrice,
 	ItemCategoryId
 }
@@ -31,9 +31,9 @@ enum Item
 enum Loadout
 {
 	LoadoutId,
-	String:LoadoutDisplayName[64],
-	String:LoadoutGame[32],
-	String:LoadoutClass[32],
+	String:LoadoutDisplayName[STORE_MAX_DISPLAY_NAME_LENGTH],
+	String:LoadoutGame[STORE_MAX_LOADOUTGAME_LENGTH],
+	String:LoadoutClass[STORE_MAX_LOADOUTCLASS_LENGTH],
 	LoadoutTeam
 }
 
@@ -167,6 +167,12 @@ Register(accountId, const String:name[] = "")
 */
 RegisterClient(client)
 {
+	if (!IsClientInGame(client))
+		return;
+
+	if (IsFakeClient(client))
+		return;
+
 	decl String:name[64];
 	GetClientName(client, name, sizeof(name));
 	
@@ -265,9 +271,9 @@ public T_GetCategoriesCallback(Handle:owner, Handle:hndl, const String:error[], 
 	while (SQL_FetchRow(hndl))
 	{
 		g_categories[g_categoryCount][CategoryId] = SQL_FetchInt(hndl, 0);
-		SQL_FetchString(hndl, 1, g_categories[g_categoryCount][CategoryDisplayName], 64);
-		SQL_FetchString(hndl, 2, g_categories[g_categoryCount][CategoryDescription], 128);
-		SQL_FetchString(hndl, 3, g_categories[g_categoryCount][CategoryRequirePlugin], 32);
+		SQL_FetchString(hndl, 1, g_categories[g_categoryCount][CategoryDisplayName], STORE_MAX_DISPLAY_NAME_LENGTH);
+		SQL_FetchString(hndl, 2, g_categories[g_categoryCount][CategoryDescription], STORE_MAX_DESCRIPTION_LENGTH);
+		SQL_FetchString(hndl, 3, g_categories[g_categoryCount][CategoryRequirePlugin], STORE_MAX_REQUIREPLUGIN_LENGTH);
 		
 		g_categoryCount++;
 	}
@@ -378,11 +384,11 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 	while (SQL_FetchRow(hndl))
 	{
 		g_items[g_itemCount][ItemId] = SQL_FetchInt(hndl, 0);
-		SQL_FetchString(hndl, 1, g_items[g_itemCount][ItemName], 32);
-		SQL_FetchString(hndl, 2, g_items[g_itemCount][ItemDisplayName], 64);
-		SQL_FetchString(hndl, 3, g_items[g_itemCount][ItemDescription], 128);
-		SQL_FetchString(hndl, 4, g_items[g_itemCount][ItemType], 32);
-		SQL_FetchString(hndl, 5, g_items[g_itemCount][ItemLoadoutSlot], 32);
+		SQL_FetchString(hndl, 1, g_items[g_itemCount][ItemName], STORE_MAX_NAME_LENGTH);
+		SQL_FetchString(hndl, 2, g_items[g_itemCount][ItemDisplayName], STORE_MAX_DISPLAY_NAME_LENGTH);
+		SQL_FetchString(hndl, 3, g_items[g_itemCount][ItemDescription], STORE_MAX_DESCRIPTION_LENGTH);
+		SQL_FetchString(hndl, 4, g_items[g_itemCount][ItemType], STORE_MAX_TYPE_LENGTH);
+		SQL_FetchString(hndl, 5, g_items[g_itemCount][ItemLoadoutSlot], STORE_MAX_LOADOUTSLOT_LENGTH);
 		g_items[g_itemCount][ItemPrice] = SQL_FetchInt(hndl, 6);		
 		g_items[g_itemCount][ItemCategoryId] = SQL_FetchInt(hndl, 7);
 		
@@ -466,8 +472,8 @@ GetLoadouts(Handle:filter, Store_GetItemsCallback:callback = Store_GetItemsCallb
 		decl String:class[32];
 		new bool:classFilter = filter == INVALID_HANDLE ? false : GetTrieString(filter, "class", class, sizeof(class));
 		
-		new team = -1;
-		new bool:teamFilter = filter == INVALID_HANDLE ? false : GetTrieValue(filter, "team", team);
+		// new team = -1;
+		// new bool:teamFilter = filter == INVALID_HANDLE ? false : GetTrieValue(filter, "team", team);
 		
 		CloseHandle(filter);
 		
@@ -524,9 +530,9 @@ public T_GetLoadoutsCallback(Handle:owner, Handle:hndl, const String:error[], an
 	while (SQL_FetchRow(hndl))
 	{
 		g_loadouts[g_loadoutCount][LoadoutId] = SQL_FetchInt(hndl, 0);
-		SQL_FetchString(hndl, 1, g_loadouts[g_loadoutCount][LoadoutDisplayName], 64);
-		SQL_FetchString(hndl, 2, g_loadouts[g_loadoutCount][LoadoutGame], 32);
-		SQL_FetchString(hndl, 3, g_loadouts[g_loadoutCount][LoadoutClass], 32);
+		SQL_FetchString(hndl, 1, g_loadouts[g_loadoutCount][LoadoutDisplayName], STORE_MAX_DISPLAY_NAME_LENGTH);
+		SQL_FetchString(hndl, 2, g_loadouts[g_loadoutCount][LoadoutGame], STORE_MAX_LOADOUTGAME_LENGTH);
+		SQL_FetchString(hndl, 3, g_loadouts[g_loadoutCount][LoadoutClass], STORE_MAX_LOADOUTCLASS_LENGTH);
 		
 		if (SQL_IsFieldNull(hndl, 4))
 			g_loadouts[g_loadoutCount][LoadoutTeam] = -1;

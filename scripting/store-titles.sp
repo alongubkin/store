@@ -7,7 +7,7 @@
 
 enum Title
 {
-	String:TitleName[32],
+	String:TitleName[STORE_MAX_NAME_LENGTH],
 	String:TitleText[64],
 	String:TitleColor[10]
 }
@@ -67,7 +67,7 @@ public OnGetPlayerTitle(titles[], count, any:serial)
 		
 	for (new index = 0; index < count; index++)
 	{
-		decl String:itemName[32];
+		decl String:itemName[STORE_MAX_NAME_LENGTH];
 		Store_GetItemName(titles[index], itemName, sizeof(itemName));
 		
 		new title = -1;
@@ -84,7 +84,7 @@ public OnGetPlayerTitle(titles[], count, any:serial)
 
 public LoadItem(const String:itemName[], const String:attrs[])
 {
-	strcopy(g_titles[g_titleCount][TitleName], 32, itemName);
+	strcopy(g_titles[g_titleCount][TitleName], STORE_MAX_NAME_LENGTH, itemName);
 		
 	SetTrieValue(g_titlesNameIndex, g_titles[g_titleCount][TitleName], g_titleCount);
 	
@@ -106,7 +106,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 	{
 		g_clientTitles[client] = -1;
 		
-		decl String:displayName[64];
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "You have unequipped %s.", displayName);
@@ -122,7 +122,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		
 		g_clientTitles[client] = title;
 		
-		decl String:displayName[64];
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "You have equipped %s.", displayName);	

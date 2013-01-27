@@ -134,17 +134,17 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		
 	for (new category = 0; category < count; category++)
 	{
-		decl String:requiredPlugin[32];
+		decl String:requiredPlugin[STORE_MAX_REQUIREPLUGIN_LENGTH];
 		Store_GetCategoryPluginRequired(ids[category], requiredPlugin, sizeof(requiredPlugin));
 		
 		new typeIndex;
 		if (!GetTrieValue(g_itemTypeNameIndex, requiredPlugin, typeIndex))
 			continue;
 		
-		decl String:displayName[64];
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetCategoryDisplayName(ids[category], displayName, sizeof(displayName));
 
-		decl String:description[128];
+		decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
 		Store_GetCategoryDescription(ids[category], description, sizeof(description));
 		
 		decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
@@ -232,7 +232,7 @@ public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutI
 	for (new item = 0; item < count; item++)
 	{
 		// TODO: Option to display descriptions	
-		decl String:displayName[64];
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(ids[item], displayName, sizeof(displayName));
 		
 		new String:text[4 + sizeof(displayName) + 6];
@@ -273,13 +273,13 @@ public InventoryCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client,
 			new bool:equipped = bool:StringToInt(buffers[0]);
 			new id = StringToInt(buffers[1]);
 			
-			decl String:name[32];
+			decl String:name[STORE_MAX_NAME_LENGTH];
 			Store_GetItemName(id, name, sizeof(name));
 			
-			decl String:type[32];
+			decl String:type[STORE_MAX_TYPE_LENGTH];
 			Store_GetItemType(id, type, sizeof(type));
 			
-			decl String:loadoutSlot[32];
+			decl String:loadoutSlot[STORE_MAX_LOADOUTSLOT_LENGTH];
 			Store_GetItemLoadoutSlot(id, loadoutSlot, sizeof(loadoutSlot));
 			
 			new itemTypeIndex = -1;
@@ -423,7 +423,7 @@ public Native_OpenInventoryCategory(Handle:plugin, params)
 
 public Native_RegisterItemType(Handle:plugin, params)
 {
-	decl String:type[32];
+	decl String:type[STORE_MAX_TYPE_LENGTH];
 	GetNativeString(1, type, sizeof(type));
 	
 	RegisterItemType(type, plugin, Store_ItemUseCallback:GetNativeCell(2), Store_ItemGetAttributesCallback:GetNativeCell(3));
@@ -431,7 +431,7 @@ public Native_RegisterItemType(Handle:plugin, params)
 
 public Native_IsItemTypeRegistered(Handle:plugin, params)
 {
-	decl String:type[32];
+	decl String:type[STORE_MAX_TYPE_LENGTH];
 	GetNativeString(1, type, sizeof(type));
 	
 	new typeIndex;
@@ -443,17 +443,17 @@ public Native_CallItemAttrsCallback(Handle:plugin, params)
 	if (g_itemTypeNameIndex == INVALID_HANDLE)
 		return false;
 		
-	decl String:type[32];
+	decl String:type[STORE_MAX_TYPE_LENGTH];
 	GetNativeString(1, type, sizeof(type));
 	
 	new typeIndex;
 	if (!GetTrieValue(g_itemTypeNameIndex, type, typeIndex))
 		return false;
 	
-	decl String:name[32];
+	decl String:name[STORE_MAX_NAME_LENGTH];
 	GetNativeString(2, name, sizeof(name));
 	
-	decl String:attrs[1024];
+	decl String:attrs[STORE_MAX_ATTRIBUTES_LENGTH];
 	GetNativeString(3, attrs, sizeof(attrs));		
 
 	new Handle:pack = GetArrayCell(g_itemTypes, typeIndex);

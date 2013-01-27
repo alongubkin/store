@@ -14,7 +14,7 @@ stock const String:TF2_ClassName[TFClassType][] = {"", "scout", "sniper", "soldi
 new Handle:g_clientLoadoutChangedForward;
 new String:g_menuCommands[32][32];
 
-new String:g_game[32];
+new String:g_game[STORE_MAX_LOADOUTGAME_LENGTH];
 
 new g_clientLoadout[MAXPLAYERS+1];
 new Handle:g_lastClientLoadout;
@@ -191,7 +191,7 @@ public GetLoadoutsCallback(ids[], count, any:client)
 		
 	for (new loadout = 0; loadout < count; loadout++)
 	{
-		decl String:displayName[64];
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetLoadoutDisplayName(ids[loadout], displayName, sizeof(displayName));
 		
 		new String:itemText[sizeof(displayName) + 3];
@@ -244,7 +244,7 @@ public LoadoutMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
 
 bool:IsLoadoutAvailableFor(client, loadout)
 {
-	decl String:game[32];
+	decl String:game[STORE_MAX_LOADOUTGAME_LENGTH];
 	Store_GetLoadoutGame(loadout, game, sizeof(game));
 	
 	if (!StrEqual(game, "") && !StrEqual(game, g_game))
@@ -252,7 +252,7 @@ bool:IsLoadoutAvailableFor(client, loadout)
 	
 	if (StrEqual(g_game, "tf"))
 	{
-		decl String:loadoutClass[32];
+		decl String:loadoutClass[STORE_MAX_LOADOUTCLASS_LENGTH];
 		Store_GetLoadoutClass(loadout, loadoutClass, sizeof(loadoutClass));
 		
 		decl String:className[10];

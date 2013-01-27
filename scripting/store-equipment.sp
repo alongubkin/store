@@ -13,7 +13,7 @@
 
 enum Equipment
 {
-	String:EquipmentName[32],
+	String:EquipmentName[STORE_MAX_NAME_LENGTH],
 	String:EquipmentModelPath[PLATFORM_MAX_PATH], 
 	Float:EquipmentPosition[3],
 	Float:EquipmentAngles[3],
@@ -23,7 +23,7 @@ enum Equipment
 
 enum EquipmentPlayerModelSettings
 {
-	String:EquipmentName[32],
+	String:EquipmentName[STORE_MAX_NAME_LENGTH],
 	String:PlayerModelPath[PLATFORM_MAX_PATH],
 	Float:Position[3],
 	Float:Angles[3]
@@ -192,7 +192,7 @@ public Store_OnReloadItems()
 
 public LoadItem(const String:itemName[], const String:attrs[])
 {
-	strcopy(g_equipment[g_equipmentCount][EquipmentName], 32, itemName);
+	strcopy(g_equipment[g_equipmentCount][EquipmentName], STORE_MAX_NAME_LENGTH, itemName);
 
 	SetTrieValue(g_equipmentNameIndex, g_equipment[g_equipmentCount][EquipmentName], g_equipmentCount);
 
@@ -277,10 +277,10 @@ public OnGetPlayerEquipment(ids[], count, any:serial)
 		
 	for (new index = 0; index < count; index++)
 	{
-		decl String:itemName[32];
+		decl String:itemName[STORE_MAX_NAME_LENGTH];
 		Store_GetItemName(ids[index], itemName, sizeof(itemName));
 		
-		decl String:loadoutSlot[32];
+		decl String:loadoutSlot[STORE_MAX_LOADOUTSLOT_LENGTH];
 		Store_GetItemLoadoutSlot(ids[index], loadoutSlot, sizeof(loadoutSlot));
 		
 		new loadoutSlotIndex = FindStringInArray(g_loadoutSlotList, loadoutSlot);
@@ -314,10 +314,10 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		return false;
 	}
 	
-	decl String:name[32];
+	decl String:name[STORE_MAX_NAME_LENGTH];
 	Store_GetItemName(itemId, name, sizeof(name));
 	
-	decl String:loadoutSlot[32];
+	decl String:loadoutSlot[STORE_MAX_LOADOUTSLOT_LENGTH];
 	Store_GetItemLoadoutSlot(itemId, loadoutSlot, sizeof(loadoutSlot));
 	
 	new loadoutSlotIndex = FindStringInArray(g_loadoutSlotList, loadoutSlot);
@@ -330,7 +330,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		if (!Unequip(client, loadoutSlotIndex))
 			return false;
 	
-		decl String:displayName[64];
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "You have unequipped the %s.", displayName);
@@ -341,7 +341,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		if (!Equip(client, loadoutSlotIndex, name))
 			return false;
 		
-		decl String:displayName[64];
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "You have equipped the %s.", displayName);

@@ -12,10 +12,9 @@
 
 enum Trail
 {
-    String:Description[64],
-	String:Name[64],
+	String:Name[STORE_MAX_NAME_LENGTH],
 	String:Color[32],
-    String:Material[256],
+    String:Material[PLATFORM_MAX_PATH],
     StartingWidth
 }
 
@@ -111,7 +110,7 @@ public Store_OnReloadItems()
 
 public LoadItem(const String:itemName[], const String:attrs[])
 {
-	strcopy(g_trails[g_trailCount][Name], 32, itemName);
+	strcopy(g_trails[g_trailCount][Name], STORE_MAX_NAME_LENGTH, itemName);
 		
 	SetTrieValue(g_trailsNameIndex, g_trails[g_trailCount][Name], g_trailCount);
 	
@@ -154,17 +153,17 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		return false;
 	}
 	
-	decl String:name[32];
+	decl String:name[STORE_MAX_NAME_LENGTH];
 	Store_GetItemName(itemId, name, sizeof(name));
 	
-	decl String:loadoutSlot[32];
+	decl String:loadoutSlot[STORE_MAX_LOADOUTSLOT_LENGTH];
 	Store_GetItemLoadoutSlot(itemId, loadoutSlot, sizeof(loadoutSlot));
 			
 	if (equipped)
 	{
 		KillTrail(client);
 		
-		decl String:displayName[64];
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "You have unequipped the %s.", displayName);
@@ -176,7 +175,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		if (!Equip(client, name))
 			return false;
 			
-		decl String:displayName[64];
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "You have equipped the %s.", displayName);	

@@ -3,6 +3,18 @@
 #endif
 #define _store_service_included
 
+#define STORE_MAX_NAME_LENGTH			32
+#define STORE_MAX_DISPLAY_NAME_LENGTH	64
+#define STORE_MAX_DESCRIPTION_LENGTH	128
+#define STORE_MAX_TYPE_LENGTH			32
+#define STORE_MAX_REQUIREPLUGIN_LENGTH	32
+
+#define STORE_MAX_LOADOUTSLOT_LENGTH	32
+#define STORE_MAX_LOADOUTGAME_LENGTH	32
+#define STORE_MAX_LOADOUTCLASS_LENGTH	32
+
+#define STORE_MAX_ATTRIBUTES_LENGTH		1024
+
 functag Store_GetItemsCallback public(ids[], count, any:data);
 functag Store_GetUserItemsCallback public(ids[], bool:equipped[], itemCount[], count, loadoutId, any:data);
 
