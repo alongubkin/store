@@ -879,8 +879,8 @@ EquipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:callback, Handle
 
 public EquipUnequipItemCallback(accountId, itemId, loadoutId, any:pack)
 {
-	decl String:query[255];
-	Format(query, sizeof(query), "INSERT INTO store_users_items_loadouts (loadout_id, useritem_id) SELECT %d AS loadout_id, users_items.id FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id WHERE store_users.auth = %d AND store_users_items.item_id = %d LIMIT 1", loadoutId, accountId, itemId);
+	decl String:query[512];
+	Format(query, sizeof(query), "INSERT INTO store_users_items_loadouts (loadout_id, useritem_id) SELECT %d AS loadout_id, store_users_items.id FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id WHERE store_users.auth = %d AND store_users_items.item_id = %d LIMIT 1", loadoutId, accountId, itemId);
 	
 	SQL_TQuery(g_hSQL, T_EquipItemCallback, query, pack, DBPrio_High);	
 }
@@ -937,7 +937,7 @@ UnequipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:callback, Hand
 	WritePackCell(pack, _:data);
 	
 	decl String:query[512];
-	Format(query, sizeof(query), "DELETE store_users_items_loadouts FROM store_users_items_loadouts INNER JOIN store_users_items ON store_users_items.id = users_items_loadouts.useritem_id INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_users.auth = %d AND store_items.loadout_slot = (SELECT loadout_slot from store_items WHERE store_items.id = %d) AND store_users_items_loadouts.loadout_id = %d", accountId, itemId, loadoutId);
+	Format(query, sizeof(query), "DELETE store_users_items_loadouts FROM store_users_items_loadouts INNER JOIN store_users_items ON store_users_items.id = store_users_items_loadouts.useritem_id INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_users.auth = %d AND store_items.loadout_slot = (SELECT loadout_slot from store_items WHERE store_items.id = %d) AND store_users_items_loadouts.loadout_id = %d", accountId, itemId, loadoutId);
 	
 	SQL_TQuery(g_hSQL, T_UnequipItemCallback, query, pack, DBPrio_High);	
 }
