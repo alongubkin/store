@@ -5,6 +5,7 @@
 #include <sdkhooks>
 #include <smartdm>
 #include <store>
+#include <smjansson>
 
 #undef REQUIRE_PLUGIN
 #include <ToggleEffects>
@@ -60,9 +61,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 
 public OnPluginStart()
 {
-	Store_RegisterItemType("equipment", Store_ItemUseCallback:OnEquip);
-		
-	LoadEquipment();
+	Store_RegisterItemType("equipment", Store_ItemUseCallback:OnEquip, Store_ItemGetAttributesCallback:LoadItem);
 	
 	g_loadoutSlotList = CreateArray(ByteCountToCells(32));
 	
@@ -144,77 +143,85 @@ public Action:SpawnTimer(Handle:timer, any:serial)
 	return Plugin_Continue;
 }
 
-public LoadEquipment()
-{	
-	g_equipmentCount = 0;
-	
-	new String:sConfig[PLATFORM_MAX_PATH];
-	BuildPath(Path_SM, sConfig, PLATFORM_MAX_PATH, "configs/store/items/equipment.txt");
-	
-	new Handle:kv = CreateKeyValues("equipment");
-	FileToKeyValues(kv, sConfig);
-	
+public Store_OnReloadItems() 
+{
 	if (g_equipmentNameIndex != INVALID_HANDLE)
 		CloseHandle(g_equipmentNameIndex);
 		
 	g_equipmentNameIndex = CreateTrie();
-	
-	new Float:temp[3];
-		
-	if (KvGotoFirstSubKey(kv))
+	g_equipmentCount = 0;
+}
+
+public LoadItem(const String:itemName[], const String:attrs[])
+{
+	strcopy(g_equipment[g_equipmentCount][EquipmentName], 32, itemName);
+
+	SetTrieValue(g_equipmentNameIndex, g_equipment[g_equipmentCount][EquipmentName], g_equipmentCount);
+
+	new Handle:json = json_load(attrs);
+	json_object_get_string(json, "model", g_equipment[g_equipmentCount][EquipmentModelPath], PLATFORM_MAX_PATH);
+	json_object_get_string(json, "attachment", g_equipment[g_equipmentCount][EquipmentAttachment], 32);
+
+	new Handle:position = json_object_get(json, "position");
+
+	for (new i = 0; i <= 2; i++)
+		g_equipment[g_equipmentCount][EquipmentPosition][i] = json_array_get_float(position, i);
+
+	CloseHandle(position);
+
+	new Handle:angles = json_object_get(json, "angles");
+
+	for (new i = 0; i <= 2; i++)
+		g_equipment[g_equipmentCount][EquipmentAngles][i] = json_array_get_float(angles, i);
+
+	CloseHandle(angles);
+
+	if (strcmp(g_equipment[g_equipmentCount][EquipmentModelPath], "") != 0 && (FileExists(g_equipment[g_equipmentCount][EquipmentModelPath]) || FileExists(g_equipment[g_equipmentCount][EquipmentModelPath], true)))
 	{
-		do
-		{
-			KvGetSectionName(kv, g_equipment[g_equipmentCount][EquipmentName], 64);
-
-			SetTrieValue(g_equipmentNameIndex, g_equipment[g_equipmentCount][EquipmentName], g_equipmentCount);
-			
-			KvGetString(kv, "model", g_equipment[g_equipmentCount][EquipmentModelPath], PLATFORM_MAX_PATH);
-			KvGetString(kv, "flag", g_equipment[g_equipmentCount][EquipmentFlag], 2);
-			KvGetString(kv, "attachment", g_equipment[g_equipmentCount][EquipmentAttachment], 32);
-			
-			KvGetVector(kv, "position", temp);
-			g_equipment[g_equipmentCount][EquipmentPosition] = temp;
-			
-			KvGetVector(kv, "angles", temp);
-			g_equipment[g_equipmentCount][EquipmentAngles] = temp;			
-		
-			if (strcmp(g_equipment[g_equipmentCount][EquipmentModelPath], "") != 0 && (FileExists(g_equipment[g_equipmentCount][EquipmentModelPath]) || FileExists(g_equipment[g_equipmentCount][EquipmentModelPath], true)))
-			{
-				PrecacheModel(g_equipment[g_equipmentCount][EquipmentModelPath], true);
-				Downloader_AddFileToDownloadsTable(g_equipment[g_equipmentCount][EquipmentModelPath]);
-			}
-      		
-			if (KvJumpToKey(kv, "playermodels"))
-			{
-				new Handle:playerModelsKv = CreateKeyValues("playermodels");
-				KvCopySubkeys(kv, playerModelsKv);
-
-				KvGotoFirstSubKey(playerModelsKv);
-				
-				do
-				{
-					KvGetSectionName(playerModelsKv, g_playerModels[g_playerModelCount][PlayerModelPath], PLATFORM_MAX_PATH);
-					strcopy(g_playerModels[g_playerModelCount][EquipmentName], 64, g_equipment[g_equipmentCount][EquipmentName]);
-
-					KvGetVector(playerModelsKv, "position", temp);
-					g_playerModels[g_playerModelCount][Position] = temp;
-
-					KvGetVector(playerModelsKv, "angles", temp);
-					g_playerModels[g_playerModelCount][Angles] = temp;
-
-					g_playerModelCount++;
-				} while (KvGotoNextKey(playerModelsKv));
-
-				KvGoBack(kv);
-				CloseHandle(playerModelsKv);
-      		}
-      			
-			g_equipmentCount++;
-		} while (KvGotoNextKey(kv));
+		PrecacheModel(g_equipment[g_equipmentCount][EquipmentModelPath]);
+		Downloader_AddFileToDownloadsTable(g_equipment[g_equipmentCount][EquipmentModelPath]);
 	}
-	
-	CloseHandle(kv);
+
+	new Handle:playerModels = json_object_get(json, "playermodels");
+
+	if (playerModels != INVALID_HANDLE && json_typeof(playerModels) == JSON_ARRAY)
+	{
+		for (new index = 0, size = json_array_size(playerModels); index < size; index++)
+		{
+			new Handle:playerModel = json_array_get(playerModels, index);
+
+			if (playerModel == INVALID_HANDLE)
+				continue;
+
+			if (json_typeof(playerModel) != JSON_OBJECT)
+				continue;
+
+			json_object_get_string(json, "playermodel", g_playerModels[g_playerModelCount][PlayerModelPath], PLATFORM_MAX_PATH);
+
+			new Handle:playerModelPosition = json_object_get(json, "position");
+
+			for (new i = 0; i <= 2; i++)
+				g_playerModels[g_playerModelCount][Position][i] = json_array_get_float(playerModelPosition, i);
+
+			CloseHandle(playerModelPosition);
+
+			new Handle:playerModelAngles = json_object_get(json, "angles");
+
+			for (new i = 0; i <= 2; i++)
+				g_playerModels[g_playerModelCount][Angles][i] = json_array_get_float(playerModelAngles, i);
+
+			CloseHandle(playerModelAngles);
+			CloseHandle(playerModel);
+
+			g_playerModelCount++;
+		}
+
+		CloseHandle(playerModels);
+	}
+
+	CloseHandle(json);
+
+	g_equipmentCount++;
 }
 
 public OnGetPlayerEquipment(ids[], count, any:serial)
@@ -421,7 +428,7 @@ UnequipAll(client)
 
 public Action:ShouldHide(ent, client)
 {
-	if (g_toggleEffects)
+	/*if (g_toggleEffects)
 		if (!ShowClientEffects(client))
 			return Plugin_Handled;
 			
@@ -438,7 +445,7 @@ public Action:ShouldHide(ent, client)
 			if(ent == g_iEquipment[GetEntPropEnt(client, Prop_Send, "m_hObserverTarget")][index])
 				return Plugin_Handled;
 		}
-	}
+	}*/
 	
 	return Plugin_Continue;
 }

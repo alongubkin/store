@@ -116,7 +116,7 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	SetTrieValue(g_trailsNameIndex, g_trails[g_trailCount][Name], g_trailCount);
 	
 	new Handle:json = json_load(attrs);
-	json_object_get_string(json, "material", g_trails[g_trailCount][Material], 256);
+	json_object_get_string(json, "material", g_trails[g_trailCount][Material], PLATFORM_MAX_PATH);
 	json_object_get_string(json, "color", g_trails[g_trailCount][Color], 256);	
 	g_trails[g_trailCount][StartingWidth] = json_object_get_int(json, "startingwidth"); 
 	
