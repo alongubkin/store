@@ -230,7 +230,7 @@ GetCategories(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_H
 			count++;
 		}
 		
-		Call_StartFunction(plugin, Function:callback);
+		Call_StartFunction(plugin, callback);
 		Call_PushArray(categories, count);
 		Call_PushCell(count);
 		Call_PushCell(data);
@@ -340,7 +340,7 @@ GetItems(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE
 			}
 		}
 		
-		Call_StartFunction(plugin, Function:callback);
+		Call_StartFunction(plugin, callback);
 		Call_PushArray(items, count);
 		Call_PushCell(count);
 		Call_PushCell(data);
@@ -491,7 +491,7 @@ GetLoadouts(Handle:filter, Store_GetItemsCallback:callback = Store_GetItemsCallb
 			}
 		}
 		
-		Call_StartFunction(plugin, Function:callback);
+		Call_StartFunction(plugin, callback);
 		Call_PushArray(loadouts, count);
 		Call_PushCell(count);
 		Call_PushCell(data);
@@ -662,7 +662,7 @@ public T_GetUserItemsCallback(Handle:owner, Handle:hndl, const String:error[], a
 		index++;
 	}
 	
-	Call_StartFunction(plugin, Function:callback);
+	Call_StartFunction(plugin, callback);
 	Call_PushArray(ids, count);
 	Call_PushArray(equipped, count);
 	Call_PushArray(itemCount, count);	
@@ -717,7 +717,7 @@ public T_GetCreditsCallback(Handle:owner, Handle:hndl, const String:error[], any
 	
 	if (SQL_FetchRow(hndl))
 	{
-		Call_StartFunction(plugin, Function:callback);
+		Call_StartFunction(plugin, callback);
 		Call_PushCell(SQL_FetchInt(hndl, 0));
 		Call_PushCell(_:arg);
 		Call_Finish();	
@@ -765,7 +765,7 @@ public T_BuyItemGetCreditsCallback(credits, any:pack)
 	
 	if (credits < g_items[GetItemIndex(itemId)][ItemPrice])
 	{
-		Call_StartFunction(plugin, Function:callback);
+		Call_StartFunction(plugin, callback);
 		Call_PushCell(0);
 		Call_PushCell(_:arg);
 		Call_Finish();	
@@ -806,7 +806,7 @@ public T_BuyItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
 	
 	CloseHandle(pack);
 	
-	Call_StartFunction(plugin, Function:callback);
+	Call_StartFunction(plugin, callback);
 	Call_PushCell(1);
 	Call_PushCell(_:arg);
 	Call_Finish();	
@@ -860,7 +860,7 @@ public T_RemoveUserItemCallback(Handle:owner, Handle:hndl, const String:error[],
 	
 	CloseHandle(pack);
 	
-	Call_StartFunction(plugin, Function:callback);
+	Call_StartFunction(plugin, callback);
 	Call_PushCell(accountId);
 	Call_PushCell(itemId);	
 	Call_PushCell(_:arg);
@@ -949,7 +949,7 @@ public T_EquipItemCallback(Handle:owner, Handle:hndl, const String:error[], any:
 	
 	CloseHandle(pack);
 	
-	Call_StartFunction(plugin, Function:callback);
+	Call_StartFunction(plugin, callback);
 	Call_PushCell(accountId);
 	Call_PushCell(itemId);
 	Call_PushCell(loadoutId);	
@@ -1008,7 +1008,7 @@ public T_UnequipItemCallback(Handle:owner, Handle:hndl, const String:error[], an
 	
 	CloseHandle(pack);
 	
-	Call_StartFunction(plugin, Function:callback);
+	Call_StartFunction(plugin, callback);
 	Call_PushCell(accountId);
 	Call_PushCell(itemId);
 	Call_PushCell(loadoutId);
@@ -1087,7 +1087,7 @@ public T_GetEquippedItemsByTypeCallback(Handle:owner, Handle:hndl, const String:
 		index++;
 	}
 	
-	Call_StartFunction(plugin, Function:callback);
+	Call_StartFunction(plugin, callback);
 	Call_PushArray(ids, count);
 	Call_PushCell(count);
 	Call_PushCell(arg);
@@ -1143,7 +1143,7 @@ public T_GiveCreditsCallback(Handle:owner, Handle:hndl, const String:error[], an
 	
 	CloseHandle(pack);
 	
-	Call_StartFunction(plugin, Function:callback);
+	Call_StartFunction(plugin, callback);
 	Call_PushCell(accountId);
 	Call_PushCell(_:arg);
 	Call_Finish();	
