@@ -154,7 +154,7 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		decl String:requiredPlugin[STORE_MAX_REQUIREPLUGIN_LENGTH];
 		Store_GetCategoryPluginRequired(ids[category], requiredPlugin, sizeof(requiredPlugin));
 		
-		if (!Store_IsItemTypeRegistered(requiredPlugin))
+		if (!StrEqual(requiredPlugin, "") && !Store_IsItemTypeRegistered(requiredPlugin))
 			continue;
 			
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
