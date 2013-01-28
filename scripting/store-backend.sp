@@ -144,7 +144,7 @@ Register(accountId, const String:name[] = "")
 	decl String:query[255];
 	Format(query, sizeof(query), "INSERT INTO store_users (auth, name, credits) VALUES (%d, '%s', 0) ON DUPLICATE KEY UPDATE name = '%s';", accountId, safeName, safeName);
 	
-	SQL_TQuery(g_hSQL, T_EmptyCallback, query, _, DBPrio_High);
+	SQL_TQuery(g_hSQL, T_RegisterCallback, query, _, DBPrio_High);
 }
 
 /**
@@ -177,7 +177,7 @@ RegisterClient(client)
 	Register(Store_GetClientAccountID(client), name);
 }
 
-public T_EmptyCallback(Handle:owner, Handle:hndl, const String:error[], any:data)
+public T_RegisterCallback(Handle:owner, Handle:hndl, const String:error[], any:data)
 {
 	if (hndl == INVALID_HANDLE)
 	{
@@ -1140,6 +1140,9 @@ public T_GiveCreditsCallback(Handle:owner, Handle:hndl, const String:error[], an
 */
 GiveCreditsToUsers(accountIds[], accountIdsLength, credits)
 {
+	if (accountIdsLength == 0)
+		return;
+	
 	decl String:query[2048];
 	Format(query, sizeof(query), "UPDATE store_users SET credits = credits + %d WHERE auth IN (", credits);
 	
@@ -1153,7 +1156,16 @@ GiveCreditsToUsers(accountIds[], accountIdsLength, credits)
 
 	Format(query, sizeof(query), "%s)", query);	
 	
-	SQL_TQuery(g_hSQL, T_EmptyCallback, query);	
+	SQL_TQuery(g_hSQL, T_GiveCreditsToUsersCallback, query);	
+}
+
+public T_GiveCreditsToUsersCallback(Handle:owner, Handle:hndl, const String:error[], any:data)
+{
+	if (hndl == INVALID_HANDLE)
+	{
+		Store_LogError("SQL Error on GiveCreditsToUsers: %s", error);
+		return;
+	}
 }
 
 ConnectSQL()
