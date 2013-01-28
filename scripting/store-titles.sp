@@ -36,7 +36,7 @@ public OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
 
-	Store_RegisterItemType("title", Store_ItemUseCallback:OnEquip, Store_ItemGetAttributesCallback:LoadItem);
+	Store_RegisterItemType("title", OnEquip, LoadItem);
 }
 
 /**

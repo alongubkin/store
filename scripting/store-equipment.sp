@@ -86,7 +86,7 @@ public OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
 
-	Store_RegisterItemType("equipment", Store_ItemUseCallback:OnEquip, Store_ItemGetAttributesCallback:LoadItem);
+	Store_RegisterItemType("equipment", OnEquip, LoadItem);
 	
 	g_loadoutSlotList = CreateArray(ByteCountToCells(32));
 	
