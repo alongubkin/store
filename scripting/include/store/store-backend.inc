@@ -530,7 +530,7 @@ native Store_GiveCreditsToUsers(accountIds[], accountIdsLength, credits);
 native Store_BuyItem(accountId, itemId, Store_BuyItemCallback:callback, any:data = 0);
 
 /**
- * Uses an item for a player (deletes one 'copy' of the item from his inventory.)
+ * Removes one copy of an item from a player's inventory.
  * 
  * As with all other store-backend methods, this method is completely asynchronous.
  *
@@ -541,37 +541,23 @@ native Store_BuyItem(accountId, itemId, Store_BuyItemCallback:callback, any:data
  *
  * @noreturn
  */
-native Store_UseItem(accountId, itemId, Store_UseItemCallback:callback, any:data = 0);
+native Store_RemoveUserItem(accountId, itemId, Store_UseItemCallback:callback, any:data = 0);
 
 /**
- * Equips an item for a player in a loadout.
+ * Changes item equipped state in a specific loadout for a player.
  * 
  * As with all other store-backend methods, this method is completely asynchronous.
  *
  * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
- * @param itemId            The ID of the item to equip.
+ * @param itemId            The ID of the item to change equipped state to.
  * @param loadoutId         The loadout to equip the item in.
+ * @param isEquipped		Whether or not the item is equipped in the specified loadout.
  * @param callback		    A callback which will be called when the operation is finished.
  * @param data              Extra data value to pass to the callback.
  *
  * @noreturn
  */
-native Store_EquipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:callback, any:data = 0);
-
-/**
- * Unequips an item for a player in a loadout.
- * 
- * As with all other store-backend methods, this method is completely asynchronous.
- *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
- * @param itemId            The ID of the item to unequip.
- * @param loadoutId         The loadout to unequip the item in.
- * @param callback		    A callback which will be called when the operation is finished.
- * @param data             	Extra data value to pass to the callback.
- *
- * @noreturn
- */
-native Store_UnequipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:callback, any:data = 0);
+native Store_SetItemEquippedState(accountId, itemId, loadoutId, bool:isEquipped, Store_EquipItemCallback:callback, any:data = 0);
 
 /**
  * Retrieves equipped items of a specific player in a specific type. 
@@ -678,11 +664,9 @@ public __pl_store_backend_SetNTVOptional()
 	MarkNativeAsOptional("Store_GiveCredits");
 	
 	MarkNativeAsOptional("Store_BuyItem");
-	MarkNativeAsOptional("Store_UseItem");
+	MarkNativeAsOptional("Store_RemoveUserItem");
 	
-	MarkNativeAsOptional("Store_EquipItem");
-	MarkNativeAsOptional("Store_UnequipItem");
-	
+	MarkNativeAsOptional("Store_SetItemEquippedState");
 	MarkNativeAsOptional("Store_GetEquippedItemsByType");
 }
 #endif

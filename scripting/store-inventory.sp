@@ -335,14 +335,11 @@ public InventoryCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client,
 				
 				if (StrEqual(loadoutSlot, ""))
 				{
-					Store_UseItem(auth, id, UseItemCallback, pack);
+					Store_RemoveUserItem(auth, id, UseItemCallback, pack);
 				}
 				else
 				{
-					if (equipped)
-						Store_UnequipItem(auth, id, Store_GetClientLoadout(client), EquipItemCallback, pack);
-					else
-						Store_EquipItem(auth, id, Store_GetClientLoadout(client), EquipItemCallback, pack);
+					Store_SetItemEquippedState(auth, id, Store_GetClientLoadout(client), !equipped, EquipItemCallback, pack);
 				}
 			}
 		}

@@ -96,10 +96,9 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_GiveCreditsToUsers", Native_GiveCreditsToUsers);	
 
 	CreateNative("Store_BuyItem", Native_BuyItem);
-	CreateNative("Store_UseItem", Native_UseItem);
-	
-	CreateNative("Store_EquipItem", Native_EquipItem);
-	CreateNative("Store_UnequipItem", Native_UnequipItem);   
+	CreateNative("Store_RemoveUserItem", Native_RemoveUserItem);
+
+	CreateNative("Store_SetItemEquippedState", Native_SetItemEquippedState);
 	CreateNative("Store_GetEquippedItemsByType", Native_GetEquippedItemsByType);
 	
 	RegPluginLibrary("store-backend");
@@ -814,7 +813,7 @@ public T_BuyItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
 }
 
 /**
- * Uses an item for a player (deletes one 'copy' of the item from his inventory.)
+ * Removes one copy of an item from a player's inventory.
  * 
  * As with all other store-backend methods, this method is completely asynchronous.
  *
@@ -826,7 +825,7 @@ public T_BuyItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
  *
  * @noreturn
  */
-UseItem(accountId, itemId, Store_UseItemCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
+RemoveUserItem(accountId, itemId, Store_UseItemCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
 	WritePackCell(pack, accountId);
@@ -838,10 +837,10 @@ UseItem(accountId, itemId, Store_UseItemCallback:callback, Handle:plugin = INVAL
 	decl String:query[255];
 	Format(query, sizeof(query), "DELETE FROM store_users_items WHERE store_users_items.item_id = %d AND store_users_items.userId IN (SELECT store_users.id FROM store_users WHERE store_users.auth = %d) LIMIT 1", itemId, accountId);
 	
-	SQL_TQuery(g_hSQL, T_UseItemCallback, query, pack, DBPrio_High);	
+	SQL_TQuery(g_hSQL, T_RemoveUserItemCallback, query, pack, DBPrio_High);	
 }
 
-public T_UseItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
+public T_RemoveUserItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
 {
 	if (hndl == INVALID_HANDLE)
 	{
@@ -866,6 +865,32 @@ public T_UseItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pa
 	Call_PushCell(itemId);	
 	Call_PushCell(_:arg);
 	Call_Finish();	
+}
+
+/**
+ * Changes item equipped state in a specific loadout for a player.
+ * 
+ * As with all other store-backend methods, this method is completely asynchronous.
+ *
+ * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param itemId            The ID of the item to change equipped state to.
+ * @param loadoutId         The loadout to equip the item in.
+ * @param isEquipped		Whether or not the item is equipped in the specified loadout.
+ * @param callback		    A callback which will be called when the operation is finished.
+ * @param data              Extra data value to pass to the callback.
+ *
+ * @noreturn
+ */
+SetItemEquippedState(accountId, itemId, loadoutId, bool:isEquipped, Store_EquipItemCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
+{
+	if (isEquipped)
+	{
+		EquipItem(accountId, itemId, loadoutId, callback, plugin, data);
+	}
+	else
+	{
+		UnequipItem(accountId, itemId, loadoutId, callback, plugin, data);
+	}
 }
 
 /**
@@ -1361,34 +1386,24 @@ public Native_BuyItem(Handle:plugin, params)
 	BuyItem(GetNativeCell(1), GetNativeCell(2), Store_BuyItemCallback:GetNativeCell(3), plugin, data);
 }
 
-public Native_UseItem(Handle:plugin, params)
+public Native_RemoveUserItem(Handle:plugin, params)
 {
 	new any:data = 0;
 	
 	if (params == 4)
 		data = GetNativeCell(4);
 
-	UseItem(GetNativeCell(1), GetNativeCell(2), Store_UseItemCallback:GetNativeCell(3), plugin, data);
+	RemoveUserItem(GetNativeCell(1), GetNativeCell(2), Store_UseItemCallback:GetNativeCell(3), plugin, data);
 }
 
-public Native_EquipItem(Handle:plugin, params)
+public Native_SetItemEquippedState(Handle:plugin, params)
 {
 	new any:data = 0;
 	
 	if (params == 5)
-		data = GetNativeCell(5);
+		data = GetNativeCell(6);
 
-	EquipItem(GetNativeCell(1), GetNativeCell(2), GetNativeCell(3), Store_EquipItemCallback:GetNativeCell(4), plugin, data);
-}
-
-public Native_UnequipItem(Handle:plugin, params)
-{
-	new any:data = 0;
-	
-	if (params == 5)
-		data = GetNativeCell(5);
-
-	UnequipItem(GetNativeCell(1), GetNativeCell(2), GetNativeCell(3), Store_EquipItemCallback:GetNativeCell(4), plugin, data);
+	SetItemEquippedState(GetNativeCell(1), GetNativeCell(2), GetNativeCell(3), GetNativeCell(4), Store_EquipItemCallback:GetNativeCell(5), plugin, data);
 }
 
 public Native_GetEquippedItemsByType(Handle:plugin, params)
