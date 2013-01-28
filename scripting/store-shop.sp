@@ -128,12 +128,12 @@ public Action:Command_Say(client, const String:command[], args)
 }
 
 /**
-* Opens the shop menu for a client.
-*
-* @param client			Client index.
-*
-* @noreturn
-*/
+ * Opens the shop menu for a client.
+ *
+ * @param client			Client index.
+ *
+ * @noreturn
+ */
 OpenShop(client)
 {
 	Store_GetCategories(GetCategoriesCallback, true, GetClientSerial(client));
@@ -199,13 +199,13 @@ public ShopMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
 }
 
 /**
-* Opens the shop menu for a client in a specific category.
-*
-* @param client			Client index.
-* @param categoryId		The category that you want to open.
-*
-* @noreturn
-*/
+ * Opens the shop menu for a client in a specific category.
+ *
+ * @param client			Client index.
+ * @param categoryId		The category that you want to open.
+ *
+ * @noreturn
+ */
 OpenShopCategory(client, categoryId)
 {
 	new Handle:pack = CreateDataPack();

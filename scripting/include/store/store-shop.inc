@@ -4,22 +4,22 @@
 #define _store_shop_included
 
 /**
-* Opens the shop menu for a client.
-*
-* @param client			Client index.
-*
-* @noreturn
-*/
+ * Opens the shop menu for a client.
+ *
+ * @param client			Client index.
+ *
+ * @noreturn
+ */
 native Store_OpenShop(client);
 
 /**
-* Opens the shop menu for a client in a specific category.
-*
-* @param client			Client index.
-* @param categoryId		The category that you want to open.
-*
-* @noreturn
-*/
+ * Opens the shop menu for a client in a specific category.
+ *
+ * @param client			Client index.
+ * @param categoryId		The category that you want to open.
+ *
+ * @noreturn
+ */
 native Store_OpenShopCategory(client, categoryId);
 
 public SharedPlugin:__pl_shop_store =
