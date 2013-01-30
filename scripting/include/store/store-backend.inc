@@ -493,7 +493,7 @@ native Store_GetCredits(accountId, Store_GetCreditsCallback:callback, any:data =
  *
  * @noreturn
  */
-native Store_GiveCredits(accountId, credits, Store_GiveCreditsCallback:callback, any:data = 0);
+native Store_GiveCredits(accountId, credits, Store_GiveCreditsCallback:callback = Store_GiveCreditsCallback:INVALID_HANDLE, any:data = 0);
 
 /**
  * Gives multiple players a specific amount of credits. 

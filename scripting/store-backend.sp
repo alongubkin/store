@@ -1153,10 +1153,13 @@ public T_GiveCreditsCallback(Handle:owner, Handle:hndl, const String:error[], an
 	
 	CloseHandle(pack);
 	
-	Call_StartFunction(plugin, callback);
-	Call_PushCell(accountId);
-	Call_PushCell(_:arg);
-	Call_Finish();	
+	if (callback != Store_GiveCreditsCallback:INVALID_HANDLE) 
+	{
+		Call_StartFunction(plugin, callback);
+		Call_PushCell(accountId);
+		Call_PushCell(_:arg);
+		Call_Finish();	
+	}
 }
 
 /**
