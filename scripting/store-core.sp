@@ -70,6 +70,7 @@ public OnPluginStart()
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say_team");
 	
+	RegConsoleCmd("sm_store", Command_OpenMainMenu);
 	RegAdminCmd("store_reloaditems", Command_ReloadItems, ADMFLAG_RCON, "Reloads store item cache.");
 
 	g_allPluginsLoaded = false;
@@ -151,6 +152,12 @@ public Action:Command_Say(client, const String:command[], args)
 	}
 	
 	return Plugin_Continue;
+}
+
+public Action:Command_OpenMainMenu(client, args)
+{
+	OpenMainMenu(client);
+	return Plugin_Handled;
 }
 
 public Action:Command_ReloadItems(client, args)

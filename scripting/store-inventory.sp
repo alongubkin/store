@@ -59,6 +59,8 @@ public OnPluginStart()
 
 	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuInventoryClick, 4);
 
+	RegConsoleCmd("sm_inventory", Command_OpenInventory);
+
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say_team");
 }
@@ -124,6 +126,12 @@ public Action:Command_Say(client, const String:command[], args)
 	}
 	
 	return Plugin_Continue;
+}
+
+public Action:Command_OpenInventory(client, args)
+{
+	OpenInventory(client);
+	return Plugin_Handled;
 }
 
 /**

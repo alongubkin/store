@@ -52,6 +52,8 @@ public OnPluginStart()
 
 	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuShopClick, 2);
 	
+	RegConsoleCmd("sm_shop", Command_OpenShop);
+
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say_team");
 }
@@ -125,6 +127,12 @@ public Action:Command_Say(client, const String:command[], args)
 	}
 	
 	return Plugin_Continue;
+}
+
+public Action:Command_OpenShop(client, args)
+{
+	OpenShop(client);
+	return Plugin_Handled;
 }
 
 /**

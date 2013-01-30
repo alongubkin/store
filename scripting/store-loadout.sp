@@ -72,6 +72,8 @@ public OnPluginStart()
 	
 	HookEvent("player_spawn", Event_PlayerSpawn);
 	
+	RegConsoleCmd("sm_loadout", Command_OpenLoadout);
+
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say_team");
 }
@@ -163,6 +165,12 @@ public Action:Command_Say(client, const String:command[], args)
 	}
 	
 	return Plugin_Continue;
+}
+
+public Action:Command_OpenLoadout(client, args)
+{
+	OpenLoadoutMenu(client);
+	return Plugin_Handled;
 }
 
 public OnMainMenuLoadoutClick(client, const String:value[])
