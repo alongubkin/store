@@ -52,7 +52,7 @@ Then, navigate to `configs/store/sql-init-scripts` and execute `store.sql` in yo
 
 ## License
 
-Copyright (C) 2013  Alon Gubkin <alon.gubkin@gmail.com>
+Copyright (C) 2013  Alon Gubkin
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
