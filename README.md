@@ -23,19 +23,6 @@ More documentation and tutorials can be found at [our wiki](https://github.com/a
 * Custom currency name.
 * Custom chat triggers for the store main menu, shop, inventory and loadout.
 
-### Built-in item modules
-
-* Equipment - generic module for player attachments such as hats, glasses, masks, shields, etc. Based on [Zephyrus's Hats plugin](http://forums.alliedmods.net/showthread.php?t=174714).
-* Trails
-* Titles - chat tags that are added to your name, utilizes Simple Chat Processor.
-* Skins
-* Pets (experimental, CS:S only)
-
-Also, for **Zombie:Reloaded**:
-
-* Props
-* Jetpack
-
 ## Installation
 
 Just download the attached zip archive and extract to your sourcemod folder intact. Then navigate to your `configs/` directory and add the following entry in `databases.cfg`:
