@@ -29,9 +29,9 @@ Just download the attached zip archive and extract to your sourcemod folder inta
     {
         "driver"        "mysql"
         "host"          "<your-database-host>"
-        "database"			"<your-database-name>"
-        "user"				  "<username>"
-        "pass"				  "<password>"
+        "database"		"<your-database-name>"
+        "user"		    "<username>"
+        "pass"		    "<password>"
     }
     
-Then, navigate to `configs/store/sql-init-scripts` and execute `store.sql` in your database. For each item you want to add, execute the corresponding SQL file in `configs/store/sql-init-scripts` and enable the plugin.
+Then, navigate to `configs/store/sql-init-scripts` and execute `store.sql` in your database. For each item type you want to add, execute the corresponding SQL file in `configs/store/sql-init-scripts` and enable the plugin.
