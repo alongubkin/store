@@ -51,6 +51,7 @@ Just download the attached zip archive and extract to your sourcemod folder inta
     
 Then, navigate to `configs/store/sql-init-scripts` and execute `store.sql` in your database. For each item module you want to add, execute the corresponding SQL file in `configs/store/sql-init-scripts` and enable the plugin.
 
+([Tutorial](https://github.com/alongubkin/store/wiki/Installing-Store))
 ## License
 
 Copyright (C) 2013  Alon Gubkin
