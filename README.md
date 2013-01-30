@@ -20,3 +20,18 @@ More documentation and tutorials can be found at [our wiki](https://github.com/a
 * **Logging** - The plugin maintains full logs of all errors, warnings and information.
 * Custom currency name.
 * Custom chat triggers for the store main menu, shop, inventory and loadout.
+
+## Installation
+
+Just download the attached zip archive and extract to your sourcemod folder intact. Then navigate to your `configs/` directory and add the following entry in databases.cfg:
+    
+    "store"
+    {
+        "driver"        "mysql"
+        "host"          "<your-database-host>"
+        "database"			"<your-database-name>"
+        "user"				  "<username>"
+        "pass"				  "<password>"
+    }
+    
+Then, navigate to `configs/store/sql-init-scripts` and execute `store.sql` in your database. For each item you want to add, execute the corresponding SQL file in `configs/store/sql-init-scripts` and enable the plugin.
