@@ -9,6 +9,7 @@ More documentation and tutorials can be found at [our wiki](https://github.com/a
 
 * Working Source-based Game Server with SourceMod installed.
 * MySQL database, with a tool such as phpMyAdmin for database management. 
+* [SDKHooks](http://forums.alliedmods.net/showthread.php?t=106748) and [SMJansson](https://forums.alliedmods.net/showthread.php?t=184604) for some item modules.
 
 ### Features
 
