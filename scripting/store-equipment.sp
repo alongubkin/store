@@ -74,7 +74,7 @@ public Plugin:myinfo =
 	name        = "[Store] Equipment",
 	author      = "alongub",
 	description = "Equipment component for [Store]",
-	version     = PL_VERSION,
+	version     = STORE_VERSION,
 	url         = "https://github.com/alongubkin/store"
 };
 

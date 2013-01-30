@@ -33,7 +33,7 @@ public Plugin:myinfo =
 	name        = "[Store] Shop",
 	author      = "alongub",
 	description = "Shop component for [Store]",
-	version     = PL_VERSION,
+	version     = STORE_VERSION,
 	url         = "https://github.com/alongubkin/store"
 };
 

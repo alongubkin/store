@@ -24,7 +24,7 @@ public Plugin:myinfo =
 	name        = "[Store] Titles",
 	author      = "alongub",
 	description = "Titles component for [Store]",
-	version     = PL_VERSION,
+	version     = STORE_VERSION,
 	url         = "https://github.com/alongubkin/store"
 };
 

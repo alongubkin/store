@@ -53,7 +53,7 @@ public Plugin:myinfo =
 	name        = "[Store] Core",
 	author      = "alongub",
 	description = "Core component for [Store]",
-	version     = PL_VERSION,
+	version     = STORE_VERSION,
 	url         = "https://github.com/alongubkin/store"
 };
 
@@ -62,7 +62,7 @@ public Plugin:myinfo =
  */
 public OnPluginStart()
 {
-	CreateConVar("store_version", PL_VERSION, "Store Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
+	CreateConVar("store_version", STORE_VERSION, "Store Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 
 	LoadConfig();
 	

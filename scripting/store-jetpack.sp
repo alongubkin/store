@@ -36,7 +36,7 @@ public Plugin:myinfo =
 	name        = "[Store] Jetpack",
 	author      = "alongub",
 	description = "Jetpack component for [Store]",
-	version     = PL_VERSION,
+	version     = STORE_VERSION,
 	url         = "https://github.com/alongubkin/store"
 };
 

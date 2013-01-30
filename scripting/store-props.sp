@@ -45,7 +45,7 @@ public Plugin:myinfo =
 	name        = "[Store] Props",
 	author      = "alongub",
 	description = "Props component for [Store]",
-	version     = PL_VERSION,
+	version     = STORE_VERSION,
 	url         = "https://github.com/alongubkin/store"
 };
 
