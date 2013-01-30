@@ -62,6 +62,8 @@ public Plugin:myinfo =
  */
 public OnPluginStart()
 {
+	CreateConVar("store_version", PL_VERSION, "Store Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
+
 	LoadConfig();
 	
 	LoadTranslations("common.phrases");
