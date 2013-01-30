@@ -23,7 +23,7 @@ More documentation and tutorials can be found at [our wiki](https://github.com/a
 
 ## Installation
 
-Just download the attached zip archive and extract to your sourcemod folder intact. Then navigate to your `configs/` directory and add the following entry in databases.cfg:
+Just download the attached zip archive and extract to your sourcemod folder intact. Then navigate to your `configs/` directory and add the following entry in `databases.cfg`:
     
     "store"
     {
