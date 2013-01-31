@@ -84,4 +84,10 @@
 	{
 		"en"				"You player model doesn't support equipment."
 	}
+
+	"Received Credits"
+	{
+		"#format"			"{1:d},{2:s}"
+		"en"				"You just received {1} {2}!"
+	}
 }

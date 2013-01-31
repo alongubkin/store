@@ -5,6 +5,9 @@
 
 new Float:g_timeInSeconds;
 new g_creditsPerTick;
+new bool:g_enableMessagePerTick;
+
+new String:g_currencyName[64];
 
 public Plugin:myinfo =
 {
@@ -21,6 +24,8 @@ public Plugin:myinfo =
 public OnPluginStart() 
 {
 	LoadConfig();
+
+	Store_GetCurrencyName(g_currencyName, sizeof(g_currencyName));
 	CreateTimer(g_timeInSeconds, ForgivePoints, _, TIMER_REPEAT);
 }
 
@@ -42,6 +47,7 @@ LoadConfig()
 
 	g_timeInSeconds = KvGetFloat(kv, "time_in_seconds", 180.0);
 	g_creditsPerTick = KvGetNum(kv, "credits_per_tick", 3);
+	g_enableMessagePerTick = bool:KvGetNum(kv, "enable_message_per_tick", 0);
 
 	CloseHandle(kv);
 }
@@ -52,12 +58,17 @@ public Action:ForgivePoints(Handle:timer)
 	new accountIds[MaxClients];
 	new count = 0;
 	
-	for (new i = 1; i <= MaxClients; i++) 
+	for (new client = 1; client <= MaxClients; client++) 
 	{
-		if (IsClientInGame(i) && !IsFakeClient(i) && !IsClientObserver(i))
+		if (IsClientInGame(client) && !IsFakeClient(client) && !IsClientObserver(client))
 		{
-			accountIds[count] = Store_GetClientAccountID(i);
+			accountIds[count] = Store_GetClientAccountID(client);
 			count++;
+
+			if (g_enableMessagePerTick)
+			{
+				PrintToChat(client, "%t", "Received Credits", g_creditsPerTick);
+			}
 		}
 	}
 
