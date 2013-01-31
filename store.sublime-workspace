@@ -12,18 +12,50 @@
 	"buffers":
 	[
 		{
-			"file": "scripting/store-jetpack.sp",
+			"file": "scripting/store-backend.sp",
 			"settings":
 			{
-				"buffer_size": 6624,
+				"buffer_size": 46124,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-inventory.sp",
+			"settings":
+			{
+				"buffer_size": 12820,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-trails.sp",
+			"settings":
+			{
+				"buffer_size": 8749,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "scripting/store-props.sp",
+			"file": "scripting/include/store/store-backend.inc",
 			"settings":
 			{
-				"buffer_size": 4576,
+				"buffer_size": 24200,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripting/store-core.sp",
+			"settings":
+			{
+				"buffer_size": 8438,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-distributor.sp",
+			"settings":
+			{
+				"buffer_size": 1262,
 				"line_ending": "Unix"
 			}
 		},
@@ -31,16 +63,32 @@
 			"file": "scripting/store-equipment.sp",
 			"settings":
 			{
-				"buffer_size": 14100,
+				"buffer_size": 14103,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "translations/store.phrases.txt",
+			"file": "scripting/store-jetpack.sp",
 			"settings":
 			{
-				"buffer_size": 1283,
+				"buffer_size": 6627,
 				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-shop.sp",
+			"settings":
+			{
+				"buffer_size": 7536,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-titles.sp",
+			"settings":
+			{
+				"buffer_size": 3732,
+				"line_ending": "Unix"
 			}
 		}
 	],
@@ -72,21 +120,25 @@
 	},
 	"file_history":
 	[
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-inventory.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-sounds.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-titles.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-equipment.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-props.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-shop.inc",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-inventory.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-equipment.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-jetpack.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-titles.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
+		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/User/SublimeOnSaveBuild.sublime-settings",
 		"/C/Users/Alon/Documents/GitHub/store/translations/store.phrases.txt",
+		"/C/Users/Alon/Downloads/warden.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-sounds.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-shop.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/smjansson.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store.inc",
 		"/C/Users/Alon/Downloads/rtler.sp",
@@ -94,7 +146,6 @@
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-inventory.inc",
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/SublimeOnSaveBuild/SublimeOnSaveBuild.sublime-settings",
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/SublimeOnSaveBuild/README.md",
-		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/User/SublimeOnSaveBuild.sublime-settings",
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/SourcePawn/SourcePawn.sublime-build",
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/sublime-sourcepawn-master/SPCompletions.sublime-settings",
 		"/C/Users/Alon/Documents/GitHub/store/store.sublime-project",
@@ -119,6 +170,14 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"GetUserItemsCallback",
+			"Store_GetUserItems",
+			"OpenInventoryCategory",
+			"getuseritems",
+			"EquipItem",
+			"ResetPack",
+			"EquipItemCallback",
+			"Command_OpenInventory",
 			"g_items",
 			"g_categories",
 			"Function:",
@@ -187,23 +246,23 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 2,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "scripting/store-jetpack.sp",
+					"file": "scripting/store-backend.sp",
 					"settings":
 					{
-						"buffer_size": 6624,
+						"buffer_size": 46124,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1253,
-								1181
+								21363,
+								21363
 							]
 						],
 						"settings":
@@ -212,25 +271,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 460.0,
+						"translation.y": 9022.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "scripting/store-props.sp",
+					"file": "scripting/store-inventory.sp",
 					"settings":
 					{
-						"buffer_size": 4576,
+						"buffer_size": 12820,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1296,
-								1296
+								7140,
+								7185
 							]
 						],
 						"settings":
@@ -239,25 +298,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 944.0,
+						"translation.y": 3045.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "scripting/store-equipment.sp",
+					"file": "scripting/store-trails.sp",
 					"settings":
 					{
-						"buffer_size": 14100,
+						"buffer_size": 8749,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5164,
-								7779
+								5996,
+								5996
 							]
 						],
 						"settings":
@@ -266,34 +325,195 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 810.0,
+						"translation.y": 3581.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "translations/store.phrases.txt",
+					"file": "scripting/include/store/store-backend.inc",
 					"settings":
 					{
-						"buffer_size": 1283,
+						"buffer_size": 24200,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1012,
-								992
+								17331,
+								17314
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 7005.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "scripting/store-core.sp",
+					"settings":
+					{
+						"buffer_size": 8438,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1641,
+								1641
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 813.0,
+						"translation.y": 540.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "scripting/store-distributor.sp",
+					"settings":
+					{
+						"buffer_size": 1262,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								279,
+								279
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "scripting/store-equipment.sp",
+					"settings":
+					{
+						"buffer_size": 14103,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								8684,
+								8692
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 4770.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "scripting/store-jetpack.sp",
+					"settings":
+					{
+						"buffer_size": 6627,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1069,
+								1069
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 180.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "scripting/store-shop.sp",
+					"settings":
+					{
+						"buffer_size": 7536,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1032,
+								1032
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 180.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "scripting/store-titles.sp",
+					"settings":
+					{
+						"buffer_size": 3732,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								492,
+								492
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 90.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

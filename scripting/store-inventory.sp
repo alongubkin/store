@@ -225,7 +225,7 @@ OpenInventoryCategory(client, categoryId, slot = 0)
 }
 
 public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutId, any:pack)
-{	
+{
 	ResetPack(pack);
 	
 	new serial = ReadPackCell(pack);

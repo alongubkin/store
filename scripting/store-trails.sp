@@ -214,7 +214,7 @@ public Action:PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)
 		if (g_SpriteModel[client] != -1 || IsValidEntity(g_SpriteModel[client]))
 			KillTrail(client);
         
-		CreateTimer(1.0, GiveTrail, client);
+		CreateTimer(1.0, GiveTrail, GetClientSerial(client));
 	}
 }
 
@@ -252,8 +252,12 @@ public Action:RoundEnd(Handle:event,const String:name[],bool:dontBroadcast)
 	}
 }
 
-public Action:GiveTrail(Handle:timer, any:client)
+public Action:GiveTrail(Handle:timer, any:serial)
 {
+	new client = GetClientFromSerial(serial);
+	if (client == 0)
+		return Plugin_Handled;
+
 	if (!IsPlayerAlive(client))
 		return Plugin_Continue;
 		
