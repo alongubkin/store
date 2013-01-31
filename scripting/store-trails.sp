@@ -4,7 +4,6 @@
 #include <sdktools>
 #include <sdkhooks>
 #include <store>
-#include <cstrike>
 #include <smjansson>
 
 #undef REQUIRE_PLUGIN
@@ -319,8 +318,9 @@ bool:Equip(client, const String:name[])
 	DispatchKeyValue(g_SpriteModel[client], "spritename", g_trails[trail][Material]);
 	DispatchKeyValue(g_SpriteModel[client], "renderamt", "255");
 	DispatchKeyValue(g_SpriteModel[client], "rendercolor", g_trails[trail][Color]);
-	DispatchKeyValue(g_SpriteModel[client], "rendermode", "1");
-	
+	DispatchKeyValue(g_SpriteModel[client], "rendermode", "5");
+	SetEntPropFloat(g_SpriteModel[client], Prop_Send, "m_flTextureRes", 0.05);
+
 	DispatchSpawn(g_SpriteModel[client]);
 	
 	new Float:Client_Origin[3];
