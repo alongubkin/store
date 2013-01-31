@@ -73,7 +73,9 @@ public OnPluginStart()
 	AddCommandListener(Command_Say, "say_team");
 	
 	RegConsoleCmd("sm_store", Command_OpenMainMenu);
+	
 	RegAdminCmd("store_reloaditems", Command_ReloadItems, ADMFLAG_RCON, "Reloads store item cache.");
+	RegAdminCmd("store_givecredits", Command_GiveCredits, ADMFLAG_ROOT, "Gives credots to a player.");
 
 	g_allPluginsLoaded = false;
 }
@@ -169,6 +171,61 @@ public Action:Command_ReloadItems(client, args)
 	
 	return Plugin_Handled;
 }
+
+public Action:Command_GiveCredits(client, args)
+{
+	if (args < 2)
+	{
+		ReplyToCommand(client, "Usage: sm_givecredits <name> <credits>");
+		return Plugin_Handled;
+	}
+    
+	decl String:target[65];
+	decl String:target_name[MAX_TARGET_LENGTH];
+	decl target_list[MAXPLAYERS];
+	decl target_count;
+	decl bool:tn_is_ml;
+    
+	GetCmdArg(1, target, sizeof(target));
+    
+	new String:money[32];
+	GetCmdArg(2, money, sizeof(money));
+    
+	new imoney = StringToInt(money);
+ 
+	if ((target_count = ProcessTargetString(
+			target,
+			0,
+			target_list,
+			MAXPLAYERS,
+			0,
+			target_name,
+			sizeof(target_name),
+			tn_is_ml)) <= 0)
+	{
+		ReplyToTargetError(client, target_count);
+		return Plugin_Handled;
+	}
+
+
+	new accountIds[target_count];
+	new count = 0;
+
+	for (new i = 0; i < target_count; i++)
+	{
+		if (IsClientInGame(target_list[i]) && !IsFakeClient(client))
+		{
+			accountIds[count] = Store_GetClientAccountID(client);
+			count++;
+
+			PrintToChat(client, "%t", "Received Credits", imoney);
+		}
+	}
+
+	Store_GiveCreditsToUsers(accountIds, count, imoney);
+	return Plugin_Handled;
+}
+
 
 public Store_OnReloadItemsPost() 
 {
