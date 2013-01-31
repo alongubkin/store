@@ -5,7 +5,7 @@ set @category_id = (select last_insert_id());
 
 INSERT INTO `store_items` (`name`, `display_name`, `description`, `type`, `loadout_slot`, `price`, `category_id`, `attrs`) VALUES
 ('sir', 'Sir', NULL, 'title', 'title', 100, @category_id, '{ "text": "Sir", "color": "FF0000FF" }'),
-('lady', 'Lady', NULL, 'title', 'title', 100, @category_id, '{ "text": "Sir", "color": "00FFFFFF" }'),
+('lady', 'Lady', NULL, 'title', 'title', 100, @category_id, '{ "text": "Lady", "color": "00FFFFFF" }'),
 ('warrior', 'Warrior', NULL, 'title', 'title', 150, @category_id, '{ "text": "Warrior", "color": "000000FF" }'),
 ('baron', 'Baron', NULL, 'title', 'title', 200, @category_id, '{ "text": "Baron", "color": "FA8072FF" }'),
 ('overlord', 'Overlord', NULL, 'title', 'title', 250, @category_id, '{ "text": "Overlord", "color": "98FB98FF" }'),
