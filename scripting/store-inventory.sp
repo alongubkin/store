@@ -40,7 +40,7 @@ public Plugin:myinfo =
 	name        = "[Store] Inventory",
 	author      = "alongub",
 	description = "Inventory component for [Store]",
-	version     = PL_VERSION,
+	version     = STORE_VERSION,
 	url         = "https://github.com/alongubkin/store"
 };
 
@@ -72,7 +72,7 @@ LoadConfig()
 {
 	new Handle:kv = CreateKeyValues("root");
 	
-	decl String:path[100];
+	decl String:path[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, path, sizeof(path), "configs/store/inventory.cfg");
 	
 	if (!FileToKeyValues(kv, path)) 

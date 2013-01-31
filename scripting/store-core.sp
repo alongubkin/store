@@ -186,7 +186,7 @@ LoadConfig()
 {
 	new Handle:kv = CreateKeyValues("root");
 	
-	decl String:path[100];
+	decl String:path[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, path, sizeof(path), "configs/store/core.cfg");
 	
 	if (!FileToKeyValues(kv, path)) 
