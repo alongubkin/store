@@ -1413,7 +1413,7 @@ public Native_SetItemEquippedState(Handle:plugin, params)
 {
 	new any:data = 0;
 	
-	if (params == 5)
+	if (params == 6)
 		data = GetNativeCell(6);
 
 	SetItemEquippedState(GetNativeCell(1), GetNativeCell(2), GetNativeCell(3), GetNativeCell(4), Store_EquipItemCallback:GetNativeCell(5), plugin, data);

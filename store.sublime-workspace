@@ -12,42 +12,40 @@
 	"buffers":
 	[
 		{
-			"file": "scripting/store-backend.sp",
+			"file": "/C/Users/Alon/Downloads/PlayerTrails.sp",
 			"settings":
 			{
-				"buffer_size": 46124,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "scripting/store-inventory.sp",
-			"settings":
-			{
-				"buffer_size": 12820,
-				"line_ending": "Windows"
+				"buffer_size": 22529,
+				"line_ending": "Unix"
 			}
 		},
 		{
 			"file": "scripting/store-trails.sp",
 			"settings":
 			{
-				"buffer_size": 8749,
-				"line_ending": "Unix"
+				"buffer_size": 8805,
+				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "scripting/include/store/store-backend.inc",
+			"contents": "#include <sourcemod>\n#include <sdktools>\n#undef REQUIRE_PLUGIN\n#include <stamm>\n\n#pragma semicolon 1\n\nnew v_level;\n\nnew Float:lifetime;\n\nnew bool:haveBeam[MAXPLAYERS+1];\nnew Float:PlayerVector[MAXPLAYERS+1][3];\n\nnew String:basename[64];\n\nnew Handle:c_lifeTime;\n\npublic Plugin:myinfo =\n{\n	name = \"Stamm Feature PlayerTrail\",\n	author = \"Popoklopsi\",\n	version = \"1.1\",\n	description = \"Give VIP's a player trail\",\n	url = \"https://forums.alliedmods.net/showthread.php?t=142073\"\n};\n\npublic OnAllPluginsLoaded()\n{\n	if (!LibraryExists(\"stamm\")) SetFailState(\"Can't Load Feature, Stamm is not installed!\");\n	\n	if (GetStammGame() != GameCSS) SetFailState(\"Can't Load Feature, not Supported for your game!\");\n}\n\npublic OnPluginStart()\n{\n	new Handle:myPlugin = GetMyHandle();\n	\n	GetPluginFilename(myPlugin, basename, sizeof(basename));\n	ReplaceString(basename, sizeof(basename), \".smx\", \"\");\n	ReplaceString(basename, sizeof(basename), \"stamm/\", \"\");\n	ReplaceString(basename, sizeof(basename), \"stamm\\\\\", \"\");\n	\n	HookEvent(\"player_spawn\", eventPlayerSpawn);\n	HookEvent(\"player_disconnect\", eventPlayerDisc);\n	HookEvent(\"player_death\", eventPlayerDeath);\n	\n	c_lifeTime = CreateConVar(\"ptrail_lifetime\", \"4.0\", \"Lifetime of each trail element\");\n	\n	AutoExecConfig(true, \"playertrail\", \"stamm/features\");\n}\n\npublic OnConfigsExecuted()\n{\n	lifetime = GetConVarFloat(c_lifeTime);\n	\n	PrecacheModel(\"materials/sprites/laserbeam.vmt\", true);\n}\n\npublic OnStammReady()\n{\n	LoadTranslations(\"stamm-features.phrases\");\n	\n	new String:description[64];\n\n	Format(description, sizeof(description), \"%T\", \"GetPlayerTrail\", LANG_SERVER);\n	\n	v_level = AddStammFeature(basename, \"VIP PlayerTrail\", description);\n	\n	Format(description, sizeof(description), \"%T\", \"YouGetPlayerTrail\", LANG_SERVER);\n	AddStammFeatureInfo(basename, v_level, description);\n}\n\npublic OnMapStart()\n{\n	for (new i = 1; i <= MaxClients; i++) haveBeam[i] = false;\n}\n\npublic Action:eventPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)\n{	\n	new client = GetClientOfUserId(GetEventInt(event, \"userid\"));\n	\n	if (IsStammClientValid(client))\n	{\n		if (IsClientVip(client, v_level) && ClientWantStammFeature(client, basename))\n		{\n			if ((GetClientTeam(client) == 2 || GetClientTeam(client) == 3) && IsPlayerAlive(client)) CreateTimer(2.5, SetupTrail, client);\n		}\n	}\n}\n\npublic Action:eventPlayerDisc(Handle:event, const String:name[], bool:dontBroadcast)\n{	\n	new client = GetClientOfUserId(GetEventInt(event, \"userid\"));\n	\n	haveBeam[client] = false;\n}\n\npublic Action:eventPlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)\n{	\n	new client = GetClientOfUserId(GetEventInt(event, \"userid\"));\n	\n	haveBeam[client] = false;\n}\n\npublic Action:SetupTrail(Handle:timer, any:client)\n{\n	if (IsStammClientValid(client))\n	{\n		if ((GetClientTeam(client) == 2 || GetClientTeam(client) == 3) && IsPlayerAlive(client))\n		{\n			GetClientAbsOrigin(client, PlayerVector[client]);\n			\n			haveBeam[client] = true;\n			\n			CreateTimer(0.1, CreateTrail, client, TIMER_REPEAT);\n		}\n	}\n}\n\npublic OnClientChangeStammFeature(client, String:base[], mode)\n{\n	if (StrEqual(basename, base) && mode == 0) haveBeam[client] = false;\n}\n\npublic Action:CreateTrail(Handle:timer, any:client)\n{\n	if (IsStammClientValid(client) && haveBeam[client])\n	{\n		new ent = CreateEntityByName(\"env_beam\");\n\n		if (ent != -1)\n		{\n			new Float:Orig[3];\n			\n			GetClientAbsOrigin(client, Orig);\n			\n			Orig[2] += 40.0;\n			\n			TeleportEntity(ent, PlayerVector[client], NULL_VECTOR, NULL_VECTOR);\n			\n			SetEntityModel(ent, \"sprites/laserbeam.vmt\");\n			\n			SetEntPropVector(ent, Prop_Data, \"m_vecEndPos\", Orig);\n			\n			DispatchKeyValue(ent, \"targetname\", \"beam\");\n			if (GetClientTeam(client) == 2) DispatchKeyValue(ent, \"rendercolor\", \"255 0 0\");\n			if (GetClientTeam(client) == 3) DispatchKeyValue(ent, \"rendercolor\", \"0 0 255\");\n			DispatchKeyValue(ent, \"renderamt\", \"100\");\n			\n			DispatchSpawn(ent);\n			\n			SetEntPropFloat(ent, Prop_Data, \"m_fWidth\", 3.0);\n			SetEntPropFloat(ent, Prop_Data, \"m_fEndWidth\", 3.0);\n			\n			ActivateEntity(ent);\n			AcceptEntityInput(ent, \"TurnOn\");\n\n			PlayerVector[client] = Orig;\n			\n			CreateTimer(lifetime, DeleteTrail, ent);\n		}\n	}\n	else return Plugin_Stop;\n	\n	return Plugin_Continue;\n}\n\npublic Action:DeleteTrail(Handle:timer, any:ent)\n{\n	if (IsValidEntity(ent))\n	{\n		new String:class[128];\n		\n		GetEdictClassname(ent, class, sizeof(class));\n		\n		if (StrEqual(class, \"env_beam\")) RemoveEdict(ent);\n	}\n}",
+			"file": "/C/Users/Alon/AppData/Local/Temp/7zO2741.tmp/stamm_playertrail.sp",
+			"file_size": 4623,
+			"file_write_time": 129951549567507274,
 			"settings":
 			{
-				"buffer_size": 24200,
-				"line_ending": "Unix"
+				"buffer_size": 4445,
+				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "scripting/store-core.sp",
+			"contents": "#include <sourcemod>\n#include <sdktools>\n#undef REQUIRE_PLUGIN\n#include <stamm>\n\n#define HEColor 	{225,0,0,225}\n#define FlashColor 	{255,255,0,225}\n#define SmokeColor	{0,225,0,225}\n#define DecoyColor	{139,090,043,225}\n#define MoloColor	{255,069,0,225}\n\n#pragma semicolon 1\n\nnew v_level;\nnew BeamSprite;\n\nnew String:basename[64];\n\npublic Plugin:myinfo =\n{\n	name = \"Stamm Feature GrenadeTrail\",\n	author = \"Popoklopsi\",\n	version = \"1.2\",\n	description = \"Give VIP's a grenade trail\",\n	url = \"https://forums.alliedmods.net/showthread.php?t=142073\"\n};\n\npublic OnAllPluginsLoaded()\n{\n	if (!LibraryExists(\"stamm\")) SetFailState(\"Can't Load Feature, Stamm is not installed!\");\n	\n	if (GetStammGame() == GameTF2) SetFailState(\"Can't Load Feature, not Supported for your game!\");\n}\n\npublic OnPluginStart()\n{\n	new Handle:myPlugin = GetMyHandle();\n	\n	GetPluginFilename(myPlugin, basename, sizeof(basename));\n	ReplaceString(basename, sizeof(basename), \".smx\", \"\");\n	ReplaceString(basename, sizeof(basename), \"stamm/\", \"\");\n	ReplaceString(basename, sizeof(basename), \"stamm\\\\\", \"\");\n	\n	HookEvent(\"weapon_fire\", eventWeaponFire);\n}\n\npublic OnMapStart()\n{\n	BeamSprite = PrecacheModel(\"materials/sprites/laserbeam.vmt\");\n}\n\npublic OnStammReady()\n{\n	LoadTranslations(\"stamm-features.phrases\");\n	\n	new String:description[64];\n\n	Format(description, sizeof(description), \"%T\", \"GetGrenadeTrail\", LANG_SERVER);\n	\n	v_level = AddStammFeature(basename, \"VIP Grenade Trail\", description);\n	\n	Format(description, sizeof(description), \"%T\", \"YouGetGrenadeTrail\", LANG_SERVER);\n	AddStammFeatureInfo(basename, v_level, description);\n}\n\npublic Action:eventWeaponFire(Handle:event, const String:name[], bool:dontBroadcast)\n{\n	new client = GetClientOfUserId(GetEventInt(event, \"userid\"));\n	new String:weapon[64];\n	\n	GetEventString(event, \"weapon\", weapon, sizeof(weapon));\n	\n	if (IsStammClientValid(client))\n	{\n		if (ClientWantStammFeature(client, basename) && IsClientVip(client, v_level))\n		{\n			if (StrEqual(weapon, \"hegrenade\"))\n			{\n				CreateTimer(0.15, SetupHE, client);\n			}\n			else if (StrEqual(weapon, \"flashbang\"))\n			{\n				CreateTimer(0.15, SetupFlash, client);\n			}\n			else if (StrEqual(weapon, \"smokegrenade\"))\n			{\n				CreateTimer(0.15, SetupSmoke, client);\n			}\n			else if (StrEqual(weapon, \"decoy\"))\n			{\n				CreateTimer(0.15, SetupDecoy, client);\n			}\n			else if (StrEqual(weapon, \"molotov\"))\n			{\n				CreateTimer(0.15, SetupMolo, client);\n			}\n		}\n	}\n}\n\npublic Action:SetupHE(Handle:timer, any:client)\n{\n	new ent = FindEntityByClassname(-1, \"hegrenade_projectile\");\n	\n	AddTrail(client, ent, HEColor);\n}\n\npublic Action:SetupFlash(Handle:timer, any:client)\n{\n	new ent = FindEntityByClassname(-1, \"flashbang_projectile\");\n	\n	AddTrail(client, ent, FlashColor);\n}\n\npublic Action:SetupSmoke(Handle:timer, any:client)\n{\n	new ent = FindEntityByClassname(-1, \"smokegrenade_projectile\");\n	\n	AddTrail(client, ent, SmokeColor);\n}\n\npublic Action:SetupDecoy(Handle:timer, any:client)\n{\n	new ent = FindEntityByClassname(-1, \"decoy_projectile\");\n	\n	AddTrail(client, ent, DecoyColor);\n}\n\npublic Action:SetupMolo(Handle:timer, any:client)\n{\n	new ent = FindEntityByClassname(-1, \"molotov_projectile\");\n	\n	AddTrail(client, ent, MoloColor);\n}\n\npublic AddTrail(client, ent, tcolor[4])\n{\n	if (ent != -1)\n	{\n		new owner = GetEntPropEnt(ent, Prop_Send, \"m_hThrower\");\n		\n		if (IsValidEntity(ent) && owner == client)\n		{\n			TE_SetupBeamFollow(ent, BeamSprite,	0, 5.0, 3.0, 3.0, 1, tcolor);\n			TE_SendToAll();\n		}\n	}\n}",
+			"file": "/C/Users/Alon/AppData/Local/Temp/7zO4F3.tmp/stamm_grenadetrail.sp",
+			"file_size": 3622,
+			"file_write_time": 129951524822851961,
 			"settings":
 			{
-				"buffer_size": 8438,
+				"buffer_size": 3475,
 				"line_ending": "Windows"
 			}
 		},
@@ -55,15 +53,31 @@
 			"file": "scripting/store-distributor.sp",
 			"settings":
 			{
-				"buffer_size": 1262,
-				"line_ending": "Unix"
+				"buffer_size": 1627,
+				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "scripting/store-equipment.sp",
+			"file": "scripting/store-core.sp",
 			"settings":
 			{
-				"buffer_size": 14103,
+				"buffer_size": 9624,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "translations/store.phrases.txt",
+			"settings":
+			{
+				"buffer_size": 1382,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/include/store/store-core.inc",
+			"settings":
+			{
+				"buffer_size": 1528,
 				"line_ending": "Unix"
 			}
 		},
@@ -76,10 +90,10 @@
 			}
 		},
 		{
-			"file": "scripting/store-shop.sp",
+			"file": "scripting/store-backend.sp",
 			"settings":
 			{
-				"buffer_size": 7536,
+				"buffer_size": 46124,
 				"line_ending": "Windows"
 			}
 		},
@@ -88,6 +102,14 @@
 			"settings":
 			{
 				"buffer_size": 3732,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "scripting/store-equipment.sp",
+			"settings":
+			{
+				"buffer_size": 14103,
 				"line_ending": "Unix"
 			}
 		}
@@ -121,23 +143,25 @@
 	"file_history":
 	[
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-props.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
+		"/C/Users/Alon/Documents/GitHub/store/configs/store/distributor.cfg",
+		"/C/Users/Alon/Documents/GitHub/store/translations/store.phrases.txt",
+		"/C/Users/Alon/Documents/GitHub/store/translations/ru/store.phrases.txt",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-inventory.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-jetpack.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-titles.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-equipment.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-jetpack.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-titles.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/User/SublimeOnSaveBuild.sublime-settings",
-		"/C/Users/Alon/Documents/GitHub/store/translations/store.phrases.txt",
 		"/C/Users/Alon/Downloads/warden.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-sounds.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-shop.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/smjansson.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store.inc",
@@ -170,6 +194,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"thePath",
+			"gH_Cvar_RenderMode",
+			"specialfx",
+			"Command_ReloadItems",
+			"loadconfig",
 			"GetUserItemsCallback",
 			"Store_GetUserItems",
 			"OpenInventoryCategory",
@@ -246,23 +275,23 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 3,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "scripting/store-backend.sp",
+					"file": "/C/Users/Alon/Downloads/PlayerTrails.sp",
 					"settings":
 					{
-						"buffer_size": 46124,
+						"buffer_size": 22529,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								21363,
-								21363
+								20673,
+								20680
 							]
 						],
 						"settings":
@@ -271,25 +300,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 9022.0,
+						"translation.y": 10829.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "scripting/store-inventory.sp",
+					"file": "scripting/store-trails.sp",
 					"settings":
 					{
-						"buffer_size": 12820,
+						"buffer_size": 8805,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7140,
-								7185
+								7185,
+								7200
 							]
 						],
 						"settings":
@@ -298,25 +327,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 3045.0,
+						"translation.y": 4351.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "scripting/store-trails.sp",
+					"file": "/C/Users/Alon/AppData/Local/Temp/7zO2741.tmp/stamm_playertrail.sp",
 					"settings":
 					{
-						"buffer_size": 8749,
+						"buffer_size": 4445,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5996,
-								5996
+								3645,
+								3655
 							]
 						],
 						"settings":
@@ -325,25 +354,133 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 3581.0,
+						"translation.y": 1980.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "scripting/include/store/store-backend.inc",
+					"file": "/C/Users/Alon/AppData/Local/Temp/7zO4F3.tmp/stamm_grenadetrail.sp",
 					"settings":
 					{
-						"buffer_size": 24200,
+						"buffer_size": 3475,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								17331,
-								17314
+								3400,
+								3382
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1682.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "scripting/store-distributor.sp",
+					"settings":
+					{
+						"buffer_size": 1627,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1625,
+								1563
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 630.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "scripting/store-core.sp",
+					"settings":
+					{
+						"buffer_size": 9624,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4940,
+								4940
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 747.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "translations/store.phrases.txt",
+					"settings":
+					{
+						"buffer_size": 1382,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1072,
+								1072
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 675.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "scripting/include/store/store-core.inc",
+					"settings":
+					{
+						"buffer_size": 1528,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								291,
+								291
 							]
 						],
 						"settings":
@@ -351,52 +488,25 @@
 							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 7005.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "scripting/store-core.sp",
+					"buffer": 8,
+					"file": "scripting/store-jetpack.sp",
 					"settings":
 					{
-						"buffer_size": 8438,
+						"buffer_size": 6627,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1641,
-								1641
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 540.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "scripting/store-distributor.sp",
-					"settings":
-					{
-						"buffer_size": 1262,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								279,
-								279
+								0,
+								0
 							]
 						],
 						"settings":
@@ -411,88 +521,34 @@
 					"type": "text"
 				},
 				{
-					"buffer": 6,
-					"file": "scripting/store-equipment.sp",
-					"settings":
-					{
-						"buffer_size": 14103,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								8684,
-								8692
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 4770.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "scripting/store-jetpack.sp",
-					"settings":
-					{
-						"buffer_size": 6627,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1069,
-								1069
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 180.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "scripting/store-shop.sp",
-					"settings":
-					{
-						"buffer_size": 7536,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1032,
-								1032
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 180.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
 					"buffer": 9,
+					"file": "scripting/store-backend.sp",
+					"settings":
+					{
+						"buffer_size": 46124,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								234,
+								234
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1575.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
 					"file": "scripting/store-titles.sp",
 					"settings":
 					{
@@ -503,8 +559,8 @@
 						"selection":
 						[
 							[
-								492,
-								492
+								212,
+								212
 							]
 						],
 						"settings":
@@ -513,7 +569,34 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 90.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "scripting/store-equipment.sp",
+					"settings":
+					{
+						"buffer_size": 14103,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								212,
+								212
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 315.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
