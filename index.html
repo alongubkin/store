@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Store by alongubkin</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Store</h1>
+        <p>Open store plugin for SourceMod.</p>
+
+        <p class="view"><a href="https://github.com/alongubkin/store">View the Project on GitHub <small>alongubkin/store</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/alongubkin/store/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/alongubkin/store/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/alongubkin/store">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p><img src="https://dl.dropbox.com/u/16304603/store/store.png" alt="store" title="store"></p>
+
+<h2>Description</h2>
+
+<p>An open store plugin for SourceMod. </p>
+
+<p>More documentation and tutorials can be found at <a href="https://github.com/alongubkin/store/wiki">our wiki</a>.</p>
+
+<h3>Requirements</h3>
+
+<ul>
+<li>Working Source-based Game Server with SourceMod installed.</li>
+<li>MySQL database, with a tool such as phpMyAdmin for database management. </li>
+<li>
+<a href="http://forums.alliedmods.net/showthread.php?t=106748">SDKHooks</a> </li>
+<li><a href="https://forums.alliedmods.net/showthread.php?t=184604">SMJansson</a></li>
+</ul><h3>Features</h3>
+
+<ul>
+<li>
+<strong>Modular</strong> and <strong>Extensible</strong> - This package is organized in modules, where each module is a different SourceMod plugin. You can extend the store, <a href="https://github.com/alongubkin/store/wiki/Creating-items-for-Store">add new items</a> or anything you can think of just by writing a new SourceMod plugins.</li>
+<li>
+<strong>Shop</strong> - Players can buy various items from the shop. The item is added to the player's inventory. Items in the shop are organized in categories.</li>
+<li>
+<strong>Inventory</strong> - The player's personal inventory, allowing for storage for all in-game items. From their inventory, players can use or equip items they own. Items in the inventory are also organized in categories.</li>
+<li>
+<strong>Loadout</strong> - Players can have multiple sets of equipped items. You can switch between the sets anytime using the loadout menu. You can have specific loadouts for different games, different in-game (TF2) classes, different in-game teams or any combination of them.</li>
+<li>
+<strong>Distributor</strong> - Every X minutes, all players that are currently connected to server will get Y credits (configurable).</li>
+<li>
+<strong>Logging</strong> - The plugin maintains full logs of all errors, warnings and information.</li>
+<li>Custom currency name.</li>
+<li>Custom chat triggers for the store main menu, shop, inventory and loadout.</li>
+</ul><h2>Installation</h2>
+
+<p>Just download the attached zip archive and extract to your sourcemod folder intact. Then navigate to your <code>configs/</code> directory and add the following entry in <code>databases.cfg</code>:</p>
+
+<pre><code>"store"
+{
+    "driver"        "mysql"
+    "host"          "&lt;your-database-host&gt;"
+    "database"      "&lt;your-database-name&gt;"
+    "user"          "&lt;username&gt;"
+    "pass"          "&lt;password&gt;"
+}
+</code></pre>
+
+<p>Then, navigate to <code>configs/store/sql-init-scripts</code> and execute <code>store.sql</code> in your database. For each item module you want to add, execute the corresponding SQL file in <code>configs/store/sql-init-scripts</code> and enable the plugin.</p>
+
+<p>(<a href="https://github.com/alongubkin/store/wiki/Installing-Store">Tutorial</a>)</p>
+
+<h2>License</h2>
+
+<p>Copyright (C) 2013  Alon Gubkin</p>
+
+<p>This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+
+<p>You should have received a copy of the GNU General Public License
+along with this program.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/alongubkin">alongubkin</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
