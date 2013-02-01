@@ -984,7 +984,8 @@ stock bool:json_object_get_bool(Handle:hObj, const String:sKey[]) {
  */
 stock Float:json_object_get_float(Handle:hObj, const String:sKey[]) {
 	new Handle:hElement = json_object_get(hObj, sKey);
-
+	if (hElement == INVALID_HANDLE)
+		return 0.0;
 	new Float:fResult = (json_is_number(hElement) ? json_number_value(hElement) : 0.0);
 
 	CloseHandle(hElement);
@@ -1002,6 +1003,8 @@ stock Float:json_object_get_float(Handle:hObj, const String:sKey[]) {
  */
 stock json_object_get_int(Handle:hObj, const String:sKey[]) {
 	new Handle:hElement = json_object_get(hObj, sKey);
+	if (hElement == INVALID_HANDLE)
+		return 0;
 
 	new iResult = (json_is_integer(hElement) ? json_integer_value(hElement) : 0);
 
