@@ -359,8 +359,7 @@ public Action:Timer_RenderBeam(Handle:timer, Handle:pack)
 		return Plugin_Stop;
 
 	new trail = ReadPackCell(pack);
-	PrintToChatAll("%s %d", g_trails[trail][TrailMaterial], g_trails[trail][TrailColor][3]);
-
+	
 	new entityToFollow = GetPlayerWeaponSlot(client, 2);
 	if (entityToFollow == -1)
 		entityToFollow = client;
