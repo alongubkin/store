@@ -213,12 +213,12 @@ public Action:Command_GiveCredits(client, args)
 
 	for (new i = 0; i < target_count; i++)
 	{
-		if (IsClientInGame(target_list[i]) && !IsFakeClient(client))
+		if (IsClientInGame(target_list[i]) && !IsFakeClient(target_list[i]))
 		{
-			accountIds[count] = Store_GetClientAccountID(client);
+			accountIds[count] = Store_GetClientAccountID(target_list[i]);
 			count++;
 
-			PrintToChat(client, "%t", "Received Credits", imoney);
+			PrintToChat(target_list[i], "%t", "Received Credits", imoney);
 		}
 	}
 
