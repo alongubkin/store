@@ -4,12 +4,13 @@
 #include <store>
 #include <scp>
 #include <smjansson>
+#include <colors>
+#include <morecolors_store>
 
 enum Title
 {
 	String:TitleName[STORE_MAX_NAME_LENGTH],
-	String:TitleText[64],
-	String:TitleColor[10]
+	String:TitleText[64]
 }
 
 new g_titles[1024][Title];
@@ -100,9 +101,18 @@ public LoadItem(const String:itemName[], const String:attrs[])
 		
 	SetTrieValue(g_titlesNameIndex, g_titles[g_titleCount][TitleName], g_titleCount);
 	
-	new Handle:json = json_load(attrs);
-	json_object_get_string(json, "text", g_titles[g_titleCount][TitleText], 64);
-	json_object_get_string(json, "color", g_titles[g_titleCount][TitleColor], 10);	
+	new Handle:json = json_load(attrs);	
+
+	if (IsSource2009())
+	{
+		json_object_get_string(json, "colorful_text", g_titles[g_titleCount][TitleText], 64);
+		MoreColors_CReplaceColorCodes(g_titles[g_titleCount][TitleText]);
+	}
+	else
+	{
+		json_object_get_string(json, "text", g_titles[g_titleCount][TitleText], 64);
+		CFormat(g_titles[g_titleCount][TitleText], 64);
+	}
 
 	CloseHandle(json);
 
@@ -146,10 +156,15 @@ public bool:OnEquip(client, itemId, bool:equipped)
 public Action:OnChatMessage(&author, Handle:recipients, String:name[], String:message[])
 {
 	if (g_clientTitles[author] != -1)
-	{		
-		Format(name, MAXLENGTH_NAME, "\x08%s%s\x03 %s", g_titles[g_clientTitles[author]][TitleColor], g_titles[g_clientTitles[author]][TitleText], name);		
+	{
+		Format(name, MAXLENGTH_NAME, "%s\x03 %s", g_titles[g_clientTitles[author]][TitleText], name);		
 		return Plugin_Changed;
 	}
 	
 	return Plugin_Continue;
+}
+
+stock bool:IsSource2009()
+{
+	return (SOURCE_SDK_EPISODE2VALVE <= GuessSDKVersion() < SOURCE_SDK_LEFT4DEAD);
 }

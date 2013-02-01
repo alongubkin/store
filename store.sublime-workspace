@@ -11,6 +11,33 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "scripting/store-titles.sp",
+			"settings":
+			{
+				"buffer_size": 4027,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "// MOAR COLORS\n// By Dr. McKay\n// Inspired by: https://forums.alliedmods.net/showthread.php?t=96831\n\n#if defined _morecolors_included\n #endinput\n#endif\n#define _morecolors_included\n\n#include <regex>\n\n#define MORE_COLORS_VERSION		\"1.6.2\"\n#define STORE_MAX_MESSAGE_LENGTH		256\n\n#define COLOR_RED				0xFF4040\n#define COLOR_BLUE				0x99CCFF\n#define COLOR_GRAY				0xCCCCCC\n#define COLOR_GREEN				0x3EFF3E\n\nnew bool:CSkipList[MAXPLAYERS + 1] = {false, ...};\nnew Handle:CTrie = INVALID_HANDLE;\n\n/**\n * Prints a message to a specific client in the chat area.\n * Supports color tags.\n * \n * @param client		Client index.\n * @param message		Message (formatting rules).\n * @noreturn\n * \n * On error/Errors:		If the client is not connected an error will be thrown.\n */\nstock MoreColors_CPrintToChat(client, const String:message[], any:...) {\n	MoreColors_CCheckTrie();\n	if(client <= 0 || client > MaxClients) {\n		ThrowError(\"Invalid client index %i\", client);\n	}\n	if(!IsClientInGame(client)) {\n		ThrowError(\"Client %i is not in game\", client);\n	}\n	decl String:buffer[MAX_MESSAGE_LENGTH], String:buffer2[MAX_MESSAGE_LENGTH];\n	SetGlobalTransTarget(client);\n	Format(buffer, sizeof(buffer), \"\\x01%s\", message);\n	VFormat(buffer2, sizeof(buffer2), buffer, 3);\n	MoreColors_CReplaceColorCodes(buffer2);\n	MoreColors_CSendMessage(client, buffer2);\n}\n\n/**\n * Prints a message to all clients in the chat area.\n * Supports color tags.\n * \n * @param client		Client index.\n * @param message		Message (formatting rules).\n * @noreturn\n */\nstock MoreColors_CPrintToChatAll(const String:message[], any:...) {\n	MoreColors_CCheckTrie();\n	decl String:buffer[MAX_MESSAGE_LENGTH], String:buffer2[MAX_MESSAGE_LENGTH];\n	for(new i = 1; i <= MaxClients; i++) {\n		if(!IsClientInGame(i) || IsFakeClient(i) || CSkipList[i]) {\n			CSkipList[i] = false;\n			continue;\n		}\n		SetGlobalTransTarget(i);\n		Format(buffer, sizeof(buffer), \"\\x01%s\", message);\n		VFormat(buffer2, sizeof(buffer2), buffer, 2);\n		MoreColors_CReplaceColorCodes(buffer2);\n		MoreColors_CSendMessage(i, buffer2);\n	}\n}\n\n/**\n * Prints a message to a specific client in the chat area.\n * Supports color tags and teamcolor tag.\n * \n * @param client		Client index.\n * @param author		Author index whose color will be used for teamcolor tag.\n * @param message		Message (formatting rules).\n * @noreturn\n * \n * On error/Errors:		If the client or author are not connected an error will be thrown\n */\nstock MoreColors_CPrintToChatEx(client, author, const String:message[], any:...) {\n	MoreColors_CCheckTrie();\n	if(client <= 0 || client > MaxClients) {\n		ThrowError(\"Invalid client index %i\", client);\n	}\n	if(!IsClientInGame(client)) {\n		ThrowError(\"Client %i is not in game\", client);\n	}\n	if(author <= 0 || author > MaxClients) {\n		ThrowError(\"Invalid client index %i\", author);\n	}\n	if(!IsClientInGame(author)) {\n		ThrowError(\"Client %i is not in game\", author);\n	}\n	decl String:buffer[MAX_MESSAGE_LENGTH], String:buffer2[MAX_MESSAGE_LENGTH];\n	SetGlobalTransTarget(client);\n	Format(buffer, sizeof(buffer), \"\\x01%s\", message);\n	VFormat(buffer2, sizeof(buffer2), buffer, 4);\n	MoreColors_CReplaceColorCodes(buffer2, author);\n	MoreColors_CSendMessage(client, buffer2, author);\n}\n\n/**\n * Prints a message to all clients in the chat area.\n * Supports color tags and teamcolor tag.\n *\n * @param author	  Author index whos color will be used for teamcolor tag.\n * @param message   Message (formatting rules).\n * @noreturn\n * \n * On error/Errors:   If the author is not connected an error will be thrown.\n */\nstock MoreColors_CPrintToChatAllEx(author, const String:message[], any:...) {\n	MoreColors_CCheckTrie();\n	if(author <= 0 || author > MaxClients) {\n		ThrowError(\"Invalid client index %i\", author);\n	}\n	if(!IsClientInGame(author)) {\n		ThrowError(\"Client %i is not in game\", author);\n	}\n	decl String:buffer[MAX_MESSAGE_LENGTH], String:buffer2[MAX_MESSAGE_LENGTH];\n	for(new i = 1; i <= MaxClients; i++) {\n		if(!IsClientInGame(i) || IsFakeClient(i) || CSkipList[i]) {\n			CSkipList[i] = false;\n			continue;\n		}\n		SetGlobalTransTarget(i);\n		Format(buffer, sizeof(buffer), \"\\x01%s\", message);\n		VFormat(buffer2, sizeof(buffer2), buffer, 3);\n		MoreColors_CReplaceColorCodes(buffer2, author);\n		MoreColors_CSendMessage(i, buffer2, author);\n	}\n}\n\n/**\n * Sends a SayText2 usermessage\n * \n * @param client	Client to send usermessage to\n * @param message	Message to send\n * @noreturn\n */\nstock MoreColors_CSendMessage(client, const String:message[], author=0) {\n	if(author == 0) {\n		author = client;\n	}\n	new UserMsg:index = GetUserMessageId(\"SayText2\");\n	if(index == INVALID_MESSAGE_ID) {\n		PrintToChat(client, \"%s\", message);\n		return;\n	}\n	new Handle:bf = StartMessageOne(\"SayText2\", client, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS);\n	BfWriteByte(bf, author); // Message author\n	BfWriteByte(bf, true);\n	BfWriteString(bf, message);\n	EndMessage();\n}\n\n/**\n * This function should only be used right in front of\n * CPrintToChatAll or CPrintToChatAllEx. It causes those functions\n * to skip the specified client when printing the message.\n * After printing the message, the client will no longer be skipped.\n * \n * @param client   Client index\n * @noreturn\n */\nstock MoreColors_CSkipNextClient(client) {\n	if(client <= 0 || client > MaxClients) {\n		ThrowError(\"Invalid client index %i\", client);\n	}\n	CSkipList[client] = true;\n}\n\n/**\n * Checks if the colors trie is initialized and initializes it if it's not (used internally)\n * \n * @return			No return\n */\nstock MoreColors_CCheckTrie() {\n	if(CTrie == INVALID_HANDLE) {\n		CTrie = InitColorTrie();\n	}\n}\n\n/**\n * Replaces color tags in a string with color codes (used internally by CPrintToChat, CPrintToChatAll, CPrintToChatEx, and CPrintToChatAllEx\n *\n * @param buffer		String.\n * @param author		Optional client index to use for {teamcolor} tags, or 0 for none\n * @param removeTags	Optional boolean value to determine whether we're replacing tags with colors, or just removing tags, used by CRemoveTags\n * @param maxlen		Optional value for max buffer length, used by CRemoveTags\n * @noreturn\n * \n * On error/Errors:		If the client index passed for author is invalid or not in game.\n */\nstock MoreColors_CReplaceColorCodes(String:buffer[], author=0, bool:removeTags=false, maxlen=MAX_MESSAGE_LENGTH) {\n	MoreColors_CCheckTrie();\n	if(!removeTags) {\n		ReplaceString(buffer, maxlen, \"{default}\", \"\\x01\", false);\n	} else {\n		ReplaceString(buffer, maxlen, \"{default}\", \"\", false);\n		ReplaceString(buffer, maxlen, \"{teamcolor}\", \"\", false);\n	}\n	if(author != 0 && !removeTags) {\n		if(author < 0 || author > MaxClients) {\n			ThrowError(\"Invalid client index %i\", author);\n		}\n		if(!IsClientInGame(author)) {\n			ThrowError(\"Client %i is not in game\", author);\n		}\n		decl String:game[32];\n		GetGameFolderName(game, sizeof(game));\n		if(StrEqual(game, \"dod\")) {\n			switch(GetClientTeam(author)) {\n				case 1: ReplaceString(buffer, maxlen, \"{teamcolor}\", \"\\x07CCCCCC\", false);\n				case 2: ReplaceString(buffer, maxlen, \"{teamcolor}\", \"\\x074D7942\", false);\n				case 3: ReplaceString(buffer, maxlen, \"{teamcolor}\", \"\\x07FF4040\", false);\n				default: ReplaceString(buffer, maxlen, \"{teamcolor}\", \"\\x04\", false);\n			}\n		} else {\n			ReplaceString(buffer, maxlen, \"{teamcolor}\", \"\\x03\", false);\n		}\n	}\n	new cursor = 0;\n	new value, Handle:regex;\n	decl String:tag[32], String:buff[32], String:output[maxlen];\n	strcopy(output, maxlen, buffer);\n	// Since the string's size is going to be changing, output will hold the replaced string and we'll search buffer\n	\n	for(new i = 0; i < 1000; i++) { // The RegEx extension is quite flaky, so we have to loop here :/. This loop is supposed to be infinite and broken by return, but conditions have been added to be safe.\n		regex = CompileRegex(\"{[a-zA-Z]+}\");\n		if(MatchRegex(regex, buffer[cursor]) < 1) {\n			CloseHandle(regex);\n			strcopy(buffer, maxlen, output);\n			return;\n		}\n		GetRegexSubString(regex, 0, tag, sizeof(tag));\n		CStrToLower(tag);\n		cursor = StrContains(buffer[cursor], tag, false) + cursor + 1;\n		strcopy(buff, sizeof(buff), tag);\n		ReplaceString(buff, sizeof(buff), \"{\", \"\");\n		ReplaceString(buff, sizeof(buff), \"}\", \"\");\n		\n		if(!GetTrieValue(CTrie, buff, value)) {\n			CloseHandle(regex);\n			continue;\n		}\n		\n		if(removeTags) {\n			ReplaceString(output, maxlen, tag, \"\", false);\n		} else {\n			Format(buff, sizeof(buff), \"\\x07%06X\", value);\n			ReplaceString(output, maxlen, tag, buff, false);\n		}\n		CloseHandle(regex);\n	}\n	LogError(\"[MORE COLORS] Infinite loop broken.\");\n}\n\n/**\n * Gets a part of a string\n * \n * @param input			String to get the part from\n * @param output		Buffer to write to\n * @param maxlen		Max length of output buffer\n * @param start			Position to start at\n * @param numChars		Number of characters to return, or 0 for the end of the string\n * @noreturn\n */\nstock MoreColors_CSubString(const String:input[], String:output[], maxlen, start, numChars=0) {\n	new i = 0;\n	for(;;) {\n		if(i == maxlen - 1 || i >= numChars || input[start + i] == '\\0') {\n			output[i] = '\\0';\n			return;\n		}\n		output[i] = input[start + i];\n		i++;\n	}\n}\n\n/**\n * Converts a string to lowercase\n * \n * @param buffer		String to convert\n * @noreturn\n */\nstock MoreColors_CStrToLower(String:buffer[]) {\n	new len = strlen(buffer);\n	for(new i = 0; i < len; i++) {\n		buffer[i] = CharToLower(buffer[i]);\n	}\n}\n\n/**\n * Adds a color to the colors trie\n *\n * @param name			Color name, without braces\n * @param color			Hexadecimal representation of the color (0xRRGGBB)\n * @return				True if color was added successfully, false if a color already exists with that name\n */\nstock bool:MoreColors_CAddColor(const String:name[], color) {\n	MoreColors_CCheckTrie();\n	new value;\n	if(GetTrieValue(CTrie, name, value)) {\n		return false;\n	}\n	decl String:newName[64];\n	strcopy(newName, sizeof(newName), name);\n	StrToLower(newName);\n	SetTrieValue(CTrie, newName, color);\n	return true;\n}\n\n/**\n * Removes color tags from a message\n * \n * @param message		Message to remove tags from\n * @param maxlen		Maximum buffer length\n * @noreturn\n */\nstock CRemoveTags(String:message[], maxlen) {\n	CReplaceColorCodes(message, 0, true, maxlen);\n}\n\n/**\n * Replies to a command with colors\n * \n * @param client		Client to reply to\n * @param message		Message (formatting rules)\n * @noreturn\n */\nstock CReplyToCommand(client, const String:message[], any:...) {\n	decl String:buffer[MAX_MESSAGE_LENGTH * 2];\n	SetGlobalTransTarget(client);\n	VFormat(buffer, sizeof(buffer), message, 3);\n	if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {\n		CRemoveTags(buffer, sizeof(buffer));\n		PrintToConsole(client, buffer);\n	} else {\n		MoreColors_CPrintToChat(client, buffer);\n	}\n}\n\n/**\n * Replies to a command with colors\n * \n * @param client		Client to reply to\n * @param author		Client to use for {teamcolor}\n * @param message		Message (formatting rules)\n * @noreturn\n */\nstock MoreColors_CReplyToCommandEx(client, author, const String:message[], any:...) {\n	decl String:buffer[MAX_MESSAGE_LENGTH * 2];\n	SetGlobalTransTarget(client);\n	VFormat(buffer, sizeof(buffer), message, 3);\n	if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {\n		CRemoveTags(buffer, sizeof(buffer));\n		PrintToConsole(client, buffer);\n	} else {\n		MoreColors_CPrintToChatEx(client, author, buffer);\n	}\n}\n\n/**\n * Determines whether a color name exists\n * \n * @param color			The color name to check\n * @return				True if the color exists, false otherwise\n */\nstock bool:MoreColors_CColorExists(const String:color[]) {\n	MoreColors_CCheckTrie();\n	return GetTrieValue(CTrie, color, 0);\n}\n\n/**\n * Returns the hexadecimal representation of a client's team color (will NOT initialize the trie)\n *\n * @param client		Client to get the team color for\n * @return				Client's team color in hexadecimal, or green if unknown\n * On error/Errors:		If the client index passed is invalid or not in game.\n */\nstock MoreColors_CGetTeamColor(client) {\n	if(client <= 0 || client > MaxClients) {\n		ThrowError(\"Invalid client index %i\", client);\n	}\n	if(!IsClientInGame(client)) {\n		ThrowError(\"Client %i is not in game\", client);\n	}\n	new value;\n	switch(GetClientTeam(client)) {\n		case 1: {\n			value = COLOR_GRAY;\n		}\n		case 2: {\n			value = COLOR_RED;\n		}\n		case 3: {\n			value = COLOR_BLUE;\n		}\n		default: {\n			value = COLOR_GREEN;\n		}\n	}\n	return value;\n}\n\nstock Handle:InitColorTrie() {\n	new Handle:hTrie = CreateTrie();\n	SetTrieValue(hTrie, \"aliceblue\", 0xF0F8FF);\n	SetTrieValue(hTrie, \"allies\", 0x4D7942); // same as Allies team in DoD:S\n	SetTrieValue(hTrie, \"antiquewhite\", 0xFAEBD7);\n	SetTrieValue(hTrie, \"aqua\", 0x00FFFF);\n	SetTrieValue(hTrie, \"aquamarine\", 0x7FFFD4);\n	SetTrieValue(hTrie, \"axis\", 0xFF4040); // same as Axis team in DoD:S\n	SetTrieValue(hTrie, \"azure\", 0x007FFF);\n	SetTrieValue(hTrie, \"beige\", 0xF5F5DC);\n	SetTrieValue(hTrie, \"bisque\", 0xFFE4C4);\n	SetTrieValue(hTrie, \"black\", 0x000000);\n	SetTrieValue(hTrie, \"blanchedalmond\", 0xFFEBCD);\n	SetTrieValue(hTrie, \"blue\", 0x99CCFF); // same as BLU/Counter-Terrorist team color\n	SetTrieValue(hTrie, \"blueviolet\", 0x8A2BE2);\n	SetTrieValue(hTrie, \"brown\", 0xA52A2A);\n	SetTrieValue(hTrie, \"burlywood\", 0xDEB887);\n	SetTrieValue(hTrie, \"cadetblue\", 0x5F9EA0);\n	SetTrieValue(hTrie, \"chartreuse\", 0x7FFF00);\n	SetTrieValue(hTrie, \"chocolate\", 0xD2691E);\n	SetTrieValue(hTrie, \"community\", 0x70B04A); // same as Community item quality in TF2\n	SetTrieValue(hTrie, \"coral\", 0xFF7F50);\n	SetTrieValue(hTrie, \"cornflowerblue\", 0x6495ED);\n	SetTrieValue(hTrie, \"cornsilk\", 0xFFF8DC);\n	SetTrieValue(hTrie, \"crimson\", 0xDC143C);\n	SetTrieValue(hTrie, \"cyan\", 0x00FFFF);\n	SetTrieValue(hTrie, \"darkblue\", 0x00008B);\n	SetTrieValue(hTrie, \"darkcyan\", 0x008B8B);\n	SetTrieValue(hTrie, \"darkgoldenrod\", 0xB8860B);\n	SetTrieValue(hTrie, \"darkgray\", 0xA9A9A9);\n	SetTrieValue(hTrie, \"darkgrey\", 0xA9A9A9);\n	SetTrieValue(hTrie, \"darkgreen\", 0x006400);\n	SetTrieValue(hTrie, \"darkkhaki\", 0xBDB76B);\n	SetTrieValue(hTrie, \"darkmagenta\", 0x8B008B);\n	SetTrieValue(hTrie, \"darkolivegreen\", 0x556B2F);\n	SetTrieValue(hTrie, \"darkorange\", 0xFF8C00);\n	SetTrieValue(hTrie, \"darkorchid\", 0x9932CC);\n	SetTrieValue(hTrie, \"darkred\", 0x8B0000);\n	SetTrieValue(hTrie, \"darksalmon\", 0xE9967A);\n	SetTrieValue(hTrie, \"darkseagreen\", 0x8FBC8F);\n	SetTrieValue(hTrie, \"darkslateblue\", 0x483D8B);\n	SetTrieValue(hTrie, \"darkslategray\", 0x2F4F4F);\n	SetTrieValue(hTrie, \"darkslategrey\", 0x2F4F4F);\n	SetTrieValue(hTrie, \"darkturquoise\", 0x00CED1);\n	SetTrieValue(hTrie, \"darkviolet\", 0x9400D3);\n	SetTrieValue(hTrie, \"deeppink\", 0xFF1493);\n	SetTrieValue(hTrie, \"deepskyblue\", 0x00BFFF);\n	SetTrieValue(hTrie, \"dimgray\", 0x696969);\n	SetTrieValue(hTrie, \"dimgrey\", 0x696969);\n	SetTrieValue(hTrie, \"dodgerblue\", 0x1E90FF);\n	SetTrieValue(hTrie, \"firebrick\", 0xB22222);\n	SetTrieValue(hTrie, \"floralwhite\", 0xFFFAF0);\n	SetTrieValue(hTrie, \"forestgreen\", 0x228B22);\n	SetTrieValue(hTrie, \"fuchsia\", 0xFF00FF);\n	SetTrieValue(hTrie, \"fullblue\", 0x0000FF);\n	SetTrieValue(hTrie, \"fullred\", 0xFF0000);\n	SetTrieValue(hTrie, \"gainsboro\", 0xDCDCDC);\n	SetTrieValue(hTrie, \"genuine\", 0x4D7455); // same as Genuine item quality in TF2\n	SetTrieValue(hTrie, \"ghostwhite\", 0xF8F8FF);\n	SetTrieValue(hTrie, \"gold\", 0xFFD700);\n	SetTrieValue(hTrie, \"goldenrod\", 0xDAA520);\n	SetTrieValue(hTrie, \"gray\", 0xCCCCCC); // same as spectator team color\n	SetTrieValue(hTrie, \"grey\", 0xCCCCCC);\n	SetTrieValue(hTrie, \"green\", 0x3EFF3E);\n	SetTrieValue(hTrie, \"greenyellow\", 0xADFF2F);\n	SetTrieValue(hTrie, \"haunted\", 0x38F3AB); // same as Haunted item quality in TF2\n	SetTrieValue(hTrie, \"honeydew\", 0xF0FFF0);\n	SetTrieValue(hTrie, \"hotpink\", 0xFF69B4);\n	SetTrieValue(hTrie, \"indianred\", 0xCD5C5C);\n	SetTrieValue(hTrie, \"indigo\", 0x4B0082);\n	SetTrieValue(hTrie, \"ivory\", 0xFFFFF0);\n	SetTrieValue(hTrie, \"khaki\", 0xF0E68C);\n	SetTrieValue(hTrie, \"lavender\", 0xE6E6FA);\n	SetTrieValue(hTrie, \"lavenderblush\", 0xFFF0F5);\n	SetTrieValue(hTrie, \"lawngreen\", 0x7CFC00);\n	SetTrieValue(hTrie, \"lemonchiffon\", 0xFFFACD);\n	SetTrieValue(hTrie, \"lightblue\", 0xADD8E6);\n	SetTrieValue(hTrie, \"lightcoral\", 0xF08080);\n	SetTrieValue(hTrie, \"lightcyan\", 0xE0FFFF);\n	SetTrieValue(hTrie, \"lightgoldenrodyellow\", 0xFAFAD2);\n	SetTrieValue(hTrie, \"lightgray\", 0xD3D3D3);\n	SetTrieValue(hTrie, \"lightgrey\", 0xD3D3D3);\n	SetTrieValue(hTrie, \"lightgreen\", 0x99FF99);\n	SetTrieValue(hTrie, \"lightpink\", 0xFFB6C1);\n	SetTrieValue(hTrie, \"lightsalmon\", 0xFFA07A);\n	SetTrieValue(hTrie, \"lightseagreen\", 0x20B2AA);\n	SetTrieValue(hTrie, \"lightskyblue\", 0x87CEFA);\n	SetTrieValue(hTrie, \"lightslategray\", 0x778899);\n	SetTrieValue(hTrie, \"lightslategrey\", 0x778899);\n	SetTrieValue(hTrie, \"lightsteelblue\", 0xB0C4DE);\n	SetTrieValue(hTrie, \"lightyellow\", 0xFFFFE0);\n	SetTrieValue(hTrie, \"lime\", 0x00FF00);\n	SetTrieValue(hTrie, \"limegreen\", 0x32CD32);\n	SetTrieValue(hTrie, \"linen\", 0xFAF0E6);\n	SetTrieValue(hTrie, \"magenta\", 0xFF00FF);\n	SetTrieValue(hTrie, \"maroon\", 0x800000);\n	SetTrieValue(hTrie, \"mediumaquamarine\", 0x66CDAA);\n	SetTrieValue(hTrie, \"mediumblue\", 0x0000CD);\n	SetTrieValue(hTrie, \"mediumorchid\", 0xBA55D3);\n	SetTrieValue(hTrie, \"mediumpurple\", 0x9370D8);\n	SetTrieValue(hTrie, \"mediumseagreen\", 0x3CB371);\n	SetTrieValue(hTrie, \"mediumslateblue\", 0x7B68EE);\n	SetTrieValue(hTrie, \"mediumspringgreen\", 0x00FA9A);\n	SetTrieValue(hTrie, \"mediumturquoise\", 0x48D1CC);\n	SetTrieValue(hTrie, \"mediumvioletred\", 0xC71585);\n	SetTrieValue(hTrie, \"midnightblue\", 0x191970);\n	SetTrieValue(hTrie, \"mintcream\", 0xF5FFFA);\n	SetTrieValue(hTrie, \"mistyrose\", 0xFFE4E1);\n	SetTrieValue(hTrie, \"moccasin\", 0xFFE4B5);\n	SetTrieValue(hTrie, \"navajowhite\", 0xFFDEAD);\n	SetTrieValue(hTrie, \"navy\", 0x000080);\n	SetTrieValue(hTrie, \"normal\", 0xB2B2B2); // same as Normal item quality in TF2\n	SetTrieValue(hTrie, \"oldlace\", 0xFDF5E6);\n	SetTrieValue(hTrie, \"olive\", 0x9EC34F);\n	SetTrieValue(hTrie, \"olivedrab\", 0x6B8E23);\n	SetTrieValue(hTrie, \"orange\", 0xFFA500);\n	SetTrieValue(hTrie, \"orangered\", 0xFF4500);\n	SetTrieValue(hTrie, \"orchid\", 0xDA70D6);\n	SetTrieValue(hTrie, \"palegoldenrod\", 0xEEE8AA);\n	SetTrieValue(hTrie, \"palegreen\", 0x98FB98);\n	SetTrieValue(hTrie, \"paleturquoise\", 0xAFEEEE);\n	SetTrieValue(hTrie, \"palevioletred\", 0xD87093);\n	SetTrieValue(hTrie, \"papayawhip\", 0xFFEFD5);\n	SetTrieValue(hTrie, \"peachpuff\", 0xFFDAB9);\n	SetTrieValue(hTrie, \"peru\", 0xCD853F);\n	SetTrieValue(hTrie, \"pink\", 0xFFC0CB);\n	SetTrieValue(hTrie, \"plum\", 0xDDA0DD);\n	SetTrieValue(hTrie, \"powderblue\", 0xB0E0E6);\n	SetTrieValue(hTrie, \"purple\", 0x800080);\n	SetTrieValue(hTrie, \"red\", 0xFF4040); // same as RED/Terrorist team color\n	SetTrieValue(hTrie, \"rosybrown\", 0xBC8F8F);\n	SetTrieValue(hTrie, \"royalblue\", 0x4169E1);\n	SetTrieValue(hTrie, \"saddlebrown\", 0x8B4513);\n	SetTrieValue(hTrie, \"salmon\", 0xFA8072);\n	SetTrieValue(hTrie, \"sandybrown\", 0xF4A460);\n	SetTrieValue(hTrie, \"seagreen\", 0x2E8B57);\n	SetTrieValue(hTrie, \"seashell\", 0xFFF5EE);\n	SetTrieValue(hTrie, \"selfmade\", 0x70B04A); // same as Self-Made item quality in TF2\n	SetTrieValue(hTrie, \"sienna\", 0xA0522D);\n	SetTrieValue(hTrie, \"silver\", 0xC0C0C0);\n	SetTrieValue(hTrie, \"skyblue\", 0x87CEEB);\n	SetTrieValue(hTrie, \"slateblue\", 0x6A5ACD);\n	SetTrieValue(hTrie, \"slategray\", 0x708090);\n	SetTrieValue(hTrie, \"slategrey\", 0x708090);\n	SetTrieValue(hTrie, \"snow\", 0xFFFAFA);\n	SetTrieValue(hTrie, \"springgreen\", 0x00FF7F);\n	SetTrieValue(hTrie, \"steelblue\", 0x4682B4);\n	SetTrieValue(hTrie, \"strange\", 0xCF6A32); // same as Strange item quality in TF2\n	SetTrieValue(hTrie, \"tan\", 0xD2B48C);\n	SetTrieValue(hTrie, \"teal\", 0x008080);\n	SetTrieValue(hTrie, \"thistle\", 0xD8BFD8);\n	SetTrieValue(hTrie, \"tomato\", 0xFF6347);\n	SetTrieValue(hTrie, \"turquoise\", 0x40E0D0);\n	SetTrieValue(hTrie, \"unique\", 0xFFD700); // same as Unique item quality in TF2\n	SetTrieValue(hTrie, \"unusual\", 0x8650AC); // same as Unusual item quality in TF2\n	SetTrieValue(hTrie, \"valve\", 0xA50F79); // same as Valve item quality in TF2\n	SetTrieValue(hTrie, \"vintage\", 0x476291); // same as Vintage item quality in TF2\n	SetTrieValue(hTrie, \"violet\", 0xEE82EE);\n	SetTrieValue(hTrie, \"wheat\", 0xF5DEB3);\n	SetTrieValue(hTrie, \"white\", 0xFFFFFF);\n	SetTrieValue(hTrie, \"whitesmoke\", 0xF5F5F5);\n	SetTrieValue(hTrie, \"yellow\", 0xFFFF00);\n	SetTrieValue(hTrie, \"yellowgreen\", 0x9ACD32);\n	return hTrie;\n}",
+			"file": "scripting/include/morecolors_store.inc",
+			"file_size": 20611,
+			"file_write_time": 130041868358942412,
+			"settings":
+			{
+				"buffer_size": 20043,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/include/colors.inc",
+			"settings":
+			{
+				"buffer_size": 13763,
+				"line_ending": "Windows"
+			}
+		}
 	],
 	"build_system": "Packages/SourcePawn/SourcePawn.sublime-build",
 	"command_palette":
@@ -40,22 +67,23 @@
 	},
 	"file_history":
 	[
-		"/C/Users/Alon/Documents/GitHub/store/store.sublime-project",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-titles.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
+		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/User/Preferences.sublime-settings",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-inventory.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
+		"/C/Users/Alon/Documents/GitHub/store/store.sublime-project",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-titles.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-equipment.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-jetpack.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-props.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/User/SublimeOnSaveBuild.sublime-settings",
 		"/C/Users/Alon/Documents/GitHub/store/translations/store.phrases.txt",
 		"/C/Users/Alon/Downloads/warden.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-sounds.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
@@ -69,7 +97,6 @@
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/SublimeOnSaveBuild/README.md",
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/SourcePawn/SourcePawn.sublime-build",
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/sublime-sourcepawn-master/SPCompletions.sublime-settings",
-		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/User/Preferences.sublime-settings",
 		"/C/Users/Alon/AppData/Local/Temp/7zOAF29.tmp/st2generator.sp",
 		"/C/Users/Alon/Desktop/st2generator.sp",
 		"/C/Users/Alon/AppData/Local/Temp/7zE90A1.tmp/st2generator.sp"
@@ -90,6 +117,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"MAX_MESSAGE_LENGTH",
 			"Event_PlayerSpawn",
 			"spawn",
 			"Command_OpenInventory",
@@ -161,8 +189,90 @@
 	"groups":
 	[
 		{
+			"selected": 1,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "scripting/store-titles.sp",
+					"settings":
+					{
+						"buffer_size": 4027,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								139,
+								139
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "scripting/include/morecolors_store.inc",
+					"settings":
+					{
+						"buffer_size": 20043,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								245,
+								269
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "scripting/include/colors.inc",
+					"settings":
+					{
+						"buffer_size": 13763,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								821,
+								821
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 378.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
 			]
 		}
 	],
