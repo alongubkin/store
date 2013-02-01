@@ -24,6 +24,7 @@ functag Store_GiveCreditsCallback public(accountId, any:data);
 functag Store_BuyItemCallback public(bool:success, any:data);
 functag Store_EquipItemCallback public(accountId, itemId, loadoutId, any:data);
 functag Store_UseItemCallback public(accountId, itemId, any:data);
+functag Store_GetUserItemCountCallback public(count, any:data);
 
 forward Store_OnDatabaseInitialized();
 
@@ -466,6 +467,20 @@ native Store_GetLoadoutTeam(id);
 native Store_GetUserItems(accountId, categoryId, loadoutId, Store_GetUserItemsCallback:callback, any:data = 0);
 
 /**
+ * Retrieves the amount of the same item a user has.
+ *
+ * As with all other store-backend methods, this method is completely asynchronous.
+ *
+ * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param itemName          The name of the item.
+ * @param callback		    A callback which will be called when the items are loaded.
+ * @param data              Extra data value to pass to the callback.
+ *
+ * @noreturn
+ */
+native Store_GetUserItemCount(accountId, const String:itemName[], Store_GetUserItemCountCallback:callback, any:data = 0);
+
+/**
  * Retrieves the amount of credits that a player currently has.
  *
  * As with all other store-backend methods, this method is completely asynchronous.
@@ -659,6 +674,7 @@ public __pl_store_backend_SetNTVOptional()
 	MarkNativeAsOptional("Store_GetItemAttributes");
 	
 	MarkNativeAsOptional("Store_GetUserItems");
+	MarkNativeAsOptional("Store_GetUserItemCount");
 	MarkNativeAsOptional("Store_GetCredits");
 	
 	MarkNativeAsOptional("Store_GiveCredits");

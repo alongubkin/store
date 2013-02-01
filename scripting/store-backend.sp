@@ -91,6 +91,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_GetLoadoutTeam", Native_GetLoadoutTeam);
 	
 	CreateNative("Store_GetUserItems", Native_GetUserItems);
+	CreateNative("Store_GetUserItemCount", Native_GetUserItemCount);
 	CreateNative("Store_GetCredits", Native_GetCredits);
 	
 	CreateNative("Store_GiveCredits", Native_GiveCredits);
@@ -680,6 +681,62 @@ public T_GetUserItemsCallback(Handle:owner, Handle:hndl, const String:error[], a
 	Call_PushCell(loadoutId);
 	Call_PushCell(_:arg);
 	Call_Finish();
+}
+
+/**
+ * Retrieves the amount of the same item a user has.
+ *
+ * As with all other store-backend methods, this method is completely asynchronous.
+ *
+ * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param itemName          The name of the item.
+ * @param callback		    A callback which will be called when the items are loaded.
+ * @param plugin			The plugin owner of the callback. 
+ * @param data              Extra data value to pass to the callback.
+ *
+ * @noreturn
+ */
+GetUserItemCount(accountId, const String:itemName[], Store_GetUserItemCountCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
+{
+	new Handle:pack = CreateDataPack();
+	WritePackCell(pack, _:callback);
+	WritePackCell(pack, _:plugin);
+	WritePackCell(pack, _:data);
+
+	decl String:itemNameSafe[STORE_MAX_NAME_LENGTH];
+	SQL_EscapeString(g_hSQL, itemName, itemNameSafe, sizeof(itemNameSafe));
+
+	decl String:query[255];
+	Format(query, sizeof(query), "SELECT COUNT(*) AS count FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_items.name = '%s' AND store_users.auth = %d", itemNameSafe, accountId);
+
+	SQL_TQuery(g_hSQL, T_GetUserItemCountCallback, query, pack, DBPrio_High);
+}
+
+public T_GetUserItemCountCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
+{
+	if (hndl == INVALID_HANDLE)
+	{
+		CloseHandle(pack);
+		
+		Store_LogError("SQL Error on GetUserItemCount: %s", error);
+		return;
+	}
+	
+	ResetPack(pack);
+	
+	new Store_GetUserItemCountCallback:callback = Store_GetUserItemCountCallback:ReadPackCell(pack);
+	new Handle:plugin = Handle:ReadPackCell(pack);
+	new arg = ReadPackCell(pack);
+
+	CloseHandle(pack);
+	
+	if (SQL_FetchRow(hndl))
+	{
+		Call_StartFunction(plugin, callback);
+		Call_PushCell(SQL_FetchInt(hndl, 0));
+		Call_PushCell(_:arg);
+		Call_Finish();	
+	}
 }
 
 /**
@@ -1378,6 +1435,18 @@ public Native_GetUserItems(Handle:plugin, params)
 		data = GetNativeCell(5);
 		
 	GetUserItems(GetNativeCell(1), GetNativeCell(2), GetNativeCell(3), Store_GetUserItemsCallback:GetNativeCell(4), plugin, data);    
+}
+
+public Native_GetUserItemCount(Handle:plugin, params)
+{
+	new any:data = 0;
+	if (params == 4)
+		data = GetNativeCell(4);
+
+	decl String:itemName[STORE_MAX_NAME_LENGTH];
+	GetNativeString(2, itemName, sizeof(itemName));
+
+	GetUserItemCount(GetNativeCell(1), itemName, Store_GetUserItemCountCallback:GetNativeCell(3), plugin, data);    
 }
 
 public Native_GetCredits(Handle:plugin, params)

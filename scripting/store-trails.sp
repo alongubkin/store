@@ -153,7 +153,7 @@ public LoadItem(const String:itemName[], const String:attrs[])
 
 	if (color == INVALID_HANDLE)
 	{
-		g_trails[g_trailCount][TrailColor] = { 100, 100, 100, 255 };
+		g_trails[g_trailCount][TrailColor] = { 255, 255, 255, 255 };
 	}
 	else
 	{
