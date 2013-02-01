@@ -57,6 +57,8 @@ public OnPluginStart()
 	decl String:menuItemName[32];
 	Format(menuItemName, sizeof(menuItemName), "%t", "Inventory");
 
+	g_itemTypeNameIndex = CreateTrie();
+	
 	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuInventoryClick, 4);
 
 	RegConsoleCmd("sm_inventory", Command_OpenInventory);
