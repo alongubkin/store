@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS `store_items` (
   `price` int(11) NOT NULL,
   `category_id` int(11) NOT NULL,
   `attrs` varchar(1024) default NULL, 
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=150 ;
 
 --
