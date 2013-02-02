@@ -26,8 +26,15 @@ public OnPluginStart()
 	LoadConfig();
 	LoadTranslations("store.phrases");
 
-	Store_GetCurrencyName(g_currencyName, sizeof(g_currencyName));
 	CreateTimer(g_timeInSeconds, ForgivePoints, _, TIMER_REPEAT);
+}
+
+/**
+ * Configs just finished getting executed.
+ */
+public OnConfigsExecuted()
+{
+	Store_GetCurrencyName(g_currencyName, sizeof(g_currencyName));
 }
 
 /**
