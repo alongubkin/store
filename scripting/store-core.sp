@@ -218,7 +218,7 @@ public Action:Command_GiveCredits(client, args)
 			accountIds[count] = Store_GetClientAccountID(target_list[i]);
 			count++;
 
-			PrintToChat(target_list[i], "%t", "Received Credits", imoney);
+			PrintToChat(target_list[i], "%t", "Received Credits", imoney, g_currencyName);
 		}
 	}
 
