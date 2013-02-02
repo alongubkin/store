@@ -43,7 +43,8 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_OpenMainMenu", Native_OpenMainMenu);
 	CreateNative("Store_AddMainMenuItem", Native_AddMainMenuItem);
 	CreateNative("Store_GetCurrencyName", Native_GetCurrencyName);
-	
+	CreateNative("Store_ReloadItemCache", Native_ReloadItemCache);
+
 	RegPluginLibrary("store");	
 	return APLRes_Success;
 }
@@ -87,8 +88,16 @@ public OnMapStart()
 {
 	if (g_databaseInitialized)
 	{
-		RefreshItemCache();
+		ReloadItemCache();
 	}
+}
+
+/**
+ * The map is ending.
+ */
+public OnMapEnd()
+{
+	g_databaseInitialized = false;
 }
 
 /**
@@ -97,7 +106,7 @@ public OnMapStart()
 public Store_OnDatabaseInitialized()
 {
 	g_databaseInitialized = true;
-	RefreshItemCache();
+	ReloadItemCache();
 }
 
 /**
@@ -167,7 +176,7 @@ public Action:Command_OpenMainMenu(client, args)
 public Action:Command_ReloadItems(client, args)
 {
 	g_reloadItemsRequested = true;
-	RefreshItemCache();
+	ReloadItemCache();
 	
 	return Plugin_Handled;
 }
@@ -268,7 +277,7 @@ LoadConfig()
  *
  * @noreturn
  */
-RefreshItemCache()
+ReloadItemCache()
 {
 	Store_GetCategories(Store_GetItemsCallback:INVALID_HANDLE, false);
 	Store_GetItems(Store_GetItemsCallback:INVALID_HANDLE, -1, false);
@@ -407,4 +416,9 @@ public Native_AddMainMenuItem(Handle:plugin, params)
 public Native_GetCurrencyName(Handle:plugin, params)
 {       
 	SetNativeString(1, g_currencyName, GetNativeCell(2));
+}
+
+public Native_ReloadItemCache(Handle:plugin, params)
+{       
+	ReloadItemCache();
 }

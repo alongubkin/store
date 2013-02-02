@@ -414,7 +414,7 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 		
 		g_itemCount++;
 	}
-	
+
 	Call_StartForward(g_reloadItemsPostForward);
 	Call_Finish();
 	

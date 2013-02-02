@@ -51,6 +51,8 @@ new g_playerModelCount = 0;
 
 new g_iEquipment[MAXPLAYERS+1][32];
 
+new bool:g_lateLoad = false;
+
 /**
  * Called before plugin is loaded.
  * 
@@ -66,6 +68,8 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	MarkNativeAsOptional("ZR_IsClientHuman"); 
 	MarkNativeAsOptional("ZR_IsClientZombie"); 
 	
+	g_lateLoad = late;
+
 	return APLRes_Success;
 }
 
@@ -102,6 +106,11 @@ public OnPluginStart()
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
 	g_hLookupAttachment = EndPrepSDKCall();
+
+	if (g_lateLoad)
+	{
+		Store_ReloadItemCache();
+	}		
 }
 
 /** 
