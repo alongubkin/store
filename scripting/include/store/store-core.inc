@@ -3,7 +3,7 @@
 #endif
 #define _store_core_included
 
-#define STORE_VERSION "1.0.4-alpha"
+#define STORE_VERSION "1.0.5-alpha"
 
 funcenum Store_MenuItemClickCallback
 {
