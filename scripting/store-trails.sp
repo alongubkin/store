@@ -25,9 +25,11 @@ new g_trails[1024][Trail];
 new g_trailCount = 0;
 new bool:g_zombieReloaded;
 
-new Handle:g_trailsNameIndex = INVALID_HANDLE;
+new String:g_game[32];
 
+new Handle:g_trailsNameIndex = INVALID_HANDLE;
 new Handle:g_trailTimers[MAXPLAYERS+1];
+new g_SpriteModel[MAXPLAYERS + 1];
 
 /**
  * Called before plugin is loaded.
@@ -72,6 +74,13 @@ public OnPluginStart()
 	HookEvent("player_death", PlayerDeath);
 	HookEvent("player_team", PlayerTeam);
 	HookEvent("round_end", RoundEnd);
+
+	for (new index = 1; index <= MaxClients; index++)
+	{
+		g_SpriteModel[index] = -1;
+	}
+
+	GetGameFolderName(g_game, sizeof(g_game));
 }
 
 /** 
@@ -101,13 +110,15 @@ public OnLibraryRemoved(const String:name[])
  */
 public OnMapEnd()
 {
-	for (new client = 0; client < MaxClients; client++)
+	for (new client = 1; client <= MaxClients; client++)
 	{
 		if (g_trailTimers[client] != INVALID_HANDLE)
 		{
 			CloseHandle(g_trailTimers[client]);
 			g_trailTimers[client] = INVALID_HANDLE;
 		}
+
+		g_SpriteModel[client] = -1;
 	}
 }
 
@@ -132,17 +143,17 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	g_trails[g_trailCount][TrailLifetime] = json_object_get_float(json, "lifetime")
 	; 
 	if (g_trails[g_trailCount][TrailLifetime] == 0.0)
-		g_trails[g_trailCount][TrailLifetime] = 0.6;
+		g_trails[g_trailCount][TrailLifetime] = 1.0;
 
 	g_trails[g_trailCount][TrailWidth] = json_object_get_float(json, "width");
 
 	if (g_trails[g_trailCount][TrailWidth] == 0.0)
-		g_trails[g_trailCount][TrailWidth] = 10.0;
+		g_trails[g_trailCount][TrailWidth] = 15.0;
 
 	g_trails[g_trailCount][TrailEndWidth] = json_object_get_float(json, "endwidth"); 
 
 	if (g_trails[g_trailCount][TrailEndWidth] == 0.0)
-		g_trails[g_trailCount][TrailEndWidth] = 10.0;
+		g_trails[g_trailCount][TrailEndWidth] = 6.0;
 
 	g_trails[g_trailCount][TrailFadeLength] = json_object_get_int(json, "fadelength"); 
 
@@ -235,6 +246,8 @@ public OnClientDisconnect(client)
 		CloseHandle(g_trailTimers[client]);
 		g_trailTimers[client] = INVALID_HANDLE;
 	}
+
+	g_SpriteModel[client] = -1;
 }
 
 public Action:PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)
@@ -243,7 +256,14 @@ public Action:PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)
 	
 	if (IsClientInGame(client) && IsPlayerAlive(client)) 
 	{
-		KillTrail(client);
+		if (g_trailTimers[client] != INVALID_HANDLE)
+		{
+			CloseHandle(g_trailTimers[client]);
+			g_trailTimers[client] = INVALID_HANDLE;
+		}
+
+		g_SpriteModel[client] = -1;
+
 		CreateTimer(1.0, GiveTrail, GetClientSerial(client));
 	}
 }
@@ -269,7 +289,13 @@ public Action:RoundEnd(Handle:event,const String:name[],bool:dontBroadcast)
 {
 	for (new client = 1; client <= MaxClients; client++)
 	{
-		KillTrail(client);
+		if (g_trailTimers[client] != INVALID_HANDLE)
+		{
+			CloseHandle(g_trailTimers[client]);
+			g_trailTimers[client] = INVALID_HANDLE;
+		}
+
+		g_SpriteModel[client] = -1;
 	}
 }
 
@@ -326,40 +352,26 @@ bool:Equip(client, const String:name[])
 		return false;
 	}
 
-	new Handle:pack;
-	g_trailTimers[client] = CreateDataTimer(2.0, Timer_RenderBeam, pack, TIMER_REPEAT);
-
-	WritePackCell(pack, GetClientSerial(client));
-	WritePackCell(pack, trail);
-
-	return true;
-}
-
-KillTrail(client)
-{
-	if (g_trailTimers[client] != INVALID_HANDLE)
+	if (StrEqual(g_game, "csgo"))
 	{
-		CloseHandle(g_trailTimers[client]);
-		g_trailTimers[client] = INVALID_HANDLE;
+		EquipTrailTempEnts(client, trail);
+
+		new Handle:pack;
+		g_trailTimers[client] = CreateDataTimer(0.1, Timer_RenderBeam, pack, TIMER_REPEAT);
+
+		WritePackCell(pack, GetClientSerial(client));
+		WritePackCell(pack, trail);
+
+		return true;
+	}
+	else
+	{
+		return EquipTrail(client, trail);
 	}
 }
 
-public ZR_OnClientInfected(client, attacker, bool:motherInfect, bool:respawnOverride, bool:respawn)
+bool:EquipTrailTempEnts(client, trail)
 {
-	KillTrail(client);
-}
-
-public Action:Timer_RenderBeam(Handle:timer, Handle:pack)
-{
-	ResetPack(pack);
-
-	new client = GetClientFromSerial(ReadPackCell(pack));
-
-	if (client == 0)
-		return Plugin_Stop;
-
-	new trail = ReadPackCell(pack);
-	
 	new entityToFollow = GetPlayerWeaponSlot(client, 2);
 	if (entityToFollow == -1)
 		entityToFollow = client;
@@ -377,6 +389,84 @@ public Action:Timer_RenderBeam(Handle:timer, Handle:pack)
 						color);
 	TE_SendToAll();
 
+	return true;
+}
+
+bool:EquipTrail(client, trail)
+{
+	g_SpriteModel[client] = CreateEntityByName("env_spritetrail");
+
+	if (!IsValidEntity(g_SpriteModel[client])) 
+		return false;
+
+	new String:strTargetName[MAX_NAME_LENGTH];
+	GetClientName(client, strTargetName, sizeof(strTargetName));
+
+	DispatchKeyValue(client, "targetname", strTargetName);
+	DispatchKeyValue(g_SpriteModel[client], "parentname", strTargetName);
+	DispatchKeyValueFloat(g_SpriteModel[client], "lifetime", g_trails[trail][TrailLifetime]);
+	DispatchKeyValueFloat(g_SpriteModel[client], "endwidth", g_trails[trail][TrailEndWidth]);
+	DispatchKeyValueFloat(g_SpriteModel[client], "startwidth", g_trails[trail][TrailWidth]);
+	DispatchKeyValue(g_SpriteModel[client], "spritename", g_trails[trail][TrailMaterial]);
+	DispatchKeyValue(g_SpriteModel[client], "renderamt", "255");
+
+	decl String:color[32];
+	Format(color, sizeof(color), "%d %d %d %d", g_trails[trail][TrailColor][0], g_trails[trail][TrailColor][1], g_trails[trail][TrailColor][2], g_trails[trail][TrailColor][3]);
+
+	DispatchKeyValue(g_SpriteModel[client], "rendercolor", color);
+	DispatchKeyValue(g_SpriteModel[client], "rendermode", "5");
+
+	DispatchSpawn(g_SpriteModel[client]);
+
+	new Float:Client_Origin[3];
+	GetClientAbsOrigin(client,Client_Origin);
+	Client_Origin[2] += 10.0; //Beam clips into the floor without this
+
+	TeleportEntity(g_SpriteModel[client], Client_Origin, NULL_VECTOR, NULL_VECTOR);
+
+	SetVariantString(strTargetName);
+	AcceptEntityInput(g_SpriteModel[client], "SetParent"); 
+	SetEntPropFloat(g_SpriteModel[client], Prop_Send, "m_flTextureRes", 0.05);
+
+	return true;
+}
+
+KillTrail(client)
+{
+	if (g_trailTimers[client] != INVALID_HANDLE)
+	{
+		CloseHandle(g_trailTimers[client]);
+		g_trailTimers[client] = INVALID_HANDLE;
+	}
+
+	if (g_SpriteModel[client] != -1 && IsValidEntity(g_SpriteModel[client]))
+		RemoveEdict(g_SpriteModel[client]);
+
+	g_SpriteModel[client] = -1;
+}
+
+public ZR_OnClientInfected(client, attacker, bool:motherInfect, bool:respawnOverride, bool:respawn)
+{
+	KillTrail(client);
+}
+
+public Action:Timer_RenderBeam(Handle:timer, Handle:pack)
+{
+	ResetPack(pack);
+
+	new client = GetClientFromSerial(ReadPackCell(pack));
+
+	if (client == 0)
+		return Plugin_Stop;
+
+	decl Float:velocity[3];
+	GetEntPropVector(client, Prop_Data, "m_vecVelocity", velocity);		
+
+	new bool:isMoving = !(velocity[0] == 0.0 && velocity[1] == 0.0 && velocity[2] == 0.0);
+	if (isMoving)
+		return Plugin_Continue;
+
+	EquipTrailTempEnts(client, ReadPackCell(pack));
 	return Plugin_Continue;
 }
 
