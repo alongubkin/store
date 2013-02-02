@@ -24,6 +24,7 @@ public Plugin:myinfo =
 public OnPluginStart() 
 {
 	LoadConfig();
+	LoadTranslations("store.phrases");
 
 	Store_GetCurrencyName(g_currencyName, sizeof(g_currencyName));
 	CreateTimer(g_timeInSeconds, ForgivePoints, _, TIMER_REPEAT);

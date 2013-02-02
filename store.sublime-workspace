@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"Kill",
+				"KillTempEntsTrail"
+			],
+			[
 				"g_trail",
 				"g_trailTimers"
 			],
@@ -24,21 +28,42 @@
 	"buffers":
 	[
 		{
-			"contents": "#pragma semicolon 1\n\n#include <sourcemod>\n#include <sdktools>\n#include <sdkhooks>\n#include <store>\n#include <smjansson>\n\n#undef REQUIRE_PLUGIN\n#include <zombiereloaded>\n\nenum Trail\n{\n	String:TrailName[STORE_MAX_NAME_LENGTH],\n	String:TrailMaterial[PLATFORM_MAX_PATH],\n	Float:TrailLifetime,\n	Float:TrailWidth,\n	Float:TrailEndWidth,\n	TrailFadeLength,\n	TrailColor[4],\n	TrailModelIndex\n}\n\nnew g_trails[1024][Trail];\nnew g_trailCount = 0;\nnew bool:g_zombieReloaded;\n\nnew Handle:g_trailsNameIndex = INVALID_HANDLE;\n\nnew Handle:g_trailTimers[MAXPLAYERS+1];\n\n/**\n * Called before plugin is loaded.\n * \n * @param myself    The plugin handle.\n * @param late      True if the plugin was loaded after map change, false on map start.\n * @param error     Error message if load failed.\n * @param err_max   Max length of the error message.\n *\n * @return          APLRes_Success for load success, APLRes_Failure or APLRes_SilentFailure otherwise.\n */\npublic APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)\n{\n	MarkNativeAsOptional(\"ZR_IsClientHuman\"); \n	MarkNativeAsOptional(\"ZR_IsClientZombie\"); \n	\n	return APLRes_Success;\n}\n\npublic Plugin:myinfo =\n{\n	name        = \"[Store] Trails\",\n	author      = \"alongub\",\n	description = \"Trails component for [Store]\",\n	version     = STORE_VERSION,\n	url         = \"https://github.com/alongubkin/store\"\n};\n\n/**\n * Plugin is loading.\n */\npublic OnPluginStart()\n{\n	LoadTranslations(\"common.phrases\");\n	LoadTranslations(\"store.phrases\");\n\n	Store_RegisterItemType(\"trails\", OnEquip, LoadItem);\n\n	g_zombieReloaded = LibraryExists(\"zombiereloaded\");\n	\n	HookEvent(\"player_spawn\", PlayerSpawn);\n	HookEvent(\"player_death\", PlayerDeath);\n	HookEvent(\"player_team\", PlayerTeam);\n	HookEvent(\"round_end\", RoundEnd);\n}\n\n/** \n * Called when a new API library is loaded.\n */\npublic OnLibraryAdded(const String:name[])\n{\n	if (StrEqual(name, \"zombiereloaded\"))\n	{\n		g_zombieReloaded = true;\n	}\n}\n\n/** \n * Called when an API library is removed.\n */\npublic OnLibraryRemoved(const String:name[])\n{\n	if (StrEqual(name, \"zombiereloaded\"))\n	{\n		g_zombieReloaded = false;\n	}\n}\n\n/**\n * The map is ending.\n */\npublic OnMapEnd()\n{\n	for (new client = 0; client < MaxClients; client++)\n	{\n		if (g_trailTimers[client] != INVALID_HANDLE)\n		{\n			CloseHandle(g_trailTimers[client]);\n			g_trailTimers[client] = INVALID_HANDLE;\n		}\n	}\n}\n\npublic Store_OnReloadItems() \n{\n	if (g_trailsNameIndex != INVALID_HANDLE)\n		CloseHandle(g_trailsNameIndex);\n		\n	g_trailsNameIndex = CreateTrie();\n	g_trailCount = 0;\n}\n\npublic LoadItem(const String:itemName[], const String:attrs[])\n{\n	strcopy(g_trails[g_trailCount][TrailName], STORE_MAX_NAME_LENGTH, itemName);\n		\n	SetTrieValue(g_trailsNameIndex, g_trails[g_trailCount][TrailName], g_trailCount);\n	\n	new Handle:json = json_load(attrs);\n	json_object_get_string(json, \"material\", g_trails[g_trailCount][TrailMaterial], PLATFORM_MAX_PATH);\n\n	g_trails[g_trailCount][TrailLifetime] = json_object_get_float(json, \"lifetime\")\n	; \n	if (g_trails[g_trailCount][TrailLifetime] == 0.0)\n		g_trails[g_trailCount][TrailLifetime] = 0.6;\n\n	g_trails[g_trailCount][TrailWidth] = json_object_get_float(json, \"width\");\n\n	if (g_trails[g_trailCount][TrailWidth] == 0.0)\n		g_trails[g_trailCount][TrailWidth] = 10.0;\n\n	g_trails[g_trailCount][TrailEndWidth] = json_object_get_float(json, \"endwidth\"); \n\n	if (g_trails[g_trailCount][TrailEndWidth] == 0.0)\n		g_trails[g_trailCount][TrailEndWidth] = 10.0;\n\n	g_trails[g_trailCount][TrailFadeLength] = json_object_get_int(json, \"fadelength\"); \n\n	if (g_trails[g_trailCount][TrailFadeLength] == 0)\n		g_trails[g_trailCount][TrailFadeLength] = 1;\n\n	new Handle:color = json_object_get(json, \"color\");\n\n	if (color == INVALID_HANDLE)\n	{\n		g_trails[g_trailCount][TrailColor] = { 255, 255, 255, 255 };\n	}\n	else\n	{\n		for (new i = 0; i < 4; i++)\n			g_trails[g_trailCount][TrailColor][i] = json_array_get_int(color, i);\n\n		CloseHandle(color);\n	}\n\n	CloseHandle(json);\n\n	if (strcmp(g_trails[g_trailCount][TrailMaterial], \"\") != 0 && (FileExists(g_trails[g_trailCount][TrailMaterial]) || FileExists(g_trails[g_trailCount][TrailMaterial], true)))\n	{\n		decl String:_sBuffer[PLATFORM_MAX_PATH];\n		strcopy(_sBuffer, sizeof(_sBuffer), g_trails[g_trailCount][TrailMaterial]);\n		g_trails[g_trailCount][TrailModelIndex] = PrecacheModel(_sBuffer);\n		AddFileToDownloadsTable(_sBuffer);\n		ReplaceString(_sBuffer, sizeof(_sBuffer), \".vmt\", \".vtf\", false);\n		AddFileToDownloadsTable(_sBuffer);\n	}\n	\n	g_trailCount++;\n}\n\npublic bool:OnEquip(client, itemId, bool:equipped)\n{\n	if (!IsClientInGame(client))\n	{\n		return false;\n	}\n	\n	if (!IsPlayerAlive(client))\n	{\n		PrintToChat(client, \"%t\", \"Must be alive to equip\");\n		return false;\n	}\n	\n	if (g_zombieReloaded && !ZR_IsClientHuman(client))\n	{\n		PrintToChat(client, \"%t\", \"Must be human to equip\");	\n		return false;\n	}\n	\n	decl String:name[STORE_MAX_NAME_LENGTH];\n	Store_GetItemName(itemId, name, sizeof(name));\n	\n	decl String:loadoutSlot[STORE_MAX_LOADOUTSLOT_LENGTH];\n	Store_GetItemLoadoutSlot(itemId, loadoutSlot, sizeof(loadoutSlot));\n			\n	if (equipped)\n	{\n		KillTrail(client);\n		\n		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];\n		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));\n		\n		PrintToChat(client, \"%t\", \"Unequipped item\", displayName);\n	}\n	else\n	{\n		KillTrail(client);\n		\n		if (!Equip(client, name))\n			return false;\n			\n		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];\n		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));\n		\n		PrintToChat(client, \"%t\", \"Equipped item\", displayName);\n	}\n	\n	return true;\n}\n\npublic OnClientDisconnect(client)\n{\n	if (g_trailTimers[client] != INVALID_HANDLE)\n	{\n		CloseHandle(g_trailTimers[client]);\n		g_trailTimers[client] = INVALID_HANDLE;\n	}\n}\n\npublic Action:PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)\n{\n	new client = GetClientOfUserId(GetEventInt(event, \"userid\"));\n	\n	if (IsClientInGame(client) && IsPlayerAlive(client)) \n	{\n		KillTrail(client);\n		CreateTimer(1.0, GiveTrail, GetClientSerial(client));\n	}\n}\n\npublic PlayerTeam(Handle:Spawn_Event, const String:Death_Name[], bool:Death_Broadcast )\n{\n	new client = GetClientOfUserId(GetEventInt(Spawn_Event,\"userid\") );\n	new team = GetEventInt(Spawn_Event, \"team\");\n	\n	if (team == 1)\n	{\n		KillTrail(client);\n	}\n}\n\npublic Action:PlayerDeath(Handle:event,const String:name[],bool:dontBroadcast)\n{\n	new client = GetClientOfUserId(GetEventInt(event, \"userid\"));\n	KillTrail(client);\n}\n\npublic Action:RoundEnd(Handle:event,const String:name[],bool:dontBroadcast)\n{\n	for (new client = 1; client <= MaxClients; client++)\n	{\n		KillTrail(client);\n	}\n}\n\npublic Action:GiveTrail(Handle:timer, any:serial)\n{\n	new client = GetClientFromSerial(serial);\n	if (client == 0)\n		return Plugin_Handled;\n\n	if (!IsPlayerAlive(client))\n		return Plugin_Continue;\n		\n	if (g_zombieReloaded && !ZR_IsClientHuman(client))\n		return Plugin_Continue;\n		\n	Store_GetEquippedItemsByType(Store_GetClientAccountID(client), \"trails\", Store_GetClientLoadout(client), OnGetPlayerTrail, GetClientSerial(client));\n	return Plugin_Handled;\n}\n\npublic Store_OnClientLoadoutChanged(client)\n{\n	Store_GetEquippedItemsByType(Store_GetClientAccountID(client), \"trails\", Store_GetClientLoadout(client), OnGetPlayerTrail, GetClientSerial(client));\n}\n\npublic OnGetPlayerTrail(ids[], count, any:serial)\n{\n	new client = GetClientFromSerial(serial);\n	\n	if (client == 0)\n		return;\n		\n	if (g_zombieReloaded && !ZR_IsClientHuman(client))\n		return;\n		\n	KillTrail(client);\n	\n	for (new index = 0; index < count; index++)\n	{\n		decl String:itemName[32];\n		Store_GetItemName(ids[index], itemName, sizeof(itemName));\n		\n		Equip(client, itemName);\n	}\n}\n\nbool:Equip(client, const String:name[])\n{	\n	KillTrail(client);\n\n	new trail = -1;\n	if (!GetTrieValue(g_trailsNameIndex, name, trail))\n	{\n		PrintToChat(client, \"%t\", \"No item attributes\");\n		return false;\n	}\n\n	new Handle:pack;\n	g_trailTimers[client] = CreateDataTimer(2.0, Timer_RenderBeam, pack, TIMER_REPEAT);\n\n	WritePackCell(pack, GetClientSerial(client));\n	WritePackCell(pack, trail);\n\n	return true;\n}\n\nKillTrail(client)\n{\n	if (g_trailTimers[client] != INVALID_HANDLE)\n	{\n		CloseHandle(g_trailTimers[client]);\n		g_trailTimers[client] = INVALID_HANDLE;\n	}\n}\n\npublic ZR_OnClientInfected(client, attacker, bool:motherInfect, bool:respawnOverride, bool:respawn)\n{\n	KillTrail(client);\n}\n\npublic Action:Timer_RenderBeam(Handle:timer, Handle:pack)\n{\n	ResetPack(pack);\n\n	new client = GetClientFromSerial(ReadPackCell(pack));\n\n	if (client == 0)\n		return Plugin_Stop;\n\n	new trail = ReadPackCell(pack);\n	PrintToChatAll(\"%s %d\", g_trails[trail][TrailMaterial], g_trails[trail][TrailColor][3]);\n\n	new entityToFollow = GetPlayerWeaponSlot(client, 2);\n	if (entityToFollow == -1)\n		entityToFollow = client;\n\n	new color[4];\n	Array_Copy(g_trails[client][TrailColor], color, sizeof(color));\n\n	TE_SetupBeamFollow(entityToFollow, \n						g_trails[trail][TrailModelIndex], \n						0, \n						g_trails[trail][TrailLifetime], \n						g_trails[trail][TrailWidth], \n						g_trails[trail][TrailEndWidth], \n						g_trails[trail][TrailFadeLength], \n						color);\n	TE_SendToAll();\n\n	return Plugin_Continue;\n}\n\n\n/**\n * Copies a 1 dimensional static array.\n *\n * @param array			Static Array to copy from.\n * @param newArray		New Array to copy to.\n * @param size			Size of the array (or number of cells to copy)\n * @noreturn\n */\nstock Array_Copy(const any:array[], any:newArray[], size)\n{\n	for (new i=0; i < size; i++) \n	{\n		newArray[i] = array[i];\n	}\n}",
 			"file": "scripting/store-trails.sp",
-			"file_size": 9851,
-			"file_write_time": 130042000086426793,
 			"settings":
 			{
-				"buffer_size": 9453,
+				"buffer_size": 12066,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "scripting/include/smjansson.inc",
+			"file": "translations/store.phrases.txt",
 			"settings":
 			{
-				"buffer_size": 41496,
+				"buffer_size": 1382,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-core.sp",
+			"settings":
+			{
+				"buffer_size": 9664,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-distributor.sp",
+			"settings":
+			{
+				"buffer_size": 1679,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/include/store/store-core.inc",
+			"settings":
+			{
+				"buffer_size": 1528,
 				"line_ending": "Windows"
 			}
 		},
@@ -47,6 +72,62 @@
 			"settings":
 			{
 				"buffer_size": 14103,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-inventory.sp",
+			"settings":
+			{
+				"buffer_size": 12876,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-jetpack.sp",
+			"settings":
+			{
+				"buffer_size": 6627,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-loadout.sp",
+			"settings":
+			{
+				"buffer_size": 8637,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-logging.sp",
+			"settings":
+			{
+				"buffer_size": 6826,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-props.sp",
+			"settings":
+			{
+				"buffer_size": 4579,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-shop.sp",
+			"settings":
+			{
+				"buffer_size": 7550,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scripting/store-titles.sp",
+			"settings":
+			{
+				"buffer_size": 3978,
 				"line_ending": "Windows"
 			}
 		}
@@ -79,36 +160,40 @@
 	},
 	"file_history":
 	[
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-equipment.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-inventory.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-jetpack.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-props.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-titles.sp",
+		"/C/Users/Alon/AppData/Local/Temp/7zOA73C.tmp/trails.sp",
+		"/C/Users/Alon/AppData/Local/Temp/7zOC29A.tmp/global.sp",
+		"/C/Users/Alon/AppData/Local/Temp/7zOD3BA.tmp/store.sp",
+		"/C/Users/Alon/AppData/Local/Temp/7zOA71C.tmp/gtrails.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/smjansson.inc",
 		"/C/Users/Alon/AppData/Local/Temp/7zOA965.tmp/stamm_grenadetrail.sp",
 		"/C/Users/Alon/AppData/Local/Temp/7zO105E.tmp/stamm_grenadetrail.sp",
 		"/C/Users/Alon/AppData/Local/Temp/7zOE0B5.tmp/stamm_grenadetrail.sp",
 		"/C/Users/Alon/AppData/Local/Temp/7zO9707.tmp/stamm_grenadetrail.sp",
 		"/C/Users/Alon/AppData/Local/Temp/7zO3B41.tmp/stamm_playertrail.sp",
 		"/C/Users/Alon/Downloads/PlayerTrails.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-titles.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/colors.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/morecolors_store.inc",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/User/Preferences.sublime-settings",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-inventory.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
 		"/C/Users/Alon/Documents/GitHub/store/store.sublime-project",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-equipment.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-jetpack.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-props.sp",
 		"/C/Users/Alon/AppData/Roaming/Sublime Text 2/Packages/User/SublimeOnSaveBuild.sublime-settings",
 		"/C/Users/Alon/Documents/GitHub/store/translations/store.phrases.txt",
 		"/C/Users/Alon/Downloads/warden.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-sounds.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-shop.inc",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/smjansson.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store.inc",
 		"/C/Users/Alon/Downloads/rtler.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-database.sp",
@@ -137,6 +222,27 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"Command_GiveCredits",
+			"PlayerTeam",
+			"playerspawn",
+			"KillTrail",
+			"killtrail",
+			"playerspawn",
+			"KillTrail",
+			"PlayerSpawn",
+			"playerspawn",
+			"g_trailTimers",
+			"KillTrail",
+			"gtrails",
+			"HandleGTrails",
+			"Store_GetUserItemCountCallback",
+			"GetUserItemCount",
+			"getuseritemcount",
+			"Store_GetUserItemCount",
+			"Store_GetUserItemCountCallback",
+			"Store_HasItem",
+			"getuseritems",
+			"HasItem",
 			"json_typeof",
 			"json_is_string",
 			"Handle:json_object_get(",
@@ -236,7 +342,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -244,15 +350,15 @@
 					"file": "scripting/store-trails.sp",
 					"settings":
 					{
-						"buffer_size": 9453,
+						"buffer_size": 12066,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1132,
-								1132
+								11621,
+								11621
 							]
 						],
 						"settings":
@@ -261,25 +367,52 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 202.0,
+						"translation.y": 23.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "scripting/include/smjansson.inc",
+					"file": "translations/store.phrases.txt",
 					"settings":
 					{
-						"buffer_size": 41496,
+						"buffer_size": 1382,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								32798,
-								32798
+								858,
+								858
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 882.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "scripting/store-core.sp",
+					"settings":
+					{
+						"buffer_size": 9664,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1808,
+								1774
 							]
 						],
 						"settings":
@@ -288,13 +421,66 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 13562.0,
+						"translation.y": 575.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 3,
+					"file": "scripting/store-distributor.sp",
+					"settings":
+					{
+						"buffer_size": 1679,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								475,
+								475
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 168.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "scripting/include/store/store-core.inc",
+					"settings":
+					{
+						"buffer_size": 1528,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1528,
+								1528
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 571.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
 					"file": "scripting/store-equipment.sp",
 					"settings":
 					{
@@ -305,8 +491,197 @@
 						"selection":
 						[
 							[
-								6033,
-								5853
+								230,
+								230
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "scripting/store-inventory.sp",
+					"settings":
+					{
+						"buffer_size": 12876,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "scripting/store-jetpack.sp",
+					"settings":
+					{
+						"buffer_size": 6627,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "scripting/store-loadout.sp",
+					"settings":
+					{
+						"buffer_size": 8637,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "scripting/store-logging.sp",
+					"settings":
+					{
+						"buffer_size": 6826,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "scripting/store-props.sp",
+					"settings":
+					{
+						"buffer_size": 4579,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "scripting/store-shop.sp",
+					"settings":
+					{
+						"buffer_size": 7550,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4772,
+								4772
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 2100.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "scripting/store-titles.sp",
+					"settings":
+					{
+						"buffer_size": 3978,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								572,
+								572
 							]
 						],
 						"settings":
@@ -356,7 +731,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 98.0
+		"height": 101.0
 	},
 	"replace":
 	{
