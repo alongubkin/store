@@ -77,7 +77,8 @@ public OnPluginStart()
 	AddCommandListener(Command_Say, "say_team");
 	
 	RegConsoleCmd("sm_store", Command_OpenMainMenu);
-	
+	RegConsoleCmd("sm_credits", Command_Credits);
+
 	RegAdminCmd("store_reloaditems", Command_ReloadItems, ADMFLAG_RCON, "Reloads store item cache.");
 	RegAdminCmd("store_givecredits", Command_GiveCredits, ADMFLAG_ROOT, "Gives credots to a player.");
 
@@ -169,6 +170,12 @@ public Action:Command_OpenMainMenu(client, args)
 	return Plugin_Handled;
 }
 
+public Action:Command_Credits(client, args)
+{
+	Store_GetCredits(Store_GetClientAccountID(client), OnCommandGetCredits, client);
+	return Plugin_Handled;
+}
+
 public Action:Command_ReloadItems(client, args)
 {
 	g_reloadItemsRequested = true;
@@ -231,7 +238,6 @@ public Action:Command_GiveCredits(client, args)
 	return Plugin_Handled;
 }
 
-
 public Store_OnReloadItemsPost() 
 {
 	if (g_reloadItemsRequested)
@@ -239,6 +245,11 @@ public Store_OnReloadItemsPost()
 		PrintToChatAll("%sItems reloaded successfully.", STORE_PREFIX);
 		g_reloadItemsRequested = false;
 	}
+}
+
+public OnCommandGetCredits(credits, any:client)
+{
+	PrintToChat(client, "%s%t", STORE_PREFIX, "Store Menu Title", credits, g_currencyName);
 }
 
 /**
