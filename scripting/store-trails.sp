@@ -85,11 +85,11 @@ public OnPluginStart()
 	}
 
 	GetGameFolderName(g_game, sizeof(g_game));
-	
+
 	if (g_lateLoad)
 	{
 		Store_ReloadItemCache();
-	}	
+	}
 }
 
 /** 
@@ -207,13 +207,13 @@ public bool:OnEquip(client, itemId, bool:equipped)
 	
 	if (!IsPlayerAlive(client))
 	{
-		PrintToChat(client, "%t", "Must be alive to equip");
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Must be alive to equip");
 		return false;
 	}
 	
 	if (g_zombieReloaded && !ZR_IsClientHuman(client))
 	{
-		PrintToChat(client, "%t", "Must be human to equip");	
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Must be human to equip");	
 		return false;
 	}
 	
@@ -230,7 +230,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
-		PrintToChat(client, "%t", "Unequipped item", displayName);
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Unequipped item", displayName);
 	}
 	else
 	{
@@ -242,7 +242,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
-		PrintToChat(client, "%t", "Equipped item", displayName);
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Equipped item", displayName);
 	}
 	
 	return true;
@@ -357,7 +357,7 @@ bool:Equip(client, const String:name[])
 	new trail = -1;
 	if (!GetTrieValue(g_trailsNameIndex, name, trail))
 	{
-		PrintToChat(client, "%t", "No item attributes");
+		PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
 		return false;
 	}
 

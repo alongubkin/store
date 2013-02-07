@@ -5,6 +5,9 @@
 #include <store/store-logging>
 #include <store/store-backend>
 
+#include <colors>
+#include <morecolors_store>
+
 #define MAX_MENU_ITEMS	32
 
 enum MenuItem
@@ -92,13 +95,6 @@ public OnMapStart()
 	}
 }
 
-/**
- * The map is ending.
- */
-public OnMapEnd()
-{
-	g_databaseInitialized = false;
-}
 
 /**
  * The database is ready to use.
@@ -185,7 +181,7 @@ public Action:Command_GiveCredits(client, args)
 {
 	if (args < 2)
 	{
-		ReplyToCommand(client, "Usage: sm_givecredits <name> <credits>");
+		ReplyToCommand(client, "%sUsage: sm_givecredits <name> <credits>", STORE_PREFIX);
 		return Plugin_Handled;
 	}
     
@@ -227,7 +223,7 @@ public Action:Command_GiveCredits(client, args)
 			accountIds[count] = Store_GetClientAccountID(target_list[i]);
 			count++;
 
-			PrintToChat(target_list[i], "%t", "Received Credits", imoney, g_currencyName);
+			PrintToChat(target_list[i], "%s%t", STORE_PREFIX, "Received Credits", imoney, g_currencyName);
 		}
 	}
 
@@ -240,7 +236,7 @@ public Store_OnReloadItemsPost()
 {
 	if (g_reloadItemsRequested)
 	{
-		PrintToChatAll("Items reloaded successfully.");
+		PrintToChatAll("%sItems reloaded successfully.", STORE_PREFIX);
 		g_reloadItemsRequested = false;
 	}
 }
@@ -263,11 +259,10 @@ LoadConfig()
 
 	decl String:menuCommands[255];
 	KvGetString(kv, "mainmenu_commands", menuCommands, sizeof(menuCommands));
-
 	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
 	
 	KvGetString(kv, "currency_name", g_currencyName, sizeof(g_currencyName));
-	
+
 	CloseHandle(kv);
 }
 

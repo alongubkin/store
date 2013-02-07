@@ -239,7 +239,7 @@ public GetItemsCallback(ids[], count, any:pack)
 	
 	if (count == 0)
 	{
-		PrintToChat(client, "%t", "No items in this category");
+		PrintToChat(client, "%s%t", STORE_PREFIX, "No items in this category");
 		OpenShop(client);
 		
 		return;
@@ -295,7 +295,6 @@ public ShopCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 
 public OnBuyItemComplete(bool:success, any:serial)
 {
-	// TODO: Colored errors here.
 	new client = GetClientFromSerial(serial);
 	
 	if (client == 0)
@@ -303,7 +302,7 @@ public OnBuyItemComplete(bool:success, any:serial)
 	
 	if (!success)
 	{
-		PrintToChat(client, "%t", "Not enough credits");
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits");
 	}
 	
 	OpenShop(client);

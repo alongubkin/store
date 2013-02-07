@@ -1,7 +1,3 @@
---
--- Table structure for table `categories`
---
-
 CREATE TABLE IF NOT EXISTS `store_categories` (
   `id` int(11) NOT NULL auto_increment,
   `display_name` varchar(32) NOT NULL,
@@ -12,9 +8,6 @@ CREATE TABLE IF NOT EXISTS `store_categories` (
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=10 ;
 
---
--- Table structure for table `items`
---
 
 CREATE TABLE IF NOT EXISTS `store_items` (
   `id` int(11)NOT NULL auto_increment,
@@ -31,9 +24,6 @@ CREATE TABLE IF NOT EXISTS `store_items` (
   UNIQUE KEY `name` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=150 ;
 
---
--- Table structure for table `loadouts`
---
 
 CREATE TABLE IF NOT EXISTS `store_loadouts` (
   `id` int(11) NOT NULL auto_increment,
@@ -49,10 +39,6 @@ INSERT INTO `store_loadouts` (`display_name`, `game`, `class`, `team`) VALUES
 ('B', NULL, NULL, NULL),
 ('C', NULL, NULL, NULL);
 
---
--- Table structure for table `users`
---
-
 CREATE TABLE IF NOT EXISTS `store_users` (
   `id` int(11) NOT NULL auto_increment,
   `auth` int(11) NOT NULL,
@@ -62,20 +48,12 @@ CREATE TABLE IF NOT EXISTS `store_users` (
   UNIQUE KEY `auth` (`auth`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=730 ;
 
---
--- Table structure for table `users_items`
---
-
 CREATE TABLE IF NOT EXISTS `store_users_items` (
   `id` int(11) NOT NULL auto_increment,
   `user_id` int(11) NOT NULL,
   `item_id` int(11) NOT NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=434 ;
-
---
--- Table structure for table `users_items_loadouts`
---
 
 CREATE TABLE IF NOT EXISTS `store_users_items_loadouts` (
   `id` int(11) NOT NULL auto_increment,

@@ -243,7 +243,7 @@ public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutI
 		
 	if (count == 0)
 	{
-		PrintToChat(client, "%t", "No items in this category");
+		PrintToChat(client, "%s%t", STORE_PREFIX, "No items in this category");
 		OpenInventory(client);
 		
 		return;
@@ -313,7 +313,7 @@ public InventoryCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client,
 			
 			if (itemTypeIndex == -1)
 			{
-				PrintToChat(client, "%t", "Item type not registered", type);
+				PrintToChat(client, "%s%t", STORE_PREFIX, "Item type not registered", type);
 				Store_LogWarning("The item type '%s' wasn't registered by any plugin.", type);
 				
 				OpenInventoryCategory(client, Store_GetItemCategory(id));

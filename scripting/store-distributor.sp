@@ -75,7 +75,7 @@ public Action:ForgivePoints(Handle:timer)
 
 			if (g_enableMessagePerTick)
 			{
-				PrintToChat(client, "%t", "Received Credits", g_creditsPerTick, g_currencyName);
+				PrintToChat(client, "%s%t", STORE_PREFIX, "Received Credits", g_creditsPerTick, g_currencyName);
 			}
 		}
 	}

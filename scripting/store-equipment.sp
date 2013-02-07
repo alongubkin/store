@@ -330,13 +330,13 @@ public bool:OnEquip(client, itemId, bool:equipped)
 	
 	if (!IsPlayerAlive(client))
 	{
-		PrintToChat(client, "%t", "Must be alive to equip");
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Must be alive to equip");
 		return false;
 	}
 	
 	if (g_zombieReloaded && !ZR_IsClientHuman(client))
 	{
-		PrintToChat(client, "%t", "Must be human to equip");	
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Must be human to equip");	
 		return false;
 	}
 	
@@ -359,7 +359,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
-		PrintToChat(client, "%t", "Unequipped item", displayName);
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Unequipped item", displayName);
 		return true;
 	}
 	else
@@ -370,7 +370,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
-		PrintToChat(client, "%t", "Equipped item", displayName);
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Equipped item", displayName);
 		return true;
 	}
 }
@@ -382,13 +382,13 @@ bool:Equip(client, loadoutSlot, const String:name[])
 	new equipment = -1;
 	if (!GetTrieValue(g_equipmentNameIndex, name, equipment))
 	{
-		PrintToChat(client, "%t", "No item attributes");
+		PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
 		return false;
 	}
 	
 	if (!LookupAttachment(client, g_equipment[equipment][EquipmentAttachment])) 
 	{
-		PrintToChat(client, "%t", "Player model unsupported");
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Player model unsupported");
 		return false;
 	}
 	

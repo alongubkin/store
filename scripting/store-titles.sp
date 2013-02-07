@@ -108,7 +108,7 @@ public OnGetPlayerTitle(titles[], count, any:serial)
 		new title = -1;
 		if (!GetTrieValue(g_titlesNameIndex, itemName, title))
 		{
-			PrintToChat(client, "%t", "No item attributes");
+			PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
 			continue;
 		}
 		
@@ -153,14 +153,14 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
-		PrintToChat(client, "%t", "Unequipped item", displayName);
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Unequipped item", displayName);
 	}
 	else
 	{
 		new title = -1;
 		if (!GetTrieValue(g_titlesNameIndex, name, title))
 		{
-			PrintToChat(client, "%t", "No item attributes");
+			PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
 			return false;
 		}
 		
@@ -169,7 +169,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
-		PrintToChat(client, "%t", "Equipped item", displayName);
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Equipped item", displayName);
 	}
 	
 	return true;
