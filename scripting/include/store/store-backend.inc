@@ -625,6 +625,14 @@ native Store_SetItemEquippedState(accountId, itemId, loadoutId, bool:isEquipped,
  */
 native Store_GetEquippedItemsByType(accountId, const String:type[], loadoutId, Store_GetItemsCallback:callback, any:data = 0);
 
+/**
+ * Query the database for items and categories, so that
+ * the store-backend module will have a cache of them.
+ *
+ * @noreturn
+ */
+native Store_ReloadItemCache();
+
 stock Store_GetAccountIDFromAuthString(String:authString[])
 {
 	decl String:toks[3][16];
@@ -684,5 +692,7 @@ public __pl_store_backend_SetNTVOptional()
 	
 	MarkNativeAsOptional("Store_SetItemEquippedState");
 	MarkNativeAsOptional("Store_GetEquippedItemsByType");
+
+	MarkNativeAsOptional("Store_ReloadItemCache");
 }
 #endif

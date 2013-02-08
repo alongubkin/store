@@ -32,7 +32,7 @@ public OnPluginStart()
 /**
  * Configs just finished getting executed.
  */
-public OnConfigsExecuted()
+public OnAllPluginsLoaded()
 {
 	Store_GetCurrencyName(g_currencyName, sizeof(g_currencyName));
 }

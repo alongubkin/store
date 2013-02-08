@@ -43,14 +43,6 @@ native Store_AddMainMenuItem(const String:displayName[], const String:descriptio
  */
 native Store_GetCurrencyName(String:currencyName[], maxLength);
 
-/**
- * Query the database for items and categories, so that
- * the store-database module will have a cache of them.
- *
- * @noreturn
- */
-native Store_ReloadItemCache();
-
 public SharedPlugin:__pl_store =
 {
 	name = "store",

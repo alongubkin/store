@@ -29,12 +29,6 @@ enum EquipmentPlayerModelSettings
 	Float:Angles[3]
 }
 
-enum EquipmentEntity
-{
-	String:EquipmentEntityName[32],
-	EquipmentEntityIndex
-}
-
 new Handle:g_hLookupAttachment = INVALID_HANDLE;
 
 new bool:g_zombieReloaded;
@@ -51,8 +45,6 @@ new g_playerModelCount = 0;
 
 new g_iEquipment[MAXPLAYERS+1][32];
 
-new bool:g_lateLoad = false;
-
 /**
  * Called before plugin is loaded.
  * 
@@ -67,8 +59,6 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	MarkNativeAsOptional("ZR_IsClientHuman"); 
 	MarkNativeAsOptional("ZR_IsClientZombie"); 
-	
-	g_lateLoad = late;
 
 	return APLRes_Success;
 }
@@ -89,8 +79,6 @@ public OnPluginStart()
 {
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
-
-	Store_RegisterItemType("equipment", OnEquip, LoadItem);
 	
 	g_loadoutSlotList = CreateArray(ByteCountToCells(32));
 	
@@ -105,12 +93,9 @@ public OnPluginStart()
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "LookupAttachment");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
-	g_hLookupAttachment = EndPrepSDKCall();
+	g_hLookupAttachment = EndPrepSDKCall();	
 
-	if (g_lateLoad)
-	{
-		Store_ReloadItemCache();
-	}		
+	Store_RegisterItemType("equipment", OnEquip, LoadItem);
 }
 
 /** 
@@ -121,6 +106,10 @@ public OnLibraryAdded(const String:name[])
 	if (StrEqual(name, "zombiereloaded"))
 	{
 		g_zombieReloaded = true;
+	}
+	else if (StrEqual(name, "store-inventory"))
+	{
+		Store_RegisterItemType("equipment", OnEquip, LoadItem);
 	}
 }
 
@@ -409,15 +398,12 @@ bool:Equip(client, loadoutSlot, const String:name[])
 	new playerModel = -1;
 	for (new j = 0; j < g_playerModelCount; j++)
 	{	
-		PrintToChatAll("%s == %s", clientModel, g_playerModels[j][PlayerModelPath]);
 		if (StrEqual(g_equipment[equipment][EquipmentName], g_playerModels[j][EquipmentName]) && StrEqual(clientModel, g_playerModels[j][PlayerModelPath], false))
 		{
 			playerModel = j;
 			break;
 		}
 	}
-
-	PrintToChatAll("playerModel: %d", playerModel);
 
 	if (playerModel == -1)
 	{

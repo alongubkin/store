@@ -70,8 +70,6 @@ public OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
 
-	Store_RegisterItemType("trails", OnEquip, LoadItem);
-
 	g_zombieReloaded = LibraryExists("zombiereloaded");
 	
 	HookEvent("player_spawn", PlayerSpawn);
@@ -86,10 +84,11 @@ public OnPluginStart()
 
 	GetGameFolderName(g_game, sizeof(g_game));
 
-	if (g_lateLoad)
+	Store_RegisterItemType("trails", OnEquip, LoadItem);
+	/*if (g_lateLoad)
 	{
 		Store_ReloadItemCache();
-	}
+	}	*/
 }
 
 /** 
@@ -101,6 +100,10 @@ public OnLibraryAdded(const String:name[])
 	{
 		g_zombieReloaded = true;
 	}
+	else if (StrEqual(name, "store-inventory"))
+	{
+		Store_RegisterItemType("trails", OnEquip, LoadItem);
+	}	
 }
 
 /** 

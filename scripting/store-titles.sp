@@ -55,11 +55,21 @@ public OnPluginStart()
 	LoadTranslations("store.phrases");
 
 	Store_RegisterItemType("title", OnEquip, LoadItem);
-
-	if (g_lateLoad)
+	/*if (g_lateLoad)
 	{
 		Store_ReloadItemCache();
-	}
+	}*/
+}
+
+/** 
+ * Called when a new API library is loaded.
+ */
+public OnLibraryAdded(const String:name[])
+{
+	if (StrEqual(name, "store-inventory"))
+	{
+		Store_RegisterItemType("title", OnEquip, LoadItem);
+	}	
 }
 
 /**

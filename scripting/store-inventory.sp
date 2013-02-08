@@ -2,9 +2,9 @@
 
 #include <sourcemod>
 #include <store/store-core>
-#include <store/store-backend>
 #include <store/store-logging>
 #include <store/store-loadout>
+#include <store/store-backend>
 
 new String:g_menuCommands[32][32];
 
@@ -57,11 +57,10 @@ public OnPluginStart()
 	decl String:menuItemName[32];
 	Format(menuItemName, sizeof(menuItemName), "%t", "Inventory");
 
-	g_itemTypeNameIndex = CreateTrie();
-	
 	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuInventoryClick, 4);
 
 	RegConsoleCmd("sm_inventory", Command_OpenInventory);
+	RegAdminCmd("store_itemtypes", Command_PrintItemTypes, ADMFLAG_RCON, "Prints registered item types");
 
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say_team");
@@ -136,6 +135,29 @@ public Action:Command_OpenInventory(client, args)
 	return Plugin_Handled;
 }
 
+public Action:Command_PrintItemTypes(client, args)
+{
+	for (new itemTypeIndex = 0, size = GetArraySize(g_itemTypes); itemTypeIndex < size; itemTypeIndex++)
+	{
+		new Handle:itemType = Handle:GetArrayCell(g_itemTypes, itemTypeIndex);
+		
+		ResetPack(itemType);
+		new Handle:plugin = Handle:ReadPackCell(itemType);
+
+		SetPackPosition(itemType, 24);
+		decl String:typeName[32];
+		ReadPackString(itemType, typeName, sizeof(typeName));
+
+		ResetPack(itemType);
+
+		decl String:pluginName[32];
+		GetPluginFilename(plugin, pluginName, sizeof(pluginName));
+
+		ReplyToCommand(client, " \"%s\" - %s", typeName, pluginName);			
+	}
+	return Plugin_Handled;
+}
+
 /**
 * Opens the inventory menu for a client.
 *
@@ -145,6 +167,12 @@ public Action:Command_OpenInventory(client, args)
 */
 OpenInventory(client)
 {
+	if (client <= 0 || client > MaxClients)
+		return;
+
+	if (!IsClientInGame(client))
+		return;
+
 	Store_GetCategories(GetCategoriesCallback, true, GetClientSerial(client));
 }
 
@@ -418,17 +446,26 @@ public UseItemCallback(accountId, itemId, any:pack)
 RegisterItemType(const String:type[], Handle:plugin, Store_ItemUseCallback:useCallback, Store_ItemGetAttributesCallback:attrsCallback = Store_ItemGetAttributesCallback:0)
 {
 	if (g_itemTypes == INVALID_HANDLE)
-	{
 		g_itemTypes = CreateArray();
-	}
 	
 	if (g_itemTypeNameIndex == INVALID_HANDLE)
+	{
 		g_itemTypeNameIndex = CreateTrie();
-		
+	}
+	else
+	{
+		new itemType;
+		if (GetTrieValue(g_itemTypeNameIndex, type, itemType))
+		{
+			CloseHandle(Handle:GetArrayCell(g_itemTypes, itemType));
+		}
+	}
+
 	new Handle:itemType = CreateDataPack();
 	WritePackCell(itemType, _:plugin); // 0
 	WritePackCell(itemType, _:useCallback); // 8
 	WritePackCell(itemType, _:attrsCallback); // 16
+	WritePackString(itemType, type); // 24
 
 	new index = PushArrayCell(g_itemTypes, itemType);
 	SetTrieValue(g_itemTypeNameIndex, type, index);
@@ -462,20 +499,20 @@ public Native_IsItemTypeRegistered(Handle:plugin, params)
 }
 
 public Native_CallItemAttrsCallback(Handle:plugin, params)
-{       
+{
 	if (g_itemTypeNameIndex == INVALID_HANDLE)
 		return false;
 		
 	decl String:type[STORE_MAX_TYPE_LENGTH];
 	GetNativeString(1, type, sizeof(type));
-	
+
 	new typeIndex;
 	if (!GetTrieValue(g_itemTypeNameIndex, type, typeIndex))
 		return false;
-	
+
 	decl String:name[STORE_MAX_NAME_LENGTH];
 	GetNativeString(2, name, sizeof(name));
-	
+
 	decl String:attrs[STORE_MAX_ATTRIBUTES_LENGTH];
 	GetNativeString(3, attrs, sizeof(attrs));		
 
@@ -485,7 +522,7 @@ public Native_CallItemAttrsCallback(Handle:plugin, params)
 	new Handle:callbackPlugin = Handle:ReadPackCell(pack);
 	
 	SetPackPosition(pack, 16);
-	
+
 	new callback = ReadPackCell(pack);
 
 	if (callback == 0)

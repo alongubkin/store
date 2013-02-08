@@ -102,6 +102,8 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_SetItemEquippedState", Native_SetItemEquippedState);
 	CreateNative("Store_GetEquippedItemsByType", Native_GetEquippedItemsByType);
 	
+	CreateNative("Store_ReloadItemCache", Native_ReloadItemCache);
+
 	RegPluginLibrary("store-backend");
 	return APLRes_Success;
 }
@@ -120,10 +122,16 @@ public Plugin:myinfo =
  */
 public OnPluginStart()
 {
+
 	g_dbInitializedForward = CreateGlobalForward("Store_OnDatabaseInitialized", ET_Event);
 	g_reloadItemsForward = CreateGlobalForward("Store_OnReloadItems", ET_Event);
 	g_reloadItemsPostForward = CreateGlobalForward("Store_OnReloadItemsPost", ET_Event);
 	
+	RegAdminCmd("store_reloaditems", Command_ReloadItems, ADMFLAG_RCON, "Reloads store item cache.");
+}
+
+public OnAllPluginsLoaded()
+{
 	ConnectSQL();
 }
 
@@ -406,7 +414,7 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 		{
 			decl String:attrs[1024];
 			SQL_FetchString(hndl, 8, attrs, sizeof(attrs));
-			
+
 			Store_CallItemAttrsCallback(g_items[g_itemCount][ItemType], g_items[g_itemCount][ItemName], attrs);
 		}
 		
@@ -1261,6 +1269,18 @@ public T_GiveCreditsToUsersCallback(Handle:owner, Handle:hndl, const String:erro
 	}
 }
 
+/**
+ * Query the database for items and categories, so that
+ * the store-database module will have a cache of them.
+ *
+ * @noreturn
+ */
+ReloadItemCache()
+{
+	GetCategories(_, _, false);
+	GetItems(_, _, -1, false);
+}
+
 ConnectSQL()
 {
 	if (g_hSQL != INVALID_HANDLE)
@@ -1311,7 +1331,17 @@ public T_ConnectSQLCallback(Handle:owner, Handle:hndl, const String:error[], any
 	Call_StartForward(g_dbInitializedForward);
 	Call_Finish();
 	
+	ReloadItemCache();
+
 	g_reconnectCounter = 1;
+}
+
+public Action:Command_ReloadItems(client, args)
+{
+	ReplyToCommand(client, "Reloading items...");
+	ReloadItemCache();
+
+	return Plugin_Handled;
 }
 
 public Native_Register(Handle:plugin, params)
@@ -1517,4 +1547,9 @@ public Native_GiveCreditsToUsers(Handle:plugin, params)
 	GetNativeArray(1, accountIds, length);
 	
 	GiveCreditsToUsers(accountIds, length, GetNativeCell(3));
+}
+
+public Native_ReloadItemCache(Handle:plugin, params)
+{       
+	ReloadItemCache();
 }

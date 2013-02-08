@@ -26,10 +26,7 @@ new String:g_menuCommands[32][32];
 new g_menuItems[MAX_MENU_ITEMS + 1][MenuItem];
 new g_menuItemCount = 0;
 
-new bool:g_databaseInitialized = false;
 new bool:g_allPluginsLoaded = false;
-
-new bool:g_reloadItemsRequested = false;
 
 /**
  * Called before plugin is loaded.
@@ -46,7 +43,6 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_OpenMainMenu", Native_OpenMainMenu);
 	CreateNative("Store_AddMainMenuItem", Native_AddMainMenuItem);
 	CreateNative("Store_GetCurrencyName", Native_GetCurrencyName);
-	CreateNative("Store_ReloadItemCache", Native_ReloadItemCache);
 
 	RegPluginLibrary("store");	
 	return APLRes_Success;
@@ -79,37 +75,15 @@ public OnPluginStart()
 	RegConsoleCmd("sm_store", Command_OpenMainMenu);
 	RegConsoleCmd("sm_credits", Command_Credits);
 
-	RegAdminCmd("store_reloaditems", Command_ReloadItems, ADMFLAG_RCON, "Reloads store item cache.");
 	RegAdminCmd("store_givecredits", Command_GiveCredits, ADMFLAG_ROOT, "Gives credots to a player.");
 
 	g_allPluginsLoaded = false;
 }
 
 /**
- * The map is starting.
+ * All plugins have been loaded.
  */
-public OnMapStart()
-{
-	if (g_databaseInitialized)
-	{
-		ReloadItemCache();
-	}
-}
-
-
-/**
- * The database is ready to use.
- */
-public Store_OnDatabaseInitialized()
-{
-	g_databaseInitialized = true;
-	ReloadItemCache();
-}
-
-/**
- * Configs just finished getting executed.
- */
-public OnConfigsExecuted()
+public OnAllPluginsLoaded()
 {
 	SortMainMenuItems();
 	g_allPluginsLoaded = true;
@@ -176,14 +150,6 @@ public Action:Command_Credits(client, args)
 	return Plugin_Handled;
 }
 
-public Action:Command_ReloadItems(client, args)
-{
-	g_reloadItemsRequested = true;
-	ReloadItemCache();
-	
-	return Plugin_Handled;
-}
-
 public Action:Command_GiveCredits(client, args)
 {
 	if (args < 2)
@@ -238,15 +204,6 @@ public Action:Command_GiveCredits(client, args)
 	return Plugin_Handled;
 }
 
-public Store_OnReloadItemsPost() 
-{
-	if (g_reloadItemsRequested)
-	{
-		PrintToChatAll("%sItems reloaded successfully.", STORE_PREFIX);
-		g_reloadItemsRequested = false;
-	}
-}
-
 public OnCommandGetCredits(credits, any:client)
 {
 	PrintToChat(client, "%s%t", STORE_PREFIX, "Store Menu Title", credits, g_currencyName);
@@ -275,18 +232,6 @@ LoadConfig()
 	KvGetString(kv, "currency_name", g_currencyName, sizeof(g_currencyName));
 
 	CloseHandle(kv);
-}
-
-/**
- * Query the database for items and categories, so that
- * the store-database module will have a cache of them.
- *
- * @noreturn
- */
-ReloadItemCache()
-{
-	Store_GetCategories(Store_GetItemsCallback:INVALID_HANDLE, false);
-	Store_GetItems(Store_GetItemsCallback:INVALID_HANDLE, -1, false);
 }
 
 /**
@@ -422,9 +367,4 @@ public Native_AddMainMenuItem(Handle:plugin, params)
 public Native_GetCurrencyName(Handle:plugin, params)
 {       
 	SetNativeString(1, g_currencyName, GetNativeCell(2));
-}
-
-public Native_ReloadItemCache(Handle:plugin, params)
-{       
-	ReloadItemCache();
 }

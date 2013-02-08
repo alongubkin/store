@@ -66,7 +66,7 @@ native bool:Store_IsItemTypeRegistered(const String:type[]);
  */
 native bool:Store_CallItemAttrsCallback(const String:type[], const String:itemName[], const String:attrs[]);
 
-public SharedPlugin:__pl_inventory_store =
+public SharedPlugin:__pl_store_inventory =
 {
     name = "store-inventory",
     file = "store-inventory.smx",
@@ -86,6 +86,6 @@ public __pl_store_inventory_SetNTVOptional()
 	MarkNativeAsOptional("Store_RegisterItemType"); 
 	MarkNativeAsOptional("Store_IsItemTypeRegistered");
 	
-	MarkNativeAsOptional("Store_CallItemAttrsCallback");
+	// MarkNativeAsOptional("Store_CallItemAttrsCallback");
 }
 #endif

@@ -22,7 +22,7 @@ native Store_OpenShop(client);
  */
 native Store_OpenShopCategory(client, categoryId);
 
-public SharedPlugin:__pl_shop_store =
+public SharedPlugin:__pl_store_shop =
 {
     name = "store-shop",
     file = "store-shop.smx",
