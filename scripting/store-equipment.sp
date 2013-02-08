@@ -260,19 +260,21 @@ public LoadItem(const String:itemName[], const String:attrs[])
 			if (json_typeof(playerModel) != JSON_OBJECT)
 				continue;
 
-			json_object_get_string(json, "playermodel", g_playerModels[g_playerModelCount][PlayerModelPath], PLATFORM_MAX_PATH);
+			json_object_get_string(playerModel, "playermodel", g_playerModels[g_playerModelCount][PlayerModelPath], PLATFORM_MAX_PATH);
 
-			new Handle:playerModelPosition = json_object_get(json, "position");
+			new Handle:playerModelPosition = json_object_get(playerModel, "position");
 
 			for (new i = 0; i <= 2; i++)
 				g_playerModels[g_playerModelCount][Position][i] = json_array_get_float(playerModelPosition, i);
 
 			CloseHandle(playerModelPosition);
 
-			new Handle:playerModelAngles = json_object_get(json, "angles");
+			new Handle:playerModelAngles = json_object_get(playerModel, "angles");
 
 			for (new i = 0; i <= 2; i++)
 				g_playerModels[g_playerModelCount][Angles][i] = json_array_get_float(playerModelAngles, i);
+
+			strcopy(g_playerModels[g_playerModelCount][EquipmentName], STORE_MAX_NAME_LENGTH, itemName);
 
 			CloseHandle(playerModelAngles);
 			CloseHandle(playerModel);
@@ -403,16 +405,19 @@ bool:Equip(client, loadoutSlot, const String:name[])
 
 	new String:clientModel[PLATFORM_MAX_PATH];
 	GetClientModel(client, clientModel, sizeof(clientModel));
-
+	
 	new playerModel = -1;
 	for (new j = 0; j < g_playerModelCount; j++)
-	{
+	{	
+		PrintToChatAll("%s == %s", clientModel, g_playerModels[j][PlayerModelPath]);
 		if (StrEqual(g_equipment[equipment][EquipmentName], g_playerModels[j][EquipmentName]) && StrEqual(clientModel, g_playerModels[j][PlayerModelPath], false))
 		{
 			playerModel = j;
 			break;
 		}
 	}
+
+	PrintToChatAll("playerModel: %d", playerModel);
 
 	if (playerModel == -1)
 	{
