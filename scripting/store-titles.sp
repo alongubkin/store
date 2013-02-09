@@ -114,7 +114,7 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	
 	new Handle:json = json_load(attrs);	
 
-	if (!IsSource2009())
+	if (IsSource2009())
 	{
 		json_object_get_string(json, "colorful_text", g_titles[g_titleCount][TitleText], 64);
 		MoreColors_CReplaceColorCodes(g_titles[g_titleCount][TitleText]);
@@ -179,5 +179,5 @@ public Action:OnChatMessage(&author, Handle:recipients, String:name[], String:me
 
 stock bool:IsSource2009()
 {
-	return (SOURCE_SDK_EPISODE2VALVE <= GuessSDKVersion() < SOURCE_SDK_LEFT4DEAD);
+	return (SOURCE_SDK_CSS <= GuessSDKVersion() < SOURCE_SDK_LEFT4DEAD);
 }
