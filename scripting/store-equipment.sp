@@ -187,7 +187,6 @@ public Action:SpawnTimer(Handle:timer, any:serial)
 		return Plugin_Continue;
 		
 	Store_GetEquippedItemsByType(Store_GetClientAccountID(client), "equipment", Store_GetClientLoadout(client), OnGetPlayerEquipment, serial);
-	
 	return Plugin_Continue;
 }
 
