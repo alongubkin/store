@@ -155,6 +155,7 @@ public Action:Command_PrintItemTypes(client, args)
 
 		ReplyToCommand(client, " \"%s\" - %s", typeName, pluginName);			
 	}
+
 	return Plugin_Handled;
 }
 

@@ -31,8 +31,6 @@ new Handle:g_trailsNameIndex = INVALID_HANDLE;
 new Handle:g_trailTimers[MAXPLAYERS+1];
 new g_SpriteModel[MAXPLAYERS + 1];
 
-new bool:g_lateLoad = false;
-
 /**
  * Called before plugin is loaded.
  * 
@@ -47,8 +45,6 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	MarkNativeAsOptional("ZR_IsClientHuman"); 
 	MarkNativeAsOptional("ZR_IsClientZombie"); 
-
-	g_lateLoad = late;
 
 	return APLRes_Success;
 }
@@ -85,10 +81,6 @@ public OnPluginStart()
 	GetGameFolderName(g_game, sizeof(g_game));
 
 	Store_RegisterItemType("trails", OnEquip, LoadItem);
-	/*if (g_lateLoad)
-	{
-		Store_ReloadItemCache();
-	}	*/
 }
 
 /** 

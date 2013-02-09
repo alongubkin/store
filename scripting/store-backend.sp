@@ -371,7 +371,7 @@ GetItems(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE
 		WritePackCell(pack, categoryId);
 		WritePackCell(pack, _:data);
 	
-		SQL_TQuery(g_hSQL, T_GetItemsCallback, "SELECT id, name, display_name, description, type, loadout_slot, price, category_id, attrs FROM store_items", pack);
+		SQL_TQuery(g_hSQL, T_GetItemsCallback, "SELECT id, name, display_name, description, type, loadout_slot, price, category_id, attrs, LENGTH(attrs) AS attrs_len FROM store_items", pack);
 	}
 }
 
@@ -412,8 +412,10 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 		
 		if (!SQL_IsFieldNull(hndl, 8))
 		{
-			decl String:attrs[1024];
-			SQL_FetchString(hndl, 8, attrs, sizeof(attrs));
+			new attrsLength = SQL_FetchInt(hndl, 9);
+
+			decl String:attrs[attrsLength+1];
+			SQL_FetchString(hndl, 8, attrs, attrsLength+1);
 
 			Store_CallItemAttrsCallback(g_items[g_itemCount][ItemType], g_items[g_itemCount][ItemName], attrs);
 		}

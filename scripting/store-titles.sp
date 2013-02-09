@@ -19,7 +19,6 @@ new g_titleCount = 0;
 new g_clientTitles[MAXPLAYERS+1];
 
 new Handle:g_titlesNameIndex = INVALID_HANDLE;
-new bool:g_lateLoad = false;
 
 public Plugin:myinfo =
 {
@@ -31,22 +30,6 @@ public Plugin:myinfo =
 };
 
 /**
- * Called before plugin is loaded.
- * 
- * @param myself    The plugin handle.
- * @param late      True if the plugin was loaded after map change, false on map start.
- * @param error     Error message if load failed.
- * @param err_max   Max length of the error message.
- *
- * @return          APLRes_Success for load success, APLRes_Failure or APLRes_SilentFailure otherwise.
- */
-public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
-{
-	g_lateLoad = late;
-	return APLRes_Success;
-}
-
-/**
  * Plugin is loading.
  */
 public OnPluginStart()
@@ -55,10 +38,6 @@ public OnPluginStart()
 	LoadTranslations("store.phrases");
 
 	Store_RegisterItemType("title", OnEquip, LoadItem);
-	/*if (g_lateLoad)
-	{
-		Store_ReloadItemCache();
-	}*/
 }
 
 /** 
