@@ -2,6 +2,7 @@
 
 #include <sourcemod>
 #include <store/store-core>
+#include <store/store-inventory>
 #include <store/store-logging>
 #include <store/store-loadout>
 #include <store/store-backend>
@@ -350,7 +351,7 @@ public InventoryCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client,
 				return;
 			}
 			
-			new bool:callbackValue = false;
+			new Store_ItemUseAction:callbackValue = Store_DoNothing;
 			
 			new Handle:itemType = GetArrayCell(g_itemTypes, itemTypeIndex);
 			ResetPack(itemType);
@@ -364,21 +365,39 @@ public InventoryCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client,
 			Call_PushCell(equipped);
 			Call_Finish(callbackValue);
 			
-			if (callbackValue)
+			if (callbackValue != Store_DoNothing)
 			{
 				new auth = Store_GetClientAccountID(client);
-				
+					
 				new Handle:pack = CreateDataPack();
 				WritePackCell(pack, GetClientSerial(client));
 				WritePackCell(pack, slot);
-				
-				if (StrEqual(loadoutSlot, ""))
+
+				if (callbackValue == Store_EquipItem)
+				{
+					if (StrEqual(loadoutSlot, ""))
+					{
+						Store_LogWarning("A user tried to equip an item that doesn't have a loadout slot.");
+					}
+					else
+					{
+						Store_SetItemEquippedState(auth, id, Store_GetClientLoadout(client), true, EquipItemCallback, pack);
+					}
+				}
+				else if (callbackValue == Store_UnequipItem)
+				{
+					if (StrEqual(loadoutSlot, ""))
+					{
+						Store_LogWarning("A user tried to unequip an item that doesn't have a loadout slot.");
+					}
+					else
+					{				
+						Store_SetItemEquippedState(auth, id, Store_GetClientLoadout(client), false, EquipItemCallback, pack);
+					}
+				}
+				else if (callbackValue == Store_DeleteItem)
 				{
 					Store_RemoveUserItem(auth, id, UseItemCallback, pack);
-				}
-				else
-				{
-					Store_SetItemEquippedState(auth, id, Store_GetClientLoadout(client), !equipped, EquipItemCallback, pack);
 				}
 			}
 		}

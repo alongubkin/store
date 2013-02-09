@@ -312,23 +312,23 @@ public OnGetPlayerEquipment(ids[], count, any:serial)
 	}
 }
 
-public bool:OnEquip(client, itemId, bool:equipped)
+public Store_ItemUseAction:OnEquip(client, itemId, bool:equipped)
 {
 	if (!IsClientInGame(client))
 	{
-		return false;
+		return Store_DoNothing;
 	}
 	
 	if (!IsPlayerAlive(client))
 	{
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Must be alive to equip");
-		return false;
+		return Store_DoNothing;
 	}
 	
 	if (g_zombieReloaded && !ZR_IsClientHuman(client))
 	{
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Must be human to equip");	
-		return false;
+		return Store_DoNothing;
 	}
 	
 	decl String:name[STORE_MAX_NAME_LENGTH];
@@ -345,24 +345,24 @@ public bool:OnEquip(client, itemId, bool:equipped)
 	if (equipped)
 	{
 		if (!Unequip(client, loadoutSlotIndex))
-			return false;
+			return Store_DoNothing;
 	
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Unequipped item", displayName);
-		return true;
+		return Store_UnequipItem;
 	}
 	else
 	{
 		if (!Equip(client, loadoutSlotIndex, name))
-			return false;
+			return Store_DoNothing;
 		
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Equipped item", displayName);
-		return true;
+		return Store_EquipItem;
 	}
 }
 

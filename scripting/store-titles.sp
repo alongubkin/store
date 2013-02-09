@@ -130,7 +130,7 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	g_titleCount++;
 }
 
-public bool:OnEquip(client, itemId, bool:equipped)
+public Store_ItemUseAction:OnEquip(client, itemId, bool:equipped)
 {
 	decl String:name[32];
 	Store_GetItemName(itemId, name, sizeof(name));
@@ -143,6 +143,8 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Unequipped item", displayName);
+
+		return Store_UnequipItem;
 	}
 	else
 	{
@@ -150,7 +152,7 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		if (!GetTrieValue(g_titlesNameIndex, name, title))
 		{
 			PrintToChat(client, "%s%t", STORE_PREFIX, "No item attributes");
-			return false;
+			return Store_DoNothing;
 		}
 		
 		g_clientTitles[client] = title;
@@ -159,9 +161,9 @@ public bool:OnEquip(client, itemId, bool:equipped)
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Equipped item", displayName);
+
+		return Store_EquipItem;
 	}
-	
-	return true;
 }
 
 public Action:OnChatMessage(&author, Handle:recipients, String:name[], String:message[])

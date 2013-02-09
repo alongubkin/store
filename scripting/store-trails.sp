@@ -193,23 +193,23 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	g_trailCount++;
 }
 
-public bool:OnEquip(client, itemId, bool:equipped)
+public Store_ItemUseAction:OnEquip(client, itemId, bool:equipped)
 {
 	if (!IsClientInGame(client))
 	{
-		return false;
+		return Store_DoNothing;
 	}
 	
 	if (!IsPlayerAlive(client))
 	{
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Must be alive to equip");
-		return false;
+		return Store_DoNothing;
 	}
 	
 	if (g_zombieReloaded && !ZR_IsClientHuman(client))
 	{
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Must be human to equip");	
-		return false;
+		return Store_DoNothing;
 	}
 	
 	decl String:name[STORE_MAX_NAME_LENGTH];
@@ -217,30 +217,30 @@ public bool:OnEquip(client, itemId, bool:equipped)
 	
 	decl String:loadoutSlot[STORE_MAX_LOADOUTSLOT_LENGTH];
 	Store_GetItemLoadoutSlot(itemId, loadoutSlot, sizeof(loadoutSlot));
-			
+	
+	KillTrail(client);
+
 	if (equipped)
 	{
-		KillTrail(client);
-		
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Unequipped item", displayName);
+
+		return Store_UnequipItem;
 	}
 	else
-	{
-		KillTrail(client);
-		
+	{		
 		if (!Equip(client, name))
-			return false;
+			return Store_DoNothing;
 			
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 		
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Equipped item", displayName);
+
+		return Store_EquipItem;
 	}
-	
-	return true;
 }
 
 public OnClientDisconnect(client)

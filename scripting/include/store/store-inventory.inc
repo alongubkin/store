@@ -3,8 +3,16 @@
 #endif
 #define _store_inventory_included
 
+enum Store_ItemUseAction
+{
+	Store_EquipItem,
+	Store_UnequipItem,
+	Store_DeleteItem,
+	Store_DoNothing
+}
+
 functag Store_ItemGetAttributesCallback public(const String:itemName[], const String:attrs[]);
-functag Store_ItemUseCallback bool:public(client, itemId, bool:equipped);
+functag Store_ItemUseCallback Store_ItemUseAction:public(client, itemId, bool:equipped);
 
 /**
  * Opens the inventory menu for a client.
