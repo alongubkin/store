@@ -114,7 +114,7 @@ public LoadItem(const String:itemName[], const String:attrs[])
 	
 	new Handle:json = json_load(attrs);	
 
-	if (IsSource2009())
+	if (!IsSource2009())
 	{
 		json_object_get_string(json, "colorful_text", g_titles[g_titleCount][TitleText], 64);
 		MoreColors_CReplaceColorCodes(g_titles[g_titleCount][TitleText]);
