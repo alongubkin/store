@@ -220,7 +220,11 @@ OpenShopCategory(client, categoryId)
 	WritePackCell(pack, GetClientSerial(client));
 	WritePackCell(pack, categoryId);
 	
-	Store_GetItems(GetItemsCallback, categoryId, true, pack);
+	new Handle:filter = CreateTrie();
+	SetTrieValue(filter, "is_buyable", 1);
+	SetTrieValue(filter, "category_id", categoryId);
+
+	Store_GetItems(filter, GetItemsCallback, true, pack);
 }
 
 public GetItemsCallback(ids[], count, any:pack)

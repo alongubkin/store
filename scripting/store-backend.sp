@@ -26,7 +26,9 @@ enum Item
 	String:ItemType[STORE_MAX_TYPE_LENGTH],
 	String:ItemLoadoutSlot[STORE_MAX_LOADOUTSLOT_LENGTH],
 	ItemPrice,
-	ItemCategoryId
+	ItemCategoryId,
+	bool:ItemIsBuyable,
+	bool:ItemIsTradeable
 }
 
 enum Loadout
@@ -82,6 +84,8 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_GetItemLoadoutSlot", Native_GetItemLoadoutSlot);
 	CreateNative("Store_GetItemPrice", Native_GetItemPrice);
 	CreateNative("Store_GetItemCategory", Native_GetItemCategory);	
+	CreateNative("Store_IsItemBuyable", Native_IsItemBuyable);
+	CreateNative("Store_IsItemTradeable", Native_IsItemTradeable);	
 
 	CreateNative("Store_GetLoadouts", Native_GetLoadouts);
 	CreateNative("Store_GetLoadoutDisplayName", Native_GetLoadoutDisplayName);
@@ -317,40 +321,67 @@ GetCategoryIndex(id)
  * You can set the loadFromCache parameter of this method to false to retrieve categories
  * from the database and not from the cache.
  *
- * The store-core module calls this method when it is loaded to build a cache of 
- * categories.
+  * You can use the filter parameter to filter items returned by the following properties:
+ *  - category_id (cell)
+ *  - is_buyable (cell)
+ *  - is_tradeable (cell)
+ *  - type (string)
  *
- * It also provides the store_reloaditems command to reload items and categories 
+ * To use it, set it to a trie with some or all of the above properties.
+ * IMPORTANT: You are *not* resposible for closing the filter trie's handle, 
+ *            the store-backend module is.
+ *
+ * The store-backend module calls this method when it is loaded to build a cache of 
+ * categories. It also provides the store_reloaditems command to reload items and categories 
  * from the database. 
  *
  * To use this method, you can provide a callback for when the items are loaded.
  * The callback will provide an array of the items' IDs. You can then loop the array,
  * and find info about each item using the Store_GetItem* methods.
  *
+ *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
+ * @param filter            A trie which will be used to filter the loadouts returned.
  * @param callback		    A callback which will be called when the items are loaded.
  * @param plugin			The plugin owner of the callback.
- * @param categoryId        Filter the items returned by a category ID.
  * @param loadFromCache     Whether to load items from cache. If false, the method will 
  *                          query the database and rebuild its cache.
  * @param data              Extra data value to pass to the callback.
  *
  * @noreturn
  */
-GetItems(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, Handle:plugin = INVALID_HANDLE, categoryId = -1, bool:loadFromCache = true, any:data = 0)
+GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, Handle:plugin = INVALID_HANDLE, bool:loadFromCache = true, any:data = 0)
 {
 	if (loadFromCache && g_itemCount != -1)
 	{
 		if (callback == Store_GetItemsCallback:INVALID_HANDLE)
 			return;
 
+		new categoryId;
+		new bool:categoryFilter = filter == INVALID_HANDLE ? false : GetTrieValue(filter, "category_id", categoryId);
+		
+		new bool:isBuyable;
+		new bool:buyableFilter = filter == INVALID_HANDLE ? false : GetTrieValue(filter, "is_buyable", isBuyable);
+
+		new bool:isTradeable;
+		new bool:tradeableFilter = filter == INVALID_HANDLE ? false : GetTrieValue(filter, "is_tradeable", isTradeable);
+
+		decl String:type[STORE_MAX_TYPE_LENGTH];
+		new bool:typeFilter = filter == INVALID_HANDLE ? false : GetTrieString(filter, "type", type, sizeof(type));
+
+		CloseHandle(filter);
+		
 		new items[g_itemCount];
+
 		new count = 0;
 		
 		for (new item = 0; item < g_itemCount; item++)
 		{
-			if (categoryId == -1 || categoryId == g_items[item][ItemCategoryId])
+			if ((!categoryFilter || categoryId == g_items[item][ItemCategoryId]) &&
+				(!buyableFilter || isBuyable == g_items[item][ItemIsBuyable]) &&
+				(!tradeableFilter || isTradeable == g_items[item][ItemIsTradeable]) &&
+				(!typeFilter || StrEqual(type, g_items[item][ItemType])))
 			{
 				items[count] = g_items[item][ItemId];
 				count++;
@@ -366,12 +397,12 @@ GetItems(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE
 	else
 	{
 		new Handle:pack = CreateDataPack();
+		WritePackCell(pack, _:filter);
 		WritePackCell(pack, _:callback);
 		WritePackCell(pack, _:plugin);
-		WritePackCell(pack, categoryId);
 		WritePackCell(pack, _:data);
 	
-		SQL_TQuery(g_hSQL, T_GetItemsCallback, "SELECT id, name, display_name, description, type, loadout_slot, price, category_id, attrs, LENGTH(attrs) AS attrs_len FROM store_items", pack);
+		SQL_TQuery(g_hSQL, T_GetItemsCallback, "SELECT id, name, display_name, description, type, loadout_slot, price, category_id, attrs, LENGTH(attrs) AS attrs_len, is_buyable, is_tradeable FROM store_items", pack);
 	}
 }
 
@@ -390,9 +421,9 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 	
 	ResetPack(pack);
 	
+	new Handle:filter = Handle:ReadPackCell(pack);
 	new Store_GetItemsCallback:callback = Store_GetItemsCallback:ReadPackCell(pack);
 	new Handle:plugin = Handle:ReadPackCell(pack);
-	new categoryId = ReadPackCell(pack);
 	new arg = ReadPackCell(pack);
 	
 	CloseHandle(pack);
@@ -419,14 +450,17 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 
 			Store_CallItemAttrsCallback(g_items[g_itemCount][ItemType], g_items[g_itemCount][ItemName], attrs);
 		}
-		
+
+		g_items[g_itemCount][ItemIsBuyable] = bool:SQL_FetchInt(hndl, 10);
+		g_items[g_itemCount][ItemIsTradeable] = bool:SQL_FetchInt(hndl, 11);
+
 		g_itemCount++;
 	}
 
 	Call_StartForward(g_reloadItemsPostForward);
 	Call_Finish();
 	
-	GetItems(callback, plugin, categoryId, true, arg);
+	GetItems(filter, callback, plugin, true, arg);
 }
 
 GetItemIndex(id)
@@ -619,7 +653,7 @@ GetUserItems(accountId, categoryId, loadoutId, Store_GetUserItemsCallback:callba
 	if (g_itemCount == -1)
 	{
 		Store_LogWarning("Store_GetUserItems has been called before item loading.");
-		GetItems(GetUserItemsLoadCallback, INVALID_HANDLE, -1, true, pack);
+		GetItems(INVALID_HANDLE, GetUserItemsLoadCallback, INVALID_HANDLE, true, pack);
 		
 		return;
 	}
@@ -1280,7 +1314,7 @@ public T_GiveCreditsToUsersCallback(Handle:owner, Handle:hndl, const String:erro
 ReloadItemCache()
 {
 	GetCategories(_, _, false);
-	GetItems(_, _, -1, false);
+	GetItems(_, _, _, false);
 }
 
 ConnectSQL()
@@ -1391,7 +1425,7 @@ public Native_GetItems(Handle:plugin, params)
 	if (params == 4)
 		data = GetNativeCell(4);
 		
-	GetItems(Store_GetItemsCallback:GetNativeCell(1), plugin, GetNativeCell(2), bool:GetNativeCell(3), data);
+	GetItems(Handle:GetNativeCell(1), Store_GetItemsCallback:GetNativeCell(2), plugin, bool:GetNativeCell(3), data);
 }
 
 public Native_GetItemName(Handle:plugin, params)
@@ -1428,6 +1462,17 @@ public Native_GetItemCategory(Handle:plugin, params)
 {
 	return g_items[GetItemIndex(GetNativeCell(1))][ItemCategoryId];
 }
+
+public Native_IsItemBuyable(Handle:plugin, params)
+{
+	return g_items[GetItemIndex(GetNativeCell(1))][ItemIsBuyable];
+}
+
+public Native_IsItemTradeable(Handle:plugin, params)
+{
+	return g_items[GetItemIndex(GetNativeCell(1))][ItemIsTradeable];
+}
+
 
 public Native_GetLoadouts(Handle:plugin, params)
 {	

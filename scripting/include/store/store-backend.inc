@@ -15,8 +15,8 @@
 
 #define STORE_MAX_ATTRIBUTES_LENGTH		1024
 
-functag Store_GetItemsCallback public(ids[], count, any:data);
-functag Store_GetUserItemsCallback public(ids[], bool:equipped[], itemCount[], count, loadoutId, any:data);
+functag Store_GetItemsCallback public(items[], count, any:data);
+functag Store_GetUserItemsCallback public(useritems[], bool:equipped[], useritemCount[], count, loadoutId, any:data);
 
 functag Store_GetCreditsCallback public(credits, any:data);
 functag Store_GiveCreditsCallback public(accountId, any:data);
@@ -164,10 +164,18 @@ native Store_GetCategoryPluginRequired(id, String:pluginRequired[], maxlength);
  * You can set the loadFromCache parameter of this method to false to retrieve categories
  * from the database and not from the cache.
  *
- * The store-core module calls this method when it is loaded to build a cache of 
- * categories.
+  * You can use the filter parameter to filter items returned by the following properties:
+ *  - category_id (cell)
+ *  - is_buyable (cell)
+ *  - is_tradeable (cell)
+ *  - type (string)
  *
- * It also provides the store_reloaditems command to reload items and categories 
+ * To use it, set it to a trie with some or all of the above properties.
+ * IMPORTANT: You are *not* resposible for closing the filter trie's handle, 
+ *            the store-backend module is.
+ *
+ * The store-backend module calls this method when it is loaded to build a cache of 
+ * categories. It also provides the store_reloaditems command to reload items and categories 
  * from the database. 
  *
  * To use this method, you can provide a callback for when the items are loaded.
@@ -176,7 +184,11 @@ native Store_GetCategoryPluginRequired(id, String:pluginRequired[], maxlength);
  *
  * For example:
  * 
- *  Store_GetItems(OnItemsLoaded);
+ *	new Handle:filter = CreateTrie();
+ * 	SetTrieString(filter, "type", "equipment");
+ *	SetTrieValue(filter, "is_buyable", 1);
+ * 
+ *  Store_GetItems(filter, OnItemsLoaded);
  *
  *  public OnItemsLoaded(items[], count, any:data)
  *  {
@@ -191,15 +203,15 @@ native Store_GetCategoryPluginRequired(id, String:pluginRequired[], maxlength);
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
+ * @param filter            A trie which will be used to filter the loadouts returned.
  * @param callback		    A callback which will be called when the items are loaded.
- * @param categoryId        Filter the items returned by a category ID.
  * @param loadFromCache     Whether to load items from cache. If false, the method will 
  *                          query the database and rebuild its cache.
  * @param data              Extra data value to pass to the callback.
  *
  * @noreturn
  */
-native Store_GetItems(Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, categoryId = -1, bool:loadFromCache = true, any:data = 0);
+native Store_GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store_GetItemsCallback:INVALID_HANDLE, bool:loadFromCache = true, any:data = 0);
 
 /**
  * Retrieves an item's name by its ID.
@@ -304,6 +316,30 @@ native Store_GetItemPrice(id);
  * @return The item's category ID.
  */
 native Store_GetItemCategory(id);
+
+/**
+ * Determines whether or not an item is buyable.
+ * 
+ * IMPORTANT: This method only works if the store-backend module has a cache
+ * of all items.
+ * 
+ * @param id                Item's ID.
+ *
+ * @return True if buyable, false otherwise.
+ */
+native bool:Store_IsItemBuyable(id);
+
+/**
+ * Determines whether or not an item is tradeable.
+ * 
+ * IMPORTANT: This method only works if the store-backend module has a cache
+ * of all items.
+ * 
+ * @param id                Item's ID.
+ *
+ * @return True if tradeable, false otherwise.
+ */
+native bool:Store_IsItemTradeable(id);
 
 /**
  * Retrieves loadouts from the database. 
