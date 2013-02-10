@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS `store_items` (
   `price` int(11) NOT NULL,
   `category_id` int(11) NOT NULL,
   `attrs` text default NULL, 
+  `is_buyable` tinyint(1) NOT NULL DEFAULT '1',
+  `is_tradeable` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=150 ;
