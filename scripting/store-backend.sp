@@ -1296,7 +1296,7 @@ ConnectSQL()
 	}
 	else
 	{
-		Store_LogError("No config entry found for 'store' in databases.cfg.");
+		SetFailState("No config entry found for 'store' in databases.cfg.");
 	}
 }
 
@@ -1304,7 +1304,7 @@ public T_ConnectSQLCallback(Handle:owner, Handle:hndl, const String:error[], any
 {
 	if (g_reconnectCounter >= 5)
 	{
-		Store_LogError("PLUGIN STOPPED - Reason: reconnect counter reached max - PLUGIN STOPPED");
+		SetFailState("PLUGIN STOPPED - Reason: reconnect counter reached max - PLUGIN STOPPED");
 		return;
 	}
 
