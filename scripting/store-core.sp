@@ -324,7 +324,7 @@ public OnGetCreditsComplete(credits, any:serial)
 	}
 	
 	SetMenuExitButton(menu, true);
-	DisplayMenu(menu, client, 30);
+	DisplayMenu(menu, client, 0);
 }
 
 public MainMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)

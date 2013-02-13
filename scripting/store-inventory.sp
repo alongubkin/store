@@ -213,7 +213,7 @@ public GetCategoriesCallback(ids[], count, any:serial)
 	}
 	
 	SetMenuExitBackButton(menu, true);
-	DisplayMenu(menu, client, 30);
+	DisplayMenu(menu, client, 0);
 }
 
 public InventoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
@@ -310,9 +310,9 @@ public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutI
 	SetMenuExitBackButton(menu, true);
 	
 	if (slot == 0)
-		DisplayMenu(menu, client, 30);   
+		DisplayMenu(menu, client, 0);   
 	else
-		DisplayMenuAtItem(menu, client, slot, 30);
+		DisplayMenuAtItem(menu, client, slot, 0);
 }
 
 public InventoryCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)

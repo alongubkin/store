@@ -181,7 +181,7 @@ public GetCategoriesCallback(ids[], count, any:serial)
 	}
 	
 	SetMenuExitBackButton(menu, true);
-	DisplayMenu(menu, client, 30);
+	DisplayMenu(menu, client, 0);
 }
 
 public ShopMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
@@ -273,7 +273,7 @@ public GetItemsCallback(ids[], count, any:pack)
 	}
 
 	SetMenuExitBackButton(menu, true);
-	DisplayMenu(menu, client, 30);   
+	DisplayMenu(menu, client, 0);   
 }
 
 public ShopCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)

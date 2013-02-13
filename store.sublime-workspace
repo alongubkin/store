@@ -51,7 +51,7 @@
 			"file": "scripting/store-backend.sp",
 			"settings":
 			{
-				"buffer_size": 51030,
+				"buffer_size": 51029,
 				"line_ending": "Windows"
 			}
 		},
@@ -384,15 +384,15 @@
 					"file": "scripting/store-backend.sp",
 					"settings":
 					{
-						"buffer_size": 51030,
+						"buffer_size": 51029,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								234,
-								234
+								18934,
+								18934
 							]
 						],
 						"settings":
@@ -401,7 +401,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 8476.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -455,7 +455,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 495.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

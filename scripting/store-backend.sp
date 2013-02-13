@@ -126,7 +126,6 @@ public Plugin:myinfo =
  */
 public OnPluginStart()
 {
-
 	g_dbInitializedForward = CreateGlobalForward("Store_OnDatabaseInitialized", ET_Event);
 	g_reloadItemsForward = CreateGlobalForward("Store_OnReloadItems", ET_Event);
 	g_reloadItemsPostForward = CreateGlobalForward("Store_OnReloadItemsPost", ET_Event);
