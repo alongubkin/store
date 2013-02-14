@@ -657,9 +657,11 @@ GetUserItems(accountId, categoryId, loadoutId, Store_GetUserItemsCallback:callba
 		return;
 	}
 	
-	decl String:query[512];
-	Format(query, sizeof(query), "SELECT item_id, EXISTS(SELECT * FROM store_users_items_loadouts WHERE store_users_items_loadouts.useritem_id = store_users_items.id AND store_users_items_loadouts.loadout_id = %d) AS equipped, COUNT(*) AS count FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_users.auth = %d AND store_items.category_id = %d GROUP BY item_id", loadoutId, accountId, categoryId);
+	decl String:query[1024];
+	Format(query, sizeof(query), "SELECT item_id, EXISTS(SELECT * FROM store_users_items_loadouts WHERE store_users_items_loadouts.useritem_id = store_users_items.id AND store_users_items_loadouts.loadout_id = %d) AS equipped, COUNT(*) AS count FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_users.auth = %d AND store_items.category_id = %d AND ((store_users_items.acquire_date IS NULL OR store_items.expiry_time IS NULL) OR (store_users_items.acquire_date IS NOT NULL AND store_items.expiry_time IS NOT NULL AND DATE_ADD(store_users_items.acquire_date, INTERVAL store_items.expiry_time SECOND) > NOW())) GROUP BY item_id", loadoutId, accountId, categoryId);
 	
+	PrintToServer(query);
+
 	SQL_TQuery(g_hSQL, T_GetUserItemsCallback, query, pack, DBPrio_High);
 }
 
@@ -891,7 +893,7 @@ public T_BuyItemGiveCreditsCallback(accountId, any:pack)
 	new itemId = ReadPackCell(pack);
 	
 	decl String:query[255];
-	Format(query, sizeof(query), "INSERT INTO store_users_items (user_id, item_id) SELECT store_users.id AS userId, '%d' AS item_id FROM store_users WHERE auth = %d", itemId, accountId);
+	Format(query, sizeof(query), "INSERT INTO store_users_items (user_id, item_id, acquire_date) SELECT store_users.id AS userId, '%d' AS item_id, NOW() as aquire_date FROM store_users WHERE auth = %d", itemId, accountId);
 
 	SQL_TQuery(g_hSQL, T_BuyItemCallback, query, pack, DBPrio_High);	
 }

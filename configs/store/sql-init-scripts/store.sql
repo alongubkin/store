@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `store_items` (
   `attrs` text default NULL, 
   `is_buyable` tinyint(1) NOT NULL DEFAULT '1',
   `is_tradeable` tinyint(1) NOT NULL DEFAULT '1',
+  `expiry_time` int(11) NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=150 ;
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS `store_users_items` (
   `id` int(11) NOT NULL auto_increment,
   `user_id` int(11) NOT NULL,
   `item_id` int(11) NOT NULL,
+  `acquire_date` DATETIME NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=434 ;
 
