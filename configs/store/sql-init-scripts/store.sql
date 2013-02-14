@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS `store_users_items` (
   `user_id` int(11) NOT NULL,
   `item_id` int(11) NOT NULL,
   `acquire_date` DATETIME NULL,
+  `aquire_method` ENUM('shop', 'trade', 'gift', 'admin', 'web') NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=434 ;
 

@@ -708,7 +708,7 @@ GetUserItems(Handle:filter, accountId, loadoutId, Store_GetUserItemsCallback:cal
 	}
 
 	Format(query, sizeof(query), "%s GROUP BY item_id", query);
-	
+
 	CloseHandle(filter);
 
 	SQL_TQuery(g_hSQL, T_GetUserItemsCallback, query, pack, DBPrio_High);
@@ -942,7 +942,7 @@ public T_BuyItemGiveCreditsCallback(accountId, any:pack)
 	new itemId = ReadPackCell(pack);
 	
 	decl String:query[255];
-	Format(query, sizeof(query), "INSERT INTO store_users_items (user_id, item_id, acquire_date) SELECT store_users.id AS userId, '%d' AS item_id, NOW() as aquire_date FROM store_users WHERE auth = %d", itemId, accountId);
+	Format(query, sizeof(query), "INSERT INTO store_users_items (user_id, item_id, acquire_date, aquire_method) SELECT store_users.id AS userId, '%d' AS item_id, NOW() as aquire_date, 'shop' AS aquire_method FROM store_users WHERE auth = %d", itemId, accountId);
 
 	SQL_TQuery(g_hSQL, T_BuyItemCallback, query, pack, DBPrio_High);	
 }
