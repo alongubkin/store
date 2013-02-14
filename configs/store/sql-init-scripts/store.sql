@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `store_items` (
   `attrs` text default NULL, 
   `is_buyable` tinyint(1) NOT NULL DEFAULT '1',
   `is_tradeable` tinyint(1) NOT NULL DEFAULT '1',
+  `is_refundable` BOOLEAN NOT NULL DEFAULT `1`,
   `expiry_time` int(11) NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)

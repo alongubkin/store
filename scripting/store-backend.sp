@@ -28,7 +28,8 @@ enum Item
 	ItemPrice,
 	ItemCategoryId,
 	bool:ItemIsBuyable,
-	bool:ItemIsTradeable
+	bool:ItemIsTradeable,
+	bool:ItemIsRefundable
 }
 
 enum Loadout
@@ -86,6 +87,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_GetItemCategory", Native_GetItemCategory);	
 	CreateNative("Store_IsItemBuyable", Native_IsItemBuyable);
 	CreateNative("Store_IsItemTradeable", Native_IsItemTradeable);	
+	CreateNative("Store_IsItemRefundable", Native_IsItemRefundable);	
 
 	CreateNative("Store_GetLoadouts", Native_GetLoadouts);
 	CreateNative("Store_GetLoadoutDisplayName", Native_GetLoadoutDisplayName);
@@ -366,6 +368,9 @@ GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store
 		new bool:isTradeable;
 		new bool:tradeableFilter = filter == INVALID_HANDLE ? false : GetTrieValue(filter, "is_tradeable", isTradeable);
 
+		new bool:isRefundable;
+		new bool:refundableFilter = filter == INVALID_HANDLE ? false : GetTrieValue(filter, "is_refundable", isRefundable);
+
 		decl String:type[STORE_MAX_TYPE_LENGTH];
 		new bool:typeFilter = filter == INVALID_HANDLE ? false : GetTrieString(filter, "type", type, sizeof(type));
 
@@ -380,6 +385,7 @@ GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store
 			if ((!categoryFilter || categoryId == g_items[item][ItemCategoryId]) &&
 				(!buyableFilter || isBuyable == g_items[item][ItemIsBuyable]) &&
 				(!tradeableFilter || isTradeable == g_items[item][ItemIsTradeable]) &&
+				(!refundableFilter || isRefundable == g_items[item][ItemIsRefundable]) &&
 				(!typeFilter || StrEqual(type, g_items[item][ItemType])))
 			{
 				items[count] = g_items[item][ItemId];
@@ -401,7 +407,7 @@ GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store
 		WritePackCell(pack, _:plugin);
 		WritePackCell(pack, _:data);
 	
-		SQL_TQuery(g_hSQL, T_GetItemsCallback, "SELECT id, name, display_name, description, type, loadout_slot, price, category_id, attrs, LENGTH(attrs) AS attrs_len, is_buyable, is_tradeable FROM store_items", pack);
+		SQL_TQuery(g_hSQL, T_GetItemsCallback, "SELECT id, name, display_name, description, type, loadout_slot, price, category_id, attrs, LENGTH(attrs) AS attrs_len, is_buyable, is_tradeable, is_refundable FROM store_items", pack);
 	}
 }
 
@@ -452,6 +458,7 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 
 		g_items[g_itemCount][ItemIsBuyable] = bool:SQL_FetchInt(hndl, 10);
 		g_items[g_itemCount][ItemIsTradeable] = bool:SQL_FetchInt(hndl, 11);
+		g_items[g_itemCount][ItemIsRefundable] = bool:SQL_FetchInt(hndl, 12);
 
 		g_itemCount++;
 	}
@@ -618,6 +625,17 @@ GetLoadoutIndex(id)
  * The callback will provide an array of the items' IDs. You can then loop the array,
  * and find info about each item using the Store_GetItem* methods.
  * 
+ * You can use the filter parameter to filter items returned by the following properties:
+ *  - category_id (cell)
+ *  - is_buyable (cell)
+ *  - is_tradeable (cell)
+ *  - is_refundable (cell)
+ *  - type (string)
+ *
+ * To use it, set it to a trie with some or all of the above properties.
+ * IMPORTANT: You are *not* resposible for closing the filter trie's handle, 
+ *            the store-backend module is.
+ *
  * The items returned by this method are grouped by the item's name. That means that 
  * if a player has multiple items with the same name (the unique identifier of the item, NOT its 
  * display name), then the array will only have one element of that item.
@@ -628,22 +646,24 @@ GetLoadoutIndex(id)
  * To deremine whether or not an item is equipped in the loadout specified, the callback
  * provides the equipped[] array.
  *
+ * For a full example of a usage of this method, see the store-inventory module.
+ *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
+ * @param filter			A trie which will be used to filter the loadouts returned.
  * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
- * @param categoryId        The category of the items you want to retrieve.
  * @param loadoutId         The loadout which will be used to determine whether an item is equipped or not.
  * @param callback		    A callback which will be called when the items are loaded.
- * @param plugin			The plugin owner of the callback.
+ * @param plugin 			The plugin owner of the callback.
  * @param data              Extra data value to pass to the callback.
  *
  * @noreturn
  */
-GetUserItems(accountId, categoryId, loadoutId, Store_GetUserItemsCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
+GetUserItems(Handle:filter, accountId, loadoutId, Store_GetUserItemsCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
-	WritePackCell(pack, accountId); // 0 
-	WritePackCell(pack, categoryId); // 8
+	WritePackCell(pack, _:filter); // 0 
+	WritePackCell(pack, accountId); // 8
 	WritePackCell(pack, loadoutId);	// 16
 	WritePackCell(pack, _:callback); // 24
 	WritePackCell(pack, _:plugin); // 32
@@ -657,10 +677,39 @@ GetUserItems(accountId, categoryId, loadoutId, Store_GetUserItemsCallback:callba
 		return;
 	}
 	
-	decl String:query[1024];
-	Format(query, sizeof(query), "SELECT item_id, EXISTS(SELECT * FROM store_users_items_loadouts WHERE store_users_items_loadouts.useritem_id = store_users_items.id AND store_users_items_loadouts.loadout_id = %d) AS equipped, COUNT(*) AS count FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_users.auth = %d AND store_items.category_id = %d AND ((store_users_items.acquire_date IS NULL OR store_items.expiry_time IS NULL) OR (store_users_items.acquire_date IS NOT NULL AND store_items.expiry_time IS NOT NULL AND DATE_ADD(store_users_items.acquire_date, INTERVAL store_items.expiry_time SECOND) > NOW())) GROUP BY item_id", loadoutId, accountId, categoryId);
+	decl String:query[1906];
+	Format(query, sizeof(query), "SELECT item_id, EXISTS(SELECT * FROM store_users_items_loadouts WHERE store_users_items_loadouts.useritem_id = store_users_items.id AND store_users_items_loadouts.loadout_id = %d) AS equipped, COUNT(*) AS count FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_users.auth = %d AND ((store_users_items.acquire_date IS NULL OR store_items.expiry_time IS NULL) OR (store_users_items.acquire_date IS NOT NULL AND store_items.expiry_time IS NOT NULL AND DATE_ADD(store_users_items.acquire_date, INTERVAL store_items.expiry_time SECOND) > NOW()))", loadoutId, accountId);
+
+	new categoryId;
+	if (GetTrieValue(filter, "category_id", categoryId))
+		Format(query, sizeof(query), "%s AND store_items.category_id = %d", query, categoryId);
+
+	new bool:isBuyable;
+	if (GetTrieValue(filter, "is_buyable", isBuyable))
+		Format(query, sizeof(query), "%s AND store_items.is_buyable = %b", query, isBuyable);
+
+	new bool:isTradeable;
+	if (GetTrieValue(filter, "is_tradeable", isTradeable))
+		Format(query, sizeof(query), "%s AND store_items.is_tradeable = %b", query, isTradeable);
+
+	new bool:isRefundable;
+	if (GetTrieValue(filter, "is_refundable", isRefundable))
+		Format(query, sizeof(query), "%s AND store_items.is_refundable = %b", query, isRefundable);
+			
+	decl String:type[STORE_MAX_TYPE_LENGTH];
+	if (GetTrieString(filter, "type", type, sizeof(type)))
+	{
+		new typeLength = 2*strlen(type)+1;
+
+		decl String:buffer[typeLength];
+		SQL_EscapeString(g_hSQL, type, buffer, typeLength);
+
+		Format(query, sizeof(query), "%s AND store_items.type = '%s'", query, buffer);
+	}
+
+	Format(query, sizeof(query), "%s GROUP BY item_id", query);
 	
-	PrintToServer(query);
+	CloseHandle(filter);
 
 	SQL_TQuery(g_hSQL, T_GetUserItemsCallback, query, pack, DBPrio_High);
 }
@@ -669,8 +718,8 @@ public GetUserItemsLoadCallback(ids[], count, any:pack)
 {
 	ResetPack(pack);
 	
-	new accountId = ReadPackCell(pack); 
-	new categoryId = ReadPackCell(pack); 
+	new Handle:filter = Handle:ReadPackCell(pack);
+	new accountId = ReadPackCell(pack);  
 	new loadoutId = ReadPackCell(pack); 
 	new Store_GetUserItemsCallback:callback = Store_GetUserItemsCallback:ReadPackCell(pack); 
 	new Handle:plugin = Handle:ReadPackCell(pack); 
@@ -678,7 +727,7 @@ public GetUserItemsLoadCallback(ids[], count, any:pack)
 	
 	CloseHandle(pack);
 	
-	GetUserItems(accountId, categoryId, loadoutId, callback, plugin, arg);
+	GetUserItems(filter, accountId, loadoutId, callback, plugin, arg);
 }
 
 public T_GetUserItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
@@ -945,7 +994,7 @@ RemoveUserItem(accountId, itemId, Store_UseItemCallback:callback, Handle:plugin 
 	WritePackCell(pack, _:data);
 	
 	decl String:query[255];
-	Format(query, sizeof(query), "DELETE FROM store_users_items WHERE store_users_items.item_id = %d AND store_users_items.userId IN (SELECT store_users.id FROM store_users WHERE store_users.auth = %d) LIMIT 1", itemId, accountId);
+	Format(query, sizeof(query), "DELETE FROM store_users_items WHERE store_users_items.item_id = %d AND store_users_items.user_id IN (SELECT store_users.id FROM store_users WHERE store_users.auth = %d) LIMIT 1", itemId, accountId);
 	
 	SQL_TQuery(g_hSQL, T_RemoveUserItemCallback, query, pack, DBPrio_High);	
 }
@@ -1474,6 +1523,10 @@ public Native_IsItemTradeable(Handle:plugin, params)
 	return g_items[GetItemIndex(GetNativeCell(1))][ItemIsTradeable];
 }
 
+public Native_IsItemRefundable(Handle:plugin, params)
+{
+	return g_items[GetItemIndex(GetNativeCell(1))][ItemIsRefundable];
+}
 
 public Native_GetLoadouts(Handle:plugin, params)
 {	

@@ -253,7 +253,10 @@ OpenInventoryCategory(client, categoryId, slot = 0)
 	WritePackCell(pack, categoryId);
 	WritePackCell(pack, slot);
 	
-	Store_GetUserItems(Store_GetClientAccountID(client), categoryId, Store_GetClientLoadout(client), GetUserItemsCallback, pack);
+	new Handle:filter = CreateTrie();
+	SetTrieValue(filter, "category_id", categoryId);
+
+	Store_GetUserItems(filter, Store_GetClientAccountID(client), Store_GetClientLoadout(client), GetUserItemsCallback, pack);
 }
 
 public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutId, any:pack)

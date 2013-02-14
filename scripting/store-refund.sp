@@ -5,36 +5,19 @@
 #include <store/store-backend>
 #include <store/store-logging>
 #include <store/store-inventory>
+#include <store/store-loadout>
 
 new String:g_currencyName[64];
 new String:g_menuCommands[32][32];
 
-new bool:g_confirmItemPurchase = false;
-
-/**
- * Called before plugin is loaded.
- * 
- * @param myself    The plugin handle.
- * @param late      True if the plugin was loaded after map change, false on map start.
- * @param error     Error message if load failed.
- * @param err_max   Max length of the error message.
- *
- * @return          APLRes_Success for load success, APLRes_Failure or APLRes_SilentFailure otherwise.
- */
-public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
-{
-	CreateNative("Store_OpenShop", Native_OpenShop);
-	CreateNative("Store_OpenShopCategory", Native_OpenShopCategory);
-	
-	RegPluginLibrary("store-shop");	
-	return APLRes_Success;
-}
+new Float:g_refundPricePercentage;
+new bool:g_confirmItemRefund = true;
 
 public Plugin:myinfo =
 {
-	name        = "[Store] Shop",
+	name        = "[Store] Refund",
 	author      = "alongub",
-	description = "Shop component for [Store]",
+	description = "Refund component for [Store]",
 	version     = STORE_VERSION,
 	url         = "https://github.com/alongubkin/store"
 };
@@ -50,11 +33,11 @@ public OnPluginStart()
 	LoadTranslations("store.phrases");
 
 	decl String:menuItemName[32];
-	Format(menuItemName, sizeof(menuItemName), "%t", "Shop");
+	Format(menuItemName, sizeof(menuItemName), "%t", "Refund");
 
-	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuShopClick, 2);
+	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuRefundClick, 6);
 	
-	RegConsoleCmd("sm_shop", Command_OpenShop);
+	RegConsoleCmd("sm_refund", Command_OpenRefund);
 
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say_team");
@@ -76,7 +59,7 @@ LoadConfig()
 	new Handle:kv = CreateKeyValues("root");
 	
 	decl String:path[PLATFORM_MAX_PATH];
-	BuildPath(Path_SM, path, sizeof(path), "configs/store/shop.cfg");
+	BuildPath(Path_SM, path, sizeof(path), "configs/store/refund.cfg");
 	
 	if (!FileToKeyValues(kv, path)) 
 	{
@@ -85,17 +68,18 @@ LoadConfig()
 	}
 
 	decl String:menuCommands[255];
-	KvGetString(kv, "shop_commands", menuCommands, sizeof(menuCommands));
+	KvGetString(kv, "refund_commands", menuCommands, sizeof(menuCommands));
 	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
 	
-	g_confirmItemPurchase = bool:KvGetNum(kv, "confirm_item_purchase", 0);
+	g_refundPricePercentage = KvGetFloat(kv, "refund_price_percentage", 0.5);
+	g_confirmItemRefund = bool:KvGetNum(kv, "confirm_item_refund", 1);
 
 	CloseHandle(kv);
 }
 
-public OnMainMenuShopClick(client, const String:value[])
+public OnMainMenuRefundClick(client, const String:value[])
 {
-	OpenShop(client);
+	OpenRefundMenu(client);
 }
 
 /**
@@ -120,7 +104,7 @@ public Action:Command_Say(client, const String:command[], args)
 	{
 		if (StrEqual(g_menuCommands[index], text))
 		{
-			OpenShop(client);
+			OpenRefundMenu(client);
 			
 			if (text[0] == 0x2F)
 				return Plugin_Handled;
@@ -132,20 +116,20 @@ public Action:Command_Say(client, const String:command[], args)
 	return Plugin_Continue;
 }
 
-public Action:Command_OpenShop(client, args)
+public Action:Command_OpenRefund(client, args)
 {
-	OpenShop(client);
+	OpenRefundMenu(client);
 	return Plugin_Handled;
 }
 
 /**
- * Opens the shop menu for a client.
+ * Opens the refund menu for a client.
  *
  * @param client			Client index.
  *
  * @noreturn
  */
-OpenShop(client)
+OpenRefundMenu(client)
 {
 	Store_GetCategories(GetCategoriesCallback, true, GetClientSerial(client));
 }
@@ -157,8 +141,8 @@ public GetCategoriesCallback(ids[], count, any:serial)
 	if (client == 0)
 		return;
 		
-	new Handle:menu = CreateMenu(ShopMenuSelectHandle);
-	SetMenuTitle(menu, "%T\n \n", "Shop", client);
+	new Handle:menu = CreateMenu(RefundMenuSelectHandle);
+	SetMenuTitle(menu, "%T\n \n", "Refund", client);
 	
 	for (new category = 0; category < count; category++)
 	{
@@ -187,14 +171,14 @@ public GetCategoriesCallback(ids[], count, any:serial)
 	DisplayMenu(menu, client, 0);
 }
 
-public ShopMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
+public RefundMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
 {
 	if (action == MenuAction_Select)
 	{
 		new String:categoryIndex[64];
 		
 		if (GetMenuItem(menu, slot, categoryIndex, sizeof(categoryIndex)))
-			OpenShopCategory(client, StringToInt(categoryIndex));
+			OpenRefundCategory(client, StringToInt(categoryIndex));
 	}
 	else if (action == MenuAction_Cancel)
 	{
@@ -210,32 +194,34 @@ public ShopMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
 }
 
 /**
- * Opens the shop menu for a client in a specific category.
+ * Opens the refund menu for a client in a specific category.
  *
  * @param client			Client index.
  * @param categoryId		The category that you want to open.
  *
  * @noreturn
  */
-OpenShopCategory(client, categoryId)
+OpenRefundCategory(client, categoryId, slot = 0)
 {
 	new Handle:pack = CreateDataPack();
 	WritePackCell(pack, GetClientSerial(client));
 	WritePackCell(pack, categoryId);
-	
+	WritePackCell(pack, slot);
+
 	new Handle:filter = CreateTrie();
-	SetTrieValue(filter, "is_buyable", 1);
+	SetTrieValue(filter, "is_refundable", 1);
 	SetTrieValue(filter, "category_id", categoryId);
 
-	Store_GetItems(filter, GetItemsCallback, true, pack);
+	Store_GetUserItems(filter, Store_GetClientAccountID(client), Store_GetClientLoadout(client), GetUserItemsCallback, pack);
 }
 
-public GetItemsCallback(ids[], count, any:pack)
+public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutId, any:pack)
 {	
 	ResetPack(pack);
 	
 	new serial = ReadPackCell(pack);
 	new categoryId = ReadPackCell(pack);
+	new slot = ReadPackCell(pack);
 	
 	CloseHandle(pack);
 	
@@ -243,11 +229,11 @@ public GetItemsCallback(ids[], count, any:pack)
 	
 	if (client == 0)
 		return;
-	
+		
 	if (count == 0)
 	{
 		PrintToChat(client, "%s%t", STORE_PREFIX, "No items in this category");
-		OpenShop(client);
+		OpenRefundMenu(client);
 		
 		return;
 	}
@@ -255,20 +241,23 @@ public GetItemsCallback(ids[], count, any:pack)
 	decl String:categoryDisplayName[64];
 	Store_GetCategoryDisplayName(categoryId, categoryDisplayName, sizeof(categoryDisplayName));
 		
-	new Handle:menu = CreateMenu(ShopCategoryMenuSelectHandle);
-	SetMenuTitle(menu, "%T - %s\n \n", "Shop", client, categoryDisplayName);
-
+	new Handle:menu = CreateMenu(RefundCategoryMenuSelectHandle);
+	SetMenuTitle(menu, "%T - %s\n \n", "Refund", client, categoryDisplayName);
+	
 	for (new item = 0; item < count; item++)
-	{		
-		decl String:displayName[64];
+	{
+		// TODO: Option to display descriptions	
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetItemDisplayName(ids[item], displayName, sizeof(displayName));
 		
-		decl String:description[128];
-		Store_GetItemDescription(ids[item], description, sizeof(description));
-	
-		decl String:text[sizeof(displayName) + sizeof(description) + 5];
-		Format(text, sizeof(text), "%s [%d %s]\n%s", displayName, Store_GetItemPrice(ids[item]), g_currencyName, description);
+		new String:text[4 + sizeof(displayName) + 6];
+		Format(text, sizeof(text), "%s%s", text, displayName);
 		
+		if (itemCount[item] > 1)
+			Format(text, sizeof(text), "%s (%d)", text, itemCount[item]);
+		
+		Format(text, sizeof(text), "%s - %d %s", text, RoundToZero(Store_GetItemPrice(ids[item]) * g_refundPricePercentage), g_currencyName);
+
 		decl String:value[8];
 		IntToString(ids[item], value, sizeof(value));
 		
@@ -276,30 +265,33 @@ public GetItemsCallback(ids[], count, any:pack)
 	}
 
 	SetMenuExitBackButton(menu, true);
-	DisplayMenu(menu, client, 0);   
+	
+	if (slot == 0)
+		DisplayMenu(menu, client, 0);   
+	else
+		DisplayMenuAtItem(menu, client, slot, 0); 
 }
 
-public ShopCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
+public RefundCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
 {
 	if (action == MenuAction_Select)
 	{
 		new String:itemId[12];
-
 		if (GetMenuItem(menu, slot, itemId, sizeof(itemId)))
 		{
-			if (g_confirmItemPurchase)
+			if (g_confirmItemRefund)
 			{
 				DisplayConfirmationMenu(client, StringToInt(itemId));
 			}
 			else
-			{
-				Store_BuyItem(Store_GetClientAccountID(client), StringToInt(itemId), OnBuyItemComplete, GetClientSerial(client));
+			{			
+				Store_RemoveUserItem(Store_GetClientAccountID(client), StringToInt(itemId), OnRemoveUserItemComplete, GetClientSerial(client));
 			}
 		}
 	}
 	else if (action == MenuAction_Cancel)
 	{
-		OpenShop(client);
+		OpenRefundMenu(client);
 	}
 	else if (action == MenuAction_End)
 	{
@@ -313,7 +305,7 @@ DisplayConfirmationMenu(client, itemId)
 	Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 
 	new Handle:menu = CreateMenu(ConfirmationMenuSelectHandle);
-	SetMenuTitle(menu, "%T", "Item Purchase Confirmation", client,  displayName);
+	SetMenuTitle(menu, "%T", "Item Refund Confirmation", client, displayName, RoundToZero(Store_GetItemPrice(itemId) * g_refundPricePercentage), g_currencyName);
 
 	decl String:value[8];
 	IntToString(itemId, value, sizeof(value));
@@ -330,22 +322,21 @@ public ConfirmationMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 	if (action == MenuAction_Select)
 	{
 		new String:itemId[12];
-
 		if (GetMenuItem(menu, slot, itemId, sizeof(itemId)))
 		{
 			if (StrEqual(itemId, "no"))
 			{
-				OpenShop(client);
+				OpenRefundMenu(client);
 			}
 			else
 			{
-				Store_BuyItem(Store_GetClientAccountID(client), StringToInt(itemId), OnBuyItemComplete, GetClientSerial(client));
+				Store_RemoveUserItem(Store_GetClientAccountID(client), StringToInt(itemId), OnRemoveUserItemComplete, GetClientSerial(client));
 			}
 		}
 	}
 	else if (action == MenuAction_Cancel)
 	{
-		OpenShop(client);
+		OpenRefundMenu(client);
 	}
 	else if (action == MenuAction_DisplayItem) 
 	{
@@ -365,27 +356,36 @@ public ConfirmationMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 	return false;
 }
 
-public OnBuyItemComplete(bool:success, any:serial)
+public OnRemoveUserItemComplete(accountId, itemId, any:serial)
 {
 	new client = GetClientFromSerial(serial);
-	
+
 	if (client == 0)
 		return;
-	
-	if (!success)
-	{
-		PrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits");
-	}
-	
-	OpenShop(client);
+
+	new credits = RoundToZero(Store_GetItemPrice(itemId) * g_refundPricePercentage);
+
+	new Handle:pack = CreateDataPack();
+	WritePackCell(pack, GetClientSerial(client));
+	WritePackCell(pack, credits);
+
+	Store_GiveCredits(accountId, credits, OnGiveCreditsComplete, pack);
 }
 
-public Native_OpenShop(Handle:plugin, params)
-{       
-	OpenShop(GetNativeCell(1));
-}
+public OnGiveCreditsComplete(accountId, any:pack)
+{
+	ResetPack(pack);
 
-public Native_OpenShopCategory(Handle:plugin, params)
-{       
-	OpenShopCategory(GetNativeCell(1), GetNativeCell(2));
+	new serial = ReadPackCell(pack);
+	new credits = ReadPackCell(pack);
+
+	CloseHandle(pack);
+
+	new client = GetClientFromSerial(serial);
+	if (client == 0)
+		return;
+
+	PrintToChat(client, "%s%t", STORE_PREFIX, "Refund Message", credits, g_currencyName);
+
+	OpenRefundMenu(client);
 }
