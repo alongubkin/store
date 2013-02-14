@@ -90,4 +90,10 @@
 		"#format"			"{1:d},{2:s}"
 		"en"				"You have just received {1} {2}!"
 	}
+
+	"Item Purchase Confirmation"
+	{
+		"#format"			"{1:s}"
+		"en"				"Are you sure you want to purchase {1}?"
+	}
 }

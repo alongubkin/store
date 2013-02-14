@@ -9,6 +9,8 @@
 new String:g_currencyName[64];
 new String:g_menuCommands[32][32];
 
+new bool:g_confirmItemPurchase = false;
+
 /**
  * Called before plugin is loaded.
  * 
@@ -84,9 +86,10 @@ LoadConfig()
 
 	decl String:menuCommands[255];
 	KvGetString(kv, "shop_commands", menuCommands, sizeof(menuCommands));
-	
 	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
 	
+	g_confirmItemPurchase = bool:KvGetNum(kv, "confirm_item_purchase", 0);
+
 	CloseHandle(kv);
 }
 
@@ -284,7 +287,14 @@ public ShopCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 
 		if (GetMenuItem(menu, slot, itemId, sizeof(itemId)))
 		{
-			Store_BuyItem(Store_GetClientAccountID(client), StringToInt(itemId), OnBuyItemComplete, GetClientSerial(client));
+			if (g_confirmItemPurchase)
+			{
+				DisplayConfirmationMenu(client, StringToInt(itemId));
+			}
+			else
+			{
+				Store_BuyItem(Store_GetClientAccountID(client), StringToInt(itemId), OnBuyItemComplete, GetClientSerial(client));
+			}
 		}
 	}
 	else if (action == MenuAction_Cancel)
@@ -295,6 +305,64 @@ public ShopCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 	{
 		CloseHandle(menu);
 	}
+}
+
+DisplayConfirmationMenu(client, itemId)
+{
+	decl String:displayName[64];
+	Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
+
+	new Handle:menu = CreateMenu(ConfirmationMenuSelectHandle);
+	SetMenuTitle(menu, "%T\n \n", "Item Purchase Confirmation", client,  displayName);
+
+	decl String:value[8];
+	IntToString(itemId, value, sizeof(value));
+
+	AddMenuItem(menu, value, "Yes");
+	AddMenuItem(menu, "no", "No");
+
+	SetMenuExitButton(menu, false);
+	DisplayMenu(menu, client, 0);  
+}
+
+public ConfirmationMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
+{
+	if (action == MenuAction_Select)
+	{
+		new String:itemId[12];
+
+		if (GetMenuItem(menu, slot, itemId, sizeof(itemId)))
+		{
+			if (StrEqual(itemId, "no"))
+			{
+				OpenShop(client);
+			}
+			else
+			{
+				Store_BuyItem(Store_GetClientAccountID(client), StringToInt(itemId), OnBuyItemComplete, GetClientSerial(client));
+			}
+		}
+	}
+	else if (action == MenuAction_Cancel)
+	{
+		OpenShop(client);
+	}
+	else if (action == MenuAction_DisplayItem) 
+	{
+		decl String:display[64];
+		GetMenuItem(menu, slot, "", 0, _, display, sizeof(display));
+
+		decl String:buffer[255];
+		Format(buffer, sizeof(buffer), "%T", display, client);
+
+		return RedrawMenuItem(buffer);
+	}
+	else if (action == MenuAction_End)
+	{
+		CloseHandle(menu);
+	}
+
+	return false;
 }
 
 public OnBuyItemComplete(bool:success, any:serial)
