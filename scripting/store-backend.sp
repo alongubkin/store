@@ -101,6 +101,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	
 	CreateNative("Store_GiveCredits", Native_GiveCredits);
 	CreateNative("Store_GiveCreditsToUsers", Native_GiveCreditsToUsers);	
+	CreateNative("Store_GiveDifferentCreditsToUsers", Native_GiveDifferentCreditsToUsers);	
 
 	CreateNative("Store_BuyItem", Native_BuyItem);
 	CreateNative("Store_RemoveUserItem", Native_RemoveUserItem);
@@ -1364,6 +1365,57 @@ public T_GiveCreditsToUsersCallback(Handle:owner, Handle:hndl, const String:erro
 }
 
 /**
+ * Gives multiple players different amounts of credits. 
+ * 
+ * You can also set the credits parameter to a negative value to take credits
+ * from the players.
+ *
+ * As with all other store-backend methods, this method is completely asynchronous.
+ *
+ * @param accountIds	    	The account IDs of the players, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountIdsLength  	Players count.
+ * @param credits 				Amount of credits per player. 
+ *
+ * @noreturn
+ */
+GiveDifferentCreditsToUsers(accountIds[], accountIdsLength, credits[])
+{
+	if (accountIdsLength == 0)
+		return;
+
+	decl String:query[2048];
+	Format(query, sizeof(query), "UPDATE store_users SET credits = credits + CASE auth");
+
+	for (new i = 0; i < accountIdsLength; i++)
+	{
+		Format(query, sizeof(query), "%s WHEN %d THEN %d", query, accountIds[i], credits[i]);
+	}
+
+	Format(query, sizeof(query), "%s END WHERE auth IN (", query);
+
+	for (new i = 0; i < accountIdsLength; i++)
+	{
+		Format(query, sizeof(query), "%s%d", query, accountIds[i]);
+		
+		if (i < accountIdsLength - 1)
+			Format(query, sizeof(query), "%s, ", query);			
+	}
+
+	Format(query, sizeof(query), "%s)", query);	
+	
+	SQL_TQuery(g_hSQL, T_GiveDifferentCreditsToUsersCallback, query);	
+}
+
+public T_GiveDifferentCreditsToUsersCallback(Handle:owner, Handle:hndl, const String:error[], any:data)
+{
+	if (hndl == INVALID_HANDLE)
+	{
+		Store_LogError("SQL Error on GiveDifferentCreditsToUsers: %s", error);
+		return;
+	}
+}
+
+/**
  * Query the database for items and categories, so that
  * the store-backend module will have a cache of them.
  *
@@ -1656,6 +1708,19 @@ public Native_GiveCreditsToUsers(Handle:plugin, params)
 	GetNativeArray(1, accountIds, length);
 	
 	GiveCreditsToUsers(accountIds, length, GetNativeCell(3));
+}
+
+public Native_GiveDifferentCreditsToUsers(Handle:plugin, params)
+{
+	new length = GetNativeCell(2);
+	
+	new accountIds[length];
+	GetNativeArray(1, accountIds, length);
+
+	new credits[length];
+	GetNativeArray(3, credits, length);
+
+	GiveDifferentCreditsToUsers(accountIds, length, credits);
 }
 
 public Native_ReloadItemCache(Handle:plugin, params)

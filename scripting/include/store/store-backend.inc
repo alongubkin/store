@@ -591,6 +591,22 @@ native Store_GiveCredits(accountId, credits, Store_GiveCreditsCallback:callback 
 native Store_GiveCreditsToUsers(accountIds[], accountIdsLength, credits);
 
 /**
+ * Gives multiple players different amounts of credits. 
+ * 
+ * You can also set the credits parameter to a negative value to take credits
+ * from the players.
+ *
+ * As with all other store-backend methods, this method is completely asynchronous.
+ *
+ * @param accountIds	    The account IDs of the players, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountIdsLength  Players count.
+ * @param credits           Amount of credits per player. 
+ *
+ * @noreturn
+ */
+native Store_GiveDifferentCreditsToUsers(accountIds[], accountIdsLength, credits[]);
+
+/**
  * Buys an item for a player, using his credits.
  * 
  * To determine whether or not the process of buying that item was successful,
@@ -753,7 +769,9 @@ public __pl_store_backend_SetNTVOptional()
 	MarkNativeAsOptional("Store_GetCredits");
 	
 	MarkNativeAsOptional("Store_GiveCredits");
-	
+	MarkNativeAsOptional("Store_GiveCreditsToUsers");
+	MarkNativeAsOptional("Store_GiveDifferentCreditsToUsers");
+
 	MarkNativeAsOptional("Store_BuyItem");
 	MarkNativeAsOptional("Store_RemoveUserItem");
 	

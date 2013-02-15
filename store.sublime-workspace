@@ -40,29 +40,26 @@
 	"buffers":
 	[
 		{
-			"file": "scripting/store-shop.sp",
+			"file": "scripting/store-distributor.sp",
 			"settings":
 			{
-				"buffer_size": 9211,
+				"buffer_size": 2377,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"contents": "#pragma semicolon 1\n\n#include <sourcemod>\n#include <store/store-core>\n#include <store/store-logging>\n\npublic Plugin:myinfo =\n{\n	name        = \"[Store] Refund\",\n	author      = \"alongub\",\n	description = \"Refund component for [Store]\",\n	version     = STORE_VERSION,\n	url         = \"https://github.com/alongubkin/store\"\n};\n\n/**\n * Plugin is loading.\n */\npublic OnPluginStart()\n{\n	LoadConfig();\n\n	LoadTranslations(\"common.phrases\");\n	LoadTranslations(\"store.phrases\");\n\n	decl String:menuItemName[32];\n	Format(menuItemName, sizeof(menuItemName), \"%t\", \"Refund\");\n\n	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuRefundClick, 4);\n	\n	RegConsoleCmd(\"sm_refund\", Command_OpenRefund);\n\n	AddCommandListener(Command_Say, \"say\");\n	AddCommandListener(Command_Say, \"say_team\");\n}\n\n/**\n * Load plugin config.\n */\nLoadConfig() \n{\n	new Handle:kv = CreateKeyValues(\"root\");\n	\n	decl String:path[PLATFORM_MAX_PATH];\n	BuildPath(Path_SM, path, sizeof(path), \"configs/store/refund.cfg\");\n	\n	if (!FileToKeyValues(kv, path)) \n	{\n		CloseHandle(kv);\n		SetFailState(\"Can't read config file %s\", path);\n	}\n\n	decl String:menuCommands[255];\n	KvGetString(kv, \"refund_commands\", menuCommands, sizeof(menuCommands));\n	ExplodeString(menuCommands, \" \", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));\n	\n	g_refundPricePercentage = KvGetFloat(kv, \"refund_price_percentage\", 0.5);\n\n	CloseHandle(kv);\n}\n\npublic OnMainMenuRefundClick(client, const String:value[])\n{\n	OpenRefundMenu(client);\n}\n\n/**\n * Called when a client has typed a message to the chat.\n *\n * @param client		Client index.\n * @param command		Command name, lower case.\n * @param args          Argument count. \n *\n * @return				Action to take.\n */\npublic Action:Command_Say(client, const String:command[], args)\n{\n	if (0 < client <= MaxClients && !IsClientInGame(client)) \n		return Plugin_Continue;   \n	\n	decl String:text[256];\n	GetCmdArgString(text, sizeof(text));\n	StripQuotes(text);\n	\n	for (new index = 0; index < sizeof(g_menuCommands); index++) \n	{\n		if (StrEqual(g_menuCommands[index], text))\n		{\n			OpenRefundMenu(client);\n			\n			if (text[0] == 0x2F)\n				return Plugin_Handled;\n			\n			return Plugin_Continue;\n		}\n	}\n	\n	return Plugin_Continue;\n}\n\npublic Action:Command_OpenRefund(client, args)\n{\n	OpenRefundMenu(client);\n	return Plugin_Handled;\n}\n\n/**\n * Opens the refund menu for a client.\n *\n * @param client			Client index.\n *\n * @noreturn\n */\nOpenRefundMenu(client)\n{\n	Store_GetCategories(GetCategoriesCallback, true, GetClientSerial(client));\n}\n\npublic GetCategoriesCallback(ids[], count, any:serial)\n{		\n	new client = GetClientFromSerial(serial);\n	\n	if (client == 0)\n		return;\n		\n	new Handle:menu = CreateMenu(RefundMenuSelectHandle);\n	SetMenuTitle(menu, \"%T\\n \\n\", \"Refund\", client);\n	\n	for (new category = 0; category < count; category++)\n	{\n		decl String:requiredPlugin[STORE_MAX_REQUIREPLUGIN_LENGTH];\n		Store_GetCategoryPluginRequired(ids[category], requiredPlugin, sizeof(requiredPlugin));\n		\n		if (!StrEqual(requiredPlugin, \"\") && !Store_IsItemTypeRegistered(requiredPlugin))\n			continue;\n			\n		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];\n		Store_GetCategoryDisplayName(ids[category], displayName, sizeof(displayName));\n\n		decl String:description[STORE_MAX_DESCRIPTION_LENGTH];\n		Store_GetCategoryDescription(ids[category], description, sizeof(description));\n\n		decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];\n		Format(itemText, sizeof(itemText), \"%s\\n%s\", displayName, description);\n		\n		decl String:itemValue[8];\n		IntToString(ids[category], itemValue, sizeof(itemValue));\n		\n		AddMenuItem(menu, itemValue, itemText);\n	}\n	\n	SetMenuExitBackButton(menu, true);\n	DisplayMenu(menu, client, 0);\n}\n\npublic RefundMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)\n{\n	if (action == MenuAction_Select)\n	{\n		new String:categoryIndex[64];\n		\n		if (GetMenuItem(menu, slot, categoryIndex, sizeof(categoryIndex)))\n			OpenRefundCategory(client, StringToInt(categoryIndex));\n	}\n	else if (action == MenuAction_Cancel)\n	{\n		if (slot == MenuCancel_ExitBack)\n		{\n			Store_OpenMainMenu(client);\n		}\n	}\n	else if (action == MenuAction_End)\n	{\n		CloseHandle(menu);\n	}\n}\n\n/**\n * Opens the refund menu for a client in a specific category.\n *\n * @param client			Client index.\n * @param categoryId		The category that you want to open.\n *\n * @noreturn\n */\nOpenRefundCategory(client, categoryId)\n{\n	new Handle:pack = CreateDataPack();\n	WritePackCell(pack, GetClientSerial(client));\n	WritePackCell(pack, categoryId);\n	\n	new Handle:filter = CreateTrie();\n	SetTrieValue(filter, \"is_refundable\", 1);\n	SetTrieValue(filter, \"category_id\", categoryId);\n\n	Store_GetItems(filter, GetItemsCallback, true, pack);\n}\n\npublic GetItemsCallback(ids[], count, any:pack)\n{	\n	ResetPack(pack);\n	\n	new serial = ReadPackCell(pack);\n	new categoryId = ReadPackCell(pack);\n	\n	CloseHandle(pack);\n	\n	new client = GetClientFromSerial(serial);\n	\n	if (client == 0)\n		return;\n	\n	if (count == 0)\n	{\n		PrintToChat(client, \"%s%t\", STORE_PREFIX, \"No items in this category\");\n		OpenShop(client);\n		\n		return;\n	}\n	\n	decl String:categoryDisplayName[64];\n	Store_GetCategoryDisplayName(categoryId, categoryDisplayName, sizeof(categoryDisplayName));\n		\n	new Handle:menu = CreateMenu(ShopCategoryMenuSelectHandle);\n	SetMenuTitle(menu, \"%T - %s\\n \\n\", \"Refund\", client, categoryDisplayName);\n\n	for (new item = 0; item < count; item++)\n	{		\n		decl String:displayName[64];\n		Store_GetItemDisplayName(ids[item], displayName, sizeof(displayName));\n		\n		decl String:description[128];\n		Store_GetItemDescription(ids[item], description, sizeof(description));\n	\n		decl String:text[sizeof(displayName) + sizeof(description) + 5];\n		Format(text, sizeof(text), \"%s [%d %s]\\n%s\", displayName, Store_GetItemPrice(ids[item]), g_currencyName, description);\n		\n		decl String:value[8];\n		IntToString(ids[item], value, sizeof(value));\n		\n		AddMenuItem(menu, value, text);    \n	}\n\n	SetMenuExitBackButton(menu, true);\n	DisplayMenu(menu, client, 0);   \n}",
-			"file": "scripting/store-refund.sp",
-			"file_size": 329,
-			"file_write_time": 130053556404501303,
+			"file": "configs/store/distributor.cfg",
 			"settings":
 			{
-				"buffer_size": 5973,
+				"buffer_size": 420,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "configs/store/sql-init-scripts/store.sql",
+			"file": "scripting/store-backend.sp",
 			"settings":
 			{
-				"buffer_size": 2318,
+				"buffer_size": 53495,
 				"line_ending": "Windows"
 			}
 		}
@@ -95,19 +92,20 @@
 	},
 	"file_history":
 	[
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-refund.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-refund",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-inventory.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
-		"/C/Users/Alon/Documents/GitHub/store/translations/store.phrases.txt",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-refund.sp",
+		"/C/Users/Alon/Documents/GitHub/store/translations/store.phrases.txt",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
+		"/C/Users/Alon/Documents/GitHub/store/configs/store/sql-init-scripts/store.sql",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-refund",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-inventory.inc",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-equipment.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-skins.sp",
@@ -117,7 +115,6 @@
 		"/C/Users/Alon/Desktop/store-jetpack.sp",
 		"/C/Users/Alon/Desktop/store-equipment-1.0.6-alpha/scripting/store-equipment.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/experimental/store-pets.sp",
-		"/C/Users/Alon/Documents/GitHub/store/configs/store/sql-init-scripts/store.sql",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/a.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/b.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/b.sp",
@@ -177,6 +174,23 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"onmapstart",
+			"ReloadItemCache",
+			"ConnectSQL",
+			"FindOptimalLoadoutFor",
+			"buyitem",
+			"shop",
+			"inventory",
+			"Store_GetUserItems",
+			"stringtoint",
+			"inventory",
+			"getuseritems",
+			".userId",
+			"UseItem",
+			"Store_GiveCreditsCallback",
+			"givecredits",
+			"shop",
+			"Shop",
 			"ShopCategoryMenuSelectHandle",
 			"acquire_date",
 			"DisplayMenu",
@@ -287,24 +301,7 @@
 			"killtrail",
 			"playerspawn",
 			"KillTrail",
-			"PlayerSpawn",
-			"playerspawn",
-			"g_trailTimers",
-			"KillTrail",
-			"gtrails",
-			"HandleGTrails",
-			"Store_GetUserItemCountCallback",
-			"GetUserItemCount",
-			"getuseritemcount",
-			"Store_GetUserItemCount",
-			"Store_GetUserItemCountCallback",
-			"Store_HasItem",
-			"getuseritems",
-			"HasItem",
-			"json_typeof",
-			"json_is_string",
-			"Handle:json_object_get(",
-			"stock json_object_get("
+			"PlayerSpawn"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -322,23 +319,23 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "scripting/store-shop.sp",
+					"file": "scripting/store-distributor.sp",
 					"settings":
 					{
-						"buffer_size": 9211,
+						"buffer_size": 2377,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5590,
-								6874
+								450,
+								450
 							]
 						],
 						"settings":
@@ -347,61 +344,61 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 3705.0,
+						"translation.y": 45.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "scripting/store-refund.sp",
+					"file": "configs/store/distributor.cfg",
 					"settings":
 					{
-						"buffer_size": 5973,
+						"buffer_size": 420,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5225,
-								5253
+								189,
+								201
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage"
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 2920.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "configs/store/sql-init-scripts/store.sql",
+					"file": "scripting/store-backend.sp",
 					"settings":
 					{
-						"buffer_size": 2318,
+						"buffer_size": 53495,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								911,
-								911
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/SQL/SQL.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 405.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
