@@ -365,6 +365,7 @@ public OnRemoveUserItemComplete(accountId, itemId, any:serial)
 	new Handle:pack = CreateDataPack();
 	WritePackCell(pack, GetClientSerial(client));
 	WritePackCell(pack, credits);
+	WritePackCell(pack, itemId);
 
 	Store_GiveCredits(accountId, credits, OnGiveCreditsComplete, pack);
 }
@@ -375,6 +376,7 @@ public OnGiveCreditsComplete(accountId, any:pack)
 
 	new serial = ReadPackCell(pack);
 	new credits = ReadPackCell(pack);
+	new itemId = ReadPackCell(pack);
 
 	CloseHandle(pack);
 
@@ -382,7 +384,10 @@ public OnGiveCreditsComplete(accountId, any:pack)
 	if (client == 0)
 		return;
 
-	PrintToChat(client, "%s%t", STORE_PREFIX, "Refund Message", credits, g_currencyName);
+	decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
+	Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
+		
+	PrintToChat(client, "%s%t", STORE_PREFIX, "Refund Message", displayName, credits, g_currencyName);
 
 	OpenRefundMenu(client);
 }
