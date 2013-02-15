@@ -1675,7 +1675,7 @@ public Native_GetLoadoutDisplayName(Handle:plugin, params)
 }
 
 public Native_GetLoadoutGame(Handle:plugin, params)
-{	
+{
 	SetNativeString(2, g_loadouts[GetLoadoutIndex(GetNativeCell(1))][LoadoutGame], GetNativeCell(3));
 }
 
