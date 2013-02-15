@@ -76,7 +76,7 @@ public OnPluginStart()
 	RegConsoleCmd("sm_store", Command_OpenMainMenu);
 	RegConsoleCmd(g_creditsCommand, Command_Credits);
 
-	RegAdminCmd("store_givecredits", Command_GiveCredits, ADMFLAG_ROOT, "Gives credots to a player.");
+	RegAdminCmd("store_givecredits", Command_GiveCredits, ADMFLAG_ROOT, "Gives credits to a player.");
 
 	g_allPluginsLoaded = false;
 }
