@@ -46,7 +46,6 @@ public OnPluginStart()
 	LoadConfig();
 	LoadTranslations("store.phrases");
 
-	PrintToServer("%f ", g_timeInSeconds);
 	CreateTimer(g_timeInSeconds, ForgivePoints, _, TIMER_REPEAT);
 }
 
