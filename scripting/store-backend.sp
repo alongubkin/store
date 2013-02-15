@@ -140,6 +140,14 @@ public OnAllPluginsLoaded()
 	ConnectSQL();
 }
 
+public OnMapStart()
+{
+	if (g_hSQL != INVALID_HANDLE)
+	{
+		ReloadItemCache();
+	}
+}
+
 /**
  * Registers a player in the database:
  * 
@@ -1357,7 +1365,7 @@ public T_GiveCreditsToUsersCallback(Handle:owner, Handle:hndl, const String:erro
 
 /**
  * Query the database for items and categories, so that
- * the store-database module will have a cache of them.
+ * the store-backend module will have a cache of them.
  *
  * @noreturn
  */
