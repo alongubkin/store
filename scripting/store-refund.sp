@@ -32,10 +32,7 @@ public OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
 
-	decl String:menuItemName[32];
-	Format(menuItemName, sizeof(menuItemName), "%t", "Refund");
-
-	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuRefundClick, 6);
+	Store_AddMainMenuItem("Refund", "Refund Description", _, OnMainMenuRefundClick, 6);
 	
 	RegConsoleCmd("sm_refund", Command_OpenRefund);
 

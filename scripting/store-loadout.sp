@@ -60,10 +60,7 @@ public OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
 
-	decl String:menuItemName[32];
-	Format(menuItemName, sizeof(menuItemName), "%t", "Loadout");
-
-	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuLoadoutClick);
+	Store_AddMainMenuItem("Loadout", "Loadout Description", _, OnMainMenuLoadoutClick);
 	
 	g_clientLoadoutChangedForward = CreateGlobalForward("Store_OnClientLoadoutChanged", ET_Event, Param_Cell);
 	g_lastClientLoadout = RegClientCookie("lastClientLoadout", "Client loadout", CookieAccess_Protected);

@@ -320,9 +320,9 @@ public OnGetCreditsComplete(credits, any:serial)
 	for (new item = 0; item < g_menuItemCount; item++)
 	{
 		decl String:text[255];  
-		Format(text, sizeof(text), "%d %s\n%s", item, g_menuItems[item][MenuItemDisplayName], g_menuItems[item][MenuItemDescription]);
+		Format(text, sizeof(text), "%T\n%T", g_menuItems[item][MenuItemDisplayName], client, g_menuItems[item][MenuItemDescription], client);
 				
-		AddMenuItem(menu, g_menuItems[item][MenuItemValue], g_menuItems[item][MenuItemDisplayName]);
+		AddMenuItem(menu, g_menuItems[item][MenuItemValue], text);
 	}
 	
 	SetMenuExitButton(menu, true);

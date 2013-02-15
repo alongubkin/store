@@ -55,10 +55,7 @@ public OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
 
-	decl String:menuItemName[32];
-	Format(menuItemName, sizeof(menuItemName), "%t", "Inventory");
-
-	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuInventoryClick, 4);
+	Store_AddMainMenuItem("Inventory", "Inventory Description", _, OnMainMenuInventoryClick, 4);
 
 	RegConsoleCmd("sm_inventory", Command_OpenInventory);
 	RegAdminCmd("store_itemtypes", Command_PrintItemTypes, ADMFLAG_RCON, "Prints registered item types");

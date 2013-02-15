@@ -49,10 +49,7 @@ public OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
 
-	decl String:menuItemName[32];
-	Format(menuItemName, sizeof(menuItemName), "%t", "Shop");
-
-	Store_AddMainMenuItem(menuItemName, _, _, OnMainMenuShopClick, 2);
+	Store_AddMainMenuItem("Shop", "Shop Description", _, OnMainMenuShopClick, 2);
 	
 	RegConsoleCmd("sm_shop", Command_OpenShop);
 

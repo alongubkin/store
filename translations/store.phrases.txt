@@ -102,6 +102,11 @@
 		"en"				"Refund"
 	}
 
+	"Gift"
+	{
+		"en"				"Gift"
+	}
+	
 	"Refund Message"
 	{
 		"#format"			"{1:d},{2:s}"
@@ -117,5 +122,30 @@
 	"Equipped item apply next spawn"
 	{
 		"en"				"You've equipped an item. It will take effect in your next spawn."
+	}
+
+	"Shop Description"
+	{
+		"en"				"Buy awesome stuff here!"
+	}
+
+	"Inventory Description"
+	{
+		"en"				"Equip or use your items."
+	}
+
+	"Refund Description"
+	{
+		"en"				"Not satisfied? Refund it here."
+	}
+
+	"Gift Description"
+	{
+		"en"				"Donate cash or items to the needy!"
+	}
+
+	"Loadout Description"
+	{
+		"en"				"Configure all your items."
 	}
 }
