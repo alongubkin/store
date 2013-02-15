@@ -22,6 +22,7 @@ enum MenuItem
 
 new String:g_currencyName[64];
 new String:g_menuCommands[32][32];
+new String:g_creditsCommand[32];
 
 new g_menuItems[MAX_MENU_ITEMS + 1][MenuItem];
 new g_menuItemCount = 0;
@@ -73,7 +74,7 @@ public OnPluginStart()
 	AddCommandListener(Command_Say, "say_team");
 	
 	RegConsoleCmd("sm_store", Command_OpenMainMenu);
-	RegConsoleCmd("sm_credits", Command_Credits);
+	RegConsoleCmd(g_creditsCommand, Command_Credits);
 
 	RegAdminCmd("store_givecredits", Command_GiveCredits, ADMFLAG_ROOT, "Gives credots to a player.");
 
@@ -154,7 +155,7 @@ public Action:Command_GiveCredits(client, args)
 {
 	if (args < 2)
 	{
-		ReplyToCommand(client, "%sUsage: sm_givecredits <name> <credits>", STORE_PREFIX);
+		ReplyToCommand(client, "%sUsage: store_givecredits <name> <credits>", STORE_PREFIX);
 		return Plugin_Handled;
 	}
     
@@ -230,6 +231,7 @@ LoadConfig()
 	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
 	
 	KvGetString(kv, "currency_name", g_currencyName, sizeof(g_currencyName));
+	KvGetString(kv, "credits_command", g_creditsCommand, sizeof(g_creditsCommand), "sm_credits");
 
 	CloseHandle(kv);
 }
