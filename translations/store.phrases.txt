@@ -113,4 +113,9 @@
 		"#format"			"{1:s},{2:d},{3:s}"
 		"en"				"Are you sure you want to refund {1} for {2} {3}?"
 	}
+
+	"Equipped item apply next spawn"
+	{
+		"en"				"You've equipped an item. It will take effect in your next spawn."
+	}
 }
