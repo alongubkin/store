@@ -985,12 +985,17 @@ public BuyItemGiveItemCallback(accountId, any:pack)
 RemoveUserItem(accountId, itemId, Store_UseItemCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
-	WritePackCell(pack, accountId);
-	WritePackCell(pack, itemId);
-	WritePackCell(pack, _:callback);
+	WritePackCell(pack, accountId); // 0
+	WritePackCell(pack, itemId); // 8
+	WritePackCell(pack, _:callback); // 16
 	WritePackCell(pack, _:plugin);
 	WritePackCell(pack, _:data);
 	
+	UnequipItem(accountId, itemId, -1, RemoveUserItemUnnequipCallback, _, pack);
+}
+
+public RemoveUserItemUnnequipCallback(accountId, itemId, loadoutId, any:pack)
+{
 	decl String:query[255];
 	Format(query, sizeof(query), "DELETE FROM store_users_items WHERE store_users_items.item_id = %d AND store_users_items.user_id IN (SELECT store_users.id FROM store_users WHERE store_users.auth = %d) LIMIT 1", itemId, accountId);
 	
@@ -1117,6 +1122,8 @@ public T_EquipItemCallback(Handle:owner, Handle:hndl, const String:error[], any:
 /**
  * Unequips an item for a player in a loadout.
  * 
+ * You can unequip an item in all client's loadouts by setting loadoutId to -1.
+ *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
  * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
@@ -1139,8 +1146,13 @@ UnequipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:callback, Hand
 	WritePackCell(pack, _:data);
 	
 	decl String:query[512];
-	Format(query, sizeof(query), "DELETE store_users_items_loadouts FROM store_users_items_loadouts INNER JOIN store_users_items ON store_users_items.id = store_users_items_loadouts.useritem_id INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_users.auth = %d AND store_items.loadout_slot = (SELECT loadout_slot from store_items WHERE store_items.id = %d) AND store_users_items_loadouts.loadout_id = %d", accountId, itemId, loadoutId);
+	Format(query, sizeof(query), "DELETE store_users_items_loadouts FROM store_users_items_loadouts INNER JOIN store_users_items ON store_users_items.id = store_users_items_loadouts.useritem_id INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_users.auth = %d AND store_items.loadout_slot = (SELECT loadout_slot from store_items WHERE store_items.id = %d)", accountId, itemId);
 	
+	if (loadoutId != -1)
+	{
+		Format(query, sizeof(query), "%s AND store_users_items_loadouts.loadout_id = %d", query, loadoutId);
+	}
+
 	SQL_TQuery(g_hSQL, T_UnequipItemCallback, query, pack, DBPrio_High);	
 }
 
