@@ -296,6 +296,9 @@ bool:IsLoadoutAvailableFor(client, loadout)
 
 FindOptimalLoadoutFor(client)
 {
+	if (!g_databaseInitialized)
+		return;
+		
 	new Handle:filter = CreateTrie();
 	SetTrieString(filter, "game", g_game);
 	SetTrieValue(filter, "team", GetClientTeam(client));
