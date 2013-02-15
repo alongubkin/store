@@ -31,6 +31,16 @@ forward Store_OnDatabaseInitialized();
 forward Store_OnReloadItems();
 forward Store_OnReloadItemsPost();
 
+enum Store_AquireMethod
+{
+	Store_Shop,
+	Store_Trade,
+	Store_Gift,
+	Store_Admin,
+	Store_Web,
+	Store_Unknown
+}
+
 /**
  * Registers a player in the database:
  * 
@@ -605,6 +615,22 @@ native Store_GiveCreditsToUsers(accountIds[], accountIdsLength, credits);
  * @noreturn
  */
 native Store_GiveDifferentCreditsToUsers(accountIds[], accountIdsLength, credits[]);
+
+/**
+ * Gives player an item.
+ *
+ * As with all other store-backend methods, this method is completely asynchronous.
+ *
+ * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param itemId 			The ID of the item to give to the player.
+ * @param aquireMethod 		
+ * @param callback		    A callback which will be called when the operation is finished.
+ * @param plugin			The plugin owner of the callback.
+ * @param data              Extra data value to pass to the callback.
+ *
+ * @noreturn
+ */
+native Store_GiveItem(accountId, itemId, Store_AquireMethod:aquireMethod = Store_Unknown, Store_GiveCreditsCallback:callback = Store_GiveCreditsCallback:INVALID_HANDLE, any:data = 0);
 
 /**
  * Buys an item for a player, using his credits.

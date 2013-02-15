@@ -102,6 +102,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_GiveCredits", Native_GiveCredits);
 	CreateNative("Store_GiveCreditsToUsers", Native_GiveCreditsToUsers);	
 	CreateNative("Store_GiveDifferentCreditsToUsers", Native_GiveDifferentCreditsToUsers);	
+	CreateNative("Store_GiveItem", Native_GiveItem);
 
 	CreateNative("Store_BuyItem", Native_BuyItem);
 	CreateNative("Store_RemoveUserItem", Native_RemoveUserItem);
@@ -941,31 +942,19 @@ public T_BuyItemGetCreditsCallback(credits, any:pack)
 		return;
 	}
 
-	GiveCredits(accountId, -g_items[GetItemIndex(itemId)][ItemPrice], T_BuyItemGiveCreditsCallback, _, pack);
+	GiveCredits(accountId, -g_items[GetItemIndex(itemId)][ItemPrice], BuyItemGiveCreditsCallback, _, pack);
 }
 
-public T_BuyItemGiveCreditsCallback(accountId, any:pack)
+public BuyItemGiveCreditsCallback(accountId, any:pack)
 {
 	ResetPack(pack);
 	
 	new itemId = ReadPackCell(pack);
-	
-	decl String:query[255];
-	Format(query, sizeof(query), "INSERT INTO store_users_items (user_id, item_id, acquire_date, aquire_method) SELECT store_users.id AS userId, '%d' AS item_id, NOW() as aquire_date, 'shop' AS aquire_method FROM store_users WHERE auth = %d", itemId, accountId);
-
-	SQL_TQuery(g_hSQL, T_BuyItemCallback, query, pack, DBPrio_High);	
+	GiveItem(accountId, itemId, Store_Shop, BuyItemGiveItemCallback, _, pack);
 }
 
-public T_BuyItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
+public BuyItemGiveItemCallback(accountId, any:pack)
 {
-	if (hndl == INVALID_HANDLE)
-	{
-		CloseHandle(pack);
-		
-		Store_LogError("SQL Error on BuyItem: %s", error);
-		return;
-	}
-	
 	SetPackPosition(pack, 16);
 	
 	new Store_BuyItemCallback:callback = Store_BuyItemCallback:ReadPackCell(pack);
@@ -1299,6 +1288,77 @@ public T_GiveCreditsCallback(Handle:owner, Handle:hndl, const String:error[], an
 		CloseHandle(pack);
 		
 		Store_LogError("SQL Error on GiveCredits: %s", error);
+		return;
+	}
+	
+	ResetPack(pack);
+	
+	new accountId = ReadPackCell(pack);
+	new Store_GiveCreditsCallback:callback = Store_GiveCreditsCallback:ReadPackCell(pack);
+	new Handle:plugin = Handle:ReadPackCell(pack);
+	new arg = ReadPackCell(pack);
+	
+	CloseHandle(pack);
+	
+	if (callback != Store_GiveCreditsCallback:INVALID_HANDLE) 
+	{
+		Call_StartFunction(plugin, callback);
+		Call_PushCell(accountId);
+		Call_PushCell(_:arg);
+		Call_Finish();	
+	}
+}
+
+/**
+ * Gives player an item.
+ *
+ * As with all other store-backend methods, this method is completely asynchronous.
+ *
+ * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param itemId 			The ID of the item to give to the player.
+ * @param aquireMethod 		
+ * @param callback		    A callback which will be called when the operation is finished.
+ * @param plugin			The plugin owner of the callback.
+ * @param data              Extra data value to pass to the callback.
+ *
+ * @noreturn
+ */
+GiveItem(accountId, itemId, Store_AquireMethod:aquireMethod = Store_Unknown, Store_GiveCreditsCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
+{
+	new Handle:pack = CreateDataPack();
+	WritePackCell(pack, accountId);
+	WritePackCell(pack, _:callback);
+	WritePackCell(pack, _:plugin);
+	WritePackCell(pack, _:data);
+
+	decl String:query[255];
+	Format(query, sizeof(query), "INSERT INTO store_users_items (user_id, item_id, acquire_date, aquire_method) SELECT store_users.id AS userId, '%d' AS item_id, NOW() as aquire_date, ", itemId);
+
+	if (aquireMethod == Store_Shop)
+		Format(query, sizeof(query), "%s'shop'", query);
+	else if (aquireMethod == Store_Trade)
+		Format(query, sizeof(query), "%s'trade'", query);
+	else if (aquireMethod == Store_Gift)
+		Format(query, sizeof(query), "%s'gift'", query);
+	else if (aquireMethod == Store_Admin)
+		Format(query, sizeof(query), "%s'admin'", query);
+	else if (aquireMethod == Store_Web)
+		Format(query, sizeof(query), "%s'web'", query);
+	else if (aquireMethod == Store_Unknown)
+		Format(query, sizeof(query), "%sNULL", query);
+
+	Format(query, sizeof(query), "%s AS aquire_method FROM store_users WHERE auth = %d", query, accountId);
+
+	SQL_TQuery(g_hSQL, T_GiveItemCallback, query, pack, DBPrio_High);	
+}
+
+public T_GiveItemCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
+{
+	if (hndl == INVALID_HANDLE)
+	{
+		CloseHandle(pack);
+		
+		Store_LogError("SQL Error on GiveItem: %s", error);
 		return;
 	}
 	
@@ -1708,6 +1768,15 @@ public Native_GiveCreditsToUsers(Handle:plugin, params)
 	GetNativeArray(1, accountIds, length);
 	
 	GiveCreditsToUsers(accountIds, length, GetNativeCell(3));
+}
+
+public Native_GiveItem(Handle:plugin, params)
+{
+	new any:data = 0;
+	if (params == 5)
+		data = GetNativeCell(5);
+
+	GiveItem(GetNativeCell(1), GetNativeCell(2), Store_AquireMethod:GetNativeCell(3), Store_GiveCreditsCallback:GetNativeCell(4), plugin, data);
 }
 
 public Native_GiveDifferentCreditsToUsers(Handle:plugin, params)
