@@ -32,9 +32,10 @@
 		"en"				"The item type '{1}' wasn't registered by any plugin."
 	}
 
-	"Not enough credits"
+	"Not enough credits to buy"
 	{
-		"en"				"You don't have enough credits to buy this item."
+		"#format"			"{1:s}"
+		"en"				"You don't have enough {1} to buy this item."
 	}
 
 	"No item attributes"
@@ -147,5 +148,62 @@
 	"Loadout Description"
 	{
 		"en"				"Configure all your items."
+	}
+
+	"Gift Type Menu Title"
+	{
+		"en"				"What do you want to gift?"
+	}
+
+	"Item"
+	{
+		"en"				"Item"
+	}
+
+	"Gift Credit Confirmation"
+	{
+		"#format"			"{1:s},{2:d},{3:s}"
+		"en"				"Are you sure you want to give {1} {2} {3}?"
+	}
+
+	"Gift Item Confirmation"
+	{
+		"#format"			"{1:s},{2:s}"
+		"en"				"Are you sure you want to give {1} a {2} item?"
+	}
+
+	"No items"
+	{
+		"en"				"You have no items."
+	}
+
+	"Gift Request Accept"
+	{
+		"#format"			"{1:s},{2:s}"
+		"en"				"{teamcolor}{1} {default}wants to give you {olive}{2}{default}. Type {teamcolor}!accept {default}to accept the gift."
+	}
+
+	"Gift Waiting to accept"
+	{
+		"#format"			"{1:s}"
+		"en"				"Waiting for {teamcolor}{1} {default}to accept the gift."
+	}	
+
+	"Not enough credits"
+	{
+		"#format"			"{1:s}"
+		"en"				"You don't have enough {1}."
+	}
+
+	"Gift accepted - sender"
+	{
+		"#format"			"{1:s}"
+		"en"				"{teamcolor}{1} {default}has accepted your gift."
+	}
+
+	"Gift accepted - receiver"
+	{
+		"#format"			"{1:s}"
+		"en"				"You have accepted {teamcolor}{1}{default}'s gift."
 	}
 }
