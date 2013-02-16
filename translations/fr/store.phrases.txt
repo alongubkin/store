@@ -1,0 +1,221 @@
+////////////////////////////////////////////////////////////////////////////////
+//  _______ _____            _   _  _____ _            _______ ______ _____   //
+// |__   __|  __ \     /\   | \ | |/ ____| |        /\|__   __|  ____|  __ \  //
+//    | |  | |__) |   /  \  |  \| | (___ | |       /  \  | |  | |__  | |  | | //
+//    | |  |  _  /   / /\ \ | . ` |\___ \| |      / /\ \ | |  |  __| | |  | | //
+//    | |  | | \ \  / ____ \| |\  |____) | |____ / ____ \| |  | |____| |__| | //
+//    |_|  |_|  \_\/_/    \_\_| \_|_____/|______/_/    \_\_|  |______|_____/  //
+//                                                                            //
+//                                   ______     __                            //
+//                                  |  _ \ \   / /                            //
+//                                  | |_) \ \_/ /                             //
+//                                  |  _ < \   /                              //
+//                                  | |_) | | |                               //
+//                                  |____/  |_|                               //
+//             __  __  _        _                 _   ___    ___  ___         //
+//            |  \/  |(_)      | |               | | / _ \  / _ \|__ \        //
+//            | \  / | _   ___ | | __ __ _   ___ | || | | || | | |  ) |       //
+//            | |\/| || | / __|| |/ // _` | / _ \| || | | || | | | / /        //
+//            | |  | || || (__ |   <| (_| ||  __/| || |_| || |_| |/ /_        //
+//            |_|  |_||_| \___||_|\_\\__,_| \___||_| \___/  \___/|____|       //
+//                                                                            //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                   Store Plugin traduit par la Team-Ninja !                 //
+//                             www.team-ninja.fr                              //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+"Phrases"
+{
+	"Store Menu Title"
+	{
+		"fr"				"Vous avez {1} {2}."
+	}
+
+	"Inventory"
+	{
+		"fr"				"Inventaire"	
+	}
+
+	"Shop"
+	{
+		"fr"				"Boutique"	
+	}
+
+	"Loadout"
+	{
+		"fr"				"Classe"	
+	}
+
+	"No items in this category"
+	{
+		"fr"				"Il n'y a aucun items dans cette catégorie."
+	}
+
+	"Item type not registered"
+	{
+		"fr"				"Le type de l'item '{1}' n'est enregistré par aucun plugin."
+	}
+
+	"Not enough credits to buy"
+	{
+		"fr"				"You don't have enough {1} to buy this item."
+	}
+
+	"No item attributes"
+	{
+		"fr"				"Aucun items attribués trouvé"
+	}
+
+	"Equipped item"
+	{
+		"fr"				"Vous êtes équipé de {1}."
+	}
+
+	"Unequipped item"
+	{
+		"fr"				"Vous êtes dé-équipé de {1}."
+	}
+
+	"Must be alive to equip"
+	{
+		"fr"				"Vous devez être en vie pour vous équipez de cette item."
+	}
+
+	"Must be alive to use"
+	{
+		"fr"				"Vous devez être en vie pour utiliser cette item."
+	}	
+
+	"Must be human to equip"
+	{
+		"fr"				"Vous devez être un humain pour vous équipez de cette item."
+	}
+
+	"Must be human to use"
+	{
+		"fr"				"Vous devez être un humain pour utiliser cette item."	
+	}	
+
+	"Limit item uses in a round"
+	{
+		"#format"			"{1:s}"
+		"fr"				"Vous pouvez utiliser cette item que {1} fois par round."
+	}
+
+	"Player model unsupported"
+	{
+		"fr"				"Votre model de joueur ne supporte pas cette équipement."
+	}
+
+	"Received Credits"
+	{
+		"fr"				"Vous avez reçu {1} {2}!"
+	}
+
+	"Item Purchase Confirmation"
+	{
+		"fr"				"Etes-vous sur de vouloir acheter {1}?"
+	}
+
+	"Refund"
+	{
+		"fr"				"Rembourser"
+	}
+
+	"Gift"
+	{
+		"fr"				"Cadeaux"
+	}
+
+	"Refund Message"
+	{
+		"fr"				"Vous êtes remboursez de {1} pour {2} {3}."
+	}
+
+	"Item Refund Confirmation"
+	{
+		"fr"				"Etes-vous sur de vouloir vous faire remboursez de {1} pour {2} {3}?"
+	}
+
+	"Equipped item apply next spawn"
+	{
+		"fr"				"Vous êtes équipez d'un item. Il prendrat effet a votre prochain spawn."
+	}
+
+	"Shop Description"
+	{
+		"fr"				"Acheter un super stuff ici!"
+	}
+
+	"Inventory Description"
+	{
+		"fr"				"Equiper ou utiliser un item."
+	}
+
+	"Refund Description"
+	{
+		"fr"				"Pas satisfait? Faite vous remboursez ici."
+	}
+
+	"Gift Description"
+	{
+		"fr"				"Envoyer de la monnaie ou des items!"
+	}
+
+	"Loadout Description"
+	{
+		"fr"				"Configurer tout vos items."
+	}
+
+	"Gift Type Menu Title"
+	{
+		"fr"				"Ques ce que vous voulez donner?"
+	}
+
+	"Item"
+	{
+		"fr"				"Item"
+	}
+
+	"Gift Credit Confirmation"
+	{
+		"fr"				"Etes-vous sur de vouloir envoyer {1} {2} {3}?"
+	}
+
+	"Gift Item Confirmation"
+	{
+		"fr"				"Etes-vous sur de vouloir donner a {1} l'item {2} ?"
+	}
+
+	"No items"
+	{
+		"fr"				"Vous n'avez aucun items."
+	}
+
+	"Gift Request Accept"
+	{
+		"fr"				"{teamcolor}{1} {default}souhaite vous donnez {olive}{2}{default}. Taper {teamcolor}!accept {default}pour accepter le cadeau."
+	}
+
+	"Gift Waiting to accept"
+	{
+		"fr"				"En attende de{teamcolor}{1} {default}pour accepter le cadeau"
+	}	
+
+	"Not enough credits"
+	{
+		"fr"				"Vous n'avez pas assez de {1}."
+	}
+
+	"Gift accepted - sender"
+	{
+		"fr"				"{teamcolor}{1} {default}a accepté votre cadeau."
+	}
+
+	"Gift accepted - receiver"
+	{
+		"fr"				"Vous avez accepté le cadeau de{teamcolor}{1}{default}."
+	}
+}
