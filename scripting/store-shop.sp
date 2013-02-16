@@ -371,7 +371,7 @@ public OnBuyItemComplete(bool:success, any:serial)
 	
 	if (!success)
 	{
-		PrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits");
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits to buy", g_currencyName);
 	}
 	
 	OpenShop(client);
