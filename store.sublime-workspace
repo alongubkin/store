@@ -51,71 +51,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "scripting/store-gifting.sp",
-			"settings":
-			{
-				"buffer_size": 15324,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "scripting/include/store/store-backend.inc",
-			"settings":
-			{
-				"buffer_size": 28851,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "translations/store.phrases.txt",
-			"settings":
-			{
-				"buffer_size": 3314,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "scripting/store-refund.sp",
-			"settings":
-			{
-				"buffer_size": 9697,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "configs/store/gifting.cfg",
-			"settings":
-			{
-				"buffer_size": 222,
-				"line_ending": "Windows",
-				"name": "\"Gifting\""
-			}
-		},
-		{
-			"file": "scripting/store-backend.sp",
-			"settings":
-			{
-				"buffer_size": 58008,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "configs/store/refund.cfg",
-			"settings":
-			{
-				"buffer_size": 100,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "scripting/store-core.sp",
-			"settings":
-			{
-				"buffer_size": 9166,
-				"line_ending": "Windows"
-			}
-		}
 	],
 	"build_system": "Packages/SourcePawn/SourcePawn.sublime-build",
 	"command_palette":
@@ -145,24 +80,27 @@
 	},
 	"file_history":
 	[
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
-		"/C/Users/Alon/AppData/Local/Temp/7zO9642.tmp/economy.sp",
-		"/C/Users/Alon/Downloads/playersvotes.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-gifting.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
-		"/C/Users/Alon/Documents/GitHub/store/configs/store/distributor.cfg",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-inventory.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-refund.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
 		"/C/Users/Alon/Documents/GitHub/store/translations/store.phrases.txt",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-refund.sp",
+		"/C/Users/Alon/Documents/GitHub/store/configs/store/gifting.cfg",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
+		"/C/Users/Alon/Documents/GitHub/store/configs/store/refund.cfg",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-inventory.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
+		"/C/Users/Alon/Documents/GitHub/store/plugins/store/store-backend.smx",
+		"/C/Users/Alon/AppData/Local/Temp/7zO9642.tmp/economy.sp",
+		"/C/Users/Alon/Downloads/playersvotes.sp",
+		"/C/Users/Alon/Documents/GitHub/store/configs/store/distributor.cfg",
 		"/C/Users/Alon/Documents/GitHub/store/configs/store/core.cfg",
 		"/C/Users/Alon/Documents/GitHub/store/configs/store/sql-init-scripts/store.sql",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-refund",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-inventory.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-equipment.sp",
@@ -375,222 +313,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "scripting/store-gifting.sp",
-					"settings":
-					{
-						"buffer_size": 15324,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								7382,
-								7389
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 4688.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "scripting/include/store/store-backend.inc",
-					"settings":
-					{
-						"buffer_size": 28851,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								751,
-								730
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage"
-						},
-						"translation.x": 56.0,
-						"translation.y": 29.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "translations/store.phrases.txt",
-					"settings":
-					{
-						"buffer_size": 3314,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2679,
-								2679
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 2614.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "scripting/store-refund.sp",
-					"settings":
-					{
-						"buffer_size": 9697,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								7025,
-								7025
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 4056.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "configs/store/gifting.cfg",
-					"settings":
-					{
-						"buffer_size": 222,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								77,
-								76
-							]
-						],
-						"settings":
-						{
-							"auto_name": "\"Gifting\"",
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "scripting/store-backend.sp",
-					"settings":
-					{
-						"buffer_size": 58008,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								30785,
-								30785
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 13559.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "configs/store/refund.cfg",
-					"settings":
-					{
-						"buffer_size": 100,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								100
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "scripting/store-core.sp",
-					"settings":
-					{
-						"buffer_size": 9166,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1945,
-								1897
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 720.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],
