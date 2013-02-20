@@ -51,6 +51,65 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "scripting/store-backend.sp",
+			"settings":
+			{
+				"buffer_size": 58072,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/Alon/Downloads/trusted.sp",
+			"settings":
+			{
+				"buffer_size": 9485,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/Alon/Downloads/bhopcommands.sp",
+			"settings":
+			{
+				"buffer_size": 11881,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/Alon/Downloads/bhopcommands (1).sp",
+			"settings":
+			{
+				"buffer_size": 11995,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/Alon/Downloads/bhopcommands (2).sp",
+			"settings":
+			{
+				"buffer_size": 11984,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/Alon/Downloads/HardCoreFriendlyFire.sp",
+			"settings":
+			{
+				"buffer_size": 3627,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "#include <sourcemod>\n#include <sdktools>\n#include <morecolors>\n\npublic Plugin:myinfo = \n{\n	name = \"Draw My ???\",\n	author = \"MPQC\",\n	description = \"A gamemode where one player must draw a specific word, and the others must guess it\",\n	version = \"1.2.0\",\n	url = \"www.steamgamers.com\"\n}\n\nnew g_numspaces; // number of spaces in a given word\nnew g_printtime; // what we should be printing (ie game starts in 5...4..3..2..1..start)\nnew g_recentlydone[100]; // holds integer location of the last 100 said words.\nnew g_currentposition; // determines where we are in the last 100 recently done words\nnew g_playerpoints[MAXPLAYERS+1]; // holds the current clients location within g_playerscores, so we dont need to constantly search to update their scores\nnew g_wordguessed[MAXPLAYERS+1]; // will be >0 if someone guessed th  word. if == 1, they were first to guess, == 2 is they were drawing and it was guessed, == 3 is everyone else that got it correct after\nnew g_mapscores[MAXPLAYERS+1]; // holds the players current score, only for the current map\nnew g_currentturn; // who is the current drawer\nnew g_numplaying; // number of people playing\nnew g_timeleft; // how much time left in the round\nnew g_numhints; // number of hints given so far\nnew g_lasersize; // size of the laser\nnew g_amountrepeats; // number of repeats in a given \n\nnew bool:g_alreadyforfeited; // when the person has already forfeited, this is true, so they can't spam forfeit\nnew bool:g_isblackdefault = false; // an optional entity the map creator can place in the map. if they place the entity they can swap the default color to black, or just leave it at white\nnew bool:g_allowedtodraw; // allowed to draw, also used as \"allowedtoguess\", since they both would be set to the same value at the same time\nnew bool:g_firstguess; // if nobody has guessed correctly, this is false\nnew bool:g_wordhint[32]; // true for each index that will be shown in a hint\nnew bool:g_roundstarted; // if the round has started\nnew bool:g_players_playing[MAXPLAYERS+1]; // index will be true when that player is playing\nnew bool:g_ispunished[MAXPLAYERS+1]; // if the admin has decided to not them play anymore (breaking rules...drawing penises..whatever the admin deems unfit) then we check for that here\nnew bool:g_doesntwanttodraw[MAXPLAYERS+1] // if the player doesn't want to draw, this will be true, and it will skip their turn\nnew bool:g_istherewinner; // if someone is winning, this is true\nnew bool:g_isDrawing; // if they're drawing :D\nnew bool:g_notafk; // just to make sure to clear out an afk drawer, waiting 60 seconds is boring\nnew bool:g_teleportersonmap; // if there are teleporters on the map (so we can teleport the drawers & guessers)\n\nnew Handle:g_playerscores = INVALID_HANDLE; // array that holds each persons scores thats ever entered the server\nnew Handle:g_lasers = INVALID_HANDLE; // holds the players lasers (entity numbers), used so the player can undo and laser cleanup\nnew Handle:g_clock = INVALID_HANDLE; // holds the timer so it can be cleaned up incase of map change\nnew Handle:g_wordlist = INVALID_HANDLE; // soon to be an adt_array to hold every word that the user provides\n\nnew Handle:g_hamtrepeat = INVALID_HANDLE; // convar so a person can change the amount of repeats\n\nnew String:g_colorchosen[64]; // which color they choose\nnew String:g_word[32]; // the current word that must be guessed\n\nnew Float:g_drawerlocation[3]; // where to teleport the person that will be drawing\nnew Float:g_guesserlocation[3]; // where to teleport the person(s) that will be guessing\nnew Float:g_lastlaser[3]; // where the last laser was\n\npublic OnPluginStart()\n{\n	LoadTranslations(\"common.phrases\");\n	\n	AddDownloads();\n	\n	RegConsoleCmd(\"sm_menu\", MenuCheck);\n	RegConsoleCmd(\"sm_score\", ScoreCheck);\n	RegConsoleCmd(\"sm_rank\", ScoreCheck);\n	RegConsoleCmd(\"sm_help\", Help);\n	RegConsoleCmd(\"sm_skip\", Skip);\n	RegConsoleCmd(\"sm_top10\", Top10Check);\n	\n	RegAdminCmd(\"sm_disabledraw\", Command_DisableDraw, ADMFLAG_BAN, \"Disables a player from drawing until map change\");\n	\n	AddCommandListener(Command_Say, \"say\");\n	AddCommandListener(Command_Say, \"say_team\");\n	AddCommandListener(Command_Jointeam, \"jointeam\");\n	\n	HookEvent(\"player_disconnect\", PlayerLeave, EventHookMode_Pre); \n	HookEvent(\"player_death\", EventPlayerDeath);\n	\n	g_hamtrepeat = CreateConVar(\"dr_amountrepeats\", \"100\", \"Default amount of words to check for repeats\", FCVAR_PLUGIN|FCVAR_NOTIFY);\n	HookConVarChange(g_hamtrepeat, RepeatConVarChanged);\n	AutoExecConfig(true, \"drawmy\");\n	\n	/* DEBUG COMMANDS, ONLY ENABLE IF DEBUGGING */\n	//RegConsoleCmd(\"getscores\", GetScores);\n	//RegConsoleCmd(\"getindex\", GetIndex);\n	//RegConsoleCmd(\"printrecent\", PrintRecent);\n	//RegConsoleCmd(\"fakewin\", FakeWin);\n	//RegConsoleCmd(\"erase\", Erase);\n	//RegConsoleCmd(\"hintcheck\", HintCheck);\n	\n	g_roundstarted = false;\n	g_currentturn = 1;\n	g_word = \"blank\"; // default lol\n	g_wordlist = CreateArray(32); // set up our word list\n	g_lasers = CreateArray(1); // set up our laser array \n	new bool:wordsuccess = BuildWordList();\n	if (!wordsuccess)\n	{\n		SetFailState(\"Word list loading failed; check for errors\");\n	}\n	\n	for (new i = 0; i < 100; i++)\n	{\n		g_recentlydone[i] = -1;\n	}\n	g_currentposition = 0;\n}\n\npublic OnMapStart()\n{\n	g_isblackdefault = false; // by default we set this to black..then we search the teleporters, if we find required entities we change it to white\n	g_teleportersonmap = FindTeleporters();\n	new bool:precache = ((PrecacheModel(\"draw/black.vmt\") > 0) && (PrecacheModel(\"draw/brown.vmt\") > 0) && (PrecacheModel(\"draw/white.vmt\") > 0) && (PrecacheModel(\"draw/blue.vmt\") > 0) && (PrecacheModel(\"draw/white.vmt\") > 0) && (PrecacheModel(\"draw/blue.vmt\") > 0) && (PrecacheModel(\"draw/green.vmt\") > 0) && (PrecacheModel(\"draw/grey.vmt\") > 0) && (PrecacheModel(\"draw/orange.vmt\") > 0) && (PrecacheModel(\"draw/pink.vmt\") > 0) && (PrecacheModel(\"draw/purple.vmt\") > 0) && (PrecacheModel(\"draw/red.vmt\") > 0) && (PrecacheModel(\"draw/yellow.vmt\") > 0));\n	if (precache)\n	{\n		new bool:scores = LoadScores();\n		BubbleSortScores(); // after we load the scores, we'll sort them immediately to avoid lag for when players type rank\n		if (scores)\n		{\n			g_clock = CreateTimer(1.0, UpdateRound, _, TIMER_REPEAT);\n			CreateTimer(0.1, Timer_Pay, _, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE); // This function is taken from Mitchell's LASERRRRRRRRSSSS plugin. All credits to him for it.\n		}\n		else\n		{\n			SetFailState(\"Failed to load high scores! Make sure the file is there.\");\n		}\n	}\n	else\n	{\n		SetFailState(\"Failed to load required materials. Check installation.\");\n	}\n}\n\npublic OnMapEnd()\n{\n	EraseLasers();\n	// Most variables don't have to be reset when the map changes, since when the timer starts up \"round\" is reset, and all variables that are important are also reset\n	if (g_clock != INVALID_HANDLE)\n	{\n		CloseHandle(g_clock);\n	}\n	\n	for (new i = 0; i < MaxClients; i++)\n	{\n		g_doesntwanttodraw[i] = false;\n		g_ispunished[i] = false;\n		g_mapscores[i] = 0;\n	}\n	\n	decl String:path[PLATFORM_MAX_PATH];\n	BuildPath(Path_SM, path, PLATFORM_MAX_PATH, \"configs/drawscores.txt\");\n	new Handle:wordfile = OpenFile(path, \"w\");\n	new size = GetArraySize(g_playerscores);\n	\n	decl String:steamid[32];\n	decl String:playername[64];\n	new cell;\n	\n	for (new i = 0; i < size; i=i+3)\n	{\n		cell = GetArrayCell(g_playerscores, i+1);\n		if (cell != 0)\n		{\n			GetArrayString(g_playerscores, i, steamid, sizeof(steamid));\n			GetArrayString(g_playerscores, i+2, playername, sizeof(playername));\n			WriteFileLine(wordfile, steamid);\n			WriteFileLine(wordfile, \"%i\", cell);\n			WriteFileLine(wordfile, playername);\n		}\n	}\n	\n	CloseHandle(wordfile);\n}\n\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n//////////////////////////////////////////                SETUP                ///////////////////////////////////////////////\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\nbool:LoadScores()\n{\n	if (g_playerscores == INVALID_HANDLE)\n	{\n		g_playerscores = CreateArray(8);\n		decl String:path[PLATFORM_MAX_PATH];\n		BuildPath(Path_SM, path, PLATFORM_MAX_PATH, \"configs/drawscores.txt\");\n		new Handle:wordfile = OpenFile(path, \"r\");\n		if (wordfile == INVALID_HANDLE)\n		{\n			return false;\n		}\n		decl String:currentword[64];\n		new currentnumber;\n		while(ReadFileLine(wordfile, currentword, sizeof(currentword))) // keep reading until end of file...\n		{\n			// we read the players steamid, check for \\n (which every line will have except the last), and remove \\n\n			if (currentword[strlen(currentword)-1] == '\\n')\n			{\n				currentword[strlen(currentword)-1] = '\\0'; // strip \\n\n			}\n			\n			// push it onto our array\n			PushArrayString(g_playerscores, currentword);\n			\n			// read the next line, which is their score\n			ReadFileLine(wordfile, currentword, sizeof(currentword))\n			if (currentword[strlen(currentword)-1] == '\\n')\n			{\n				currentword[strlen(currentword)-1] = '\\0'; // strip \\n\n			}\n			\n			// convert it to an int\n			currentnumber = StringToInt(currentword);\n			PushArrayCell(g_playerscores, currentnumber);\n			\n			// lastly we read their name, recycling \"currentword\" just because we can\n			ReadFileLine(wordfile, currentword, sizeof(currentword))\n			\n			// strip it as usual..\n			if (currentword[strlen(currentword)-1] == '\\n')\n			{\n				currentword[strlen(currentword)-1] = '\\0'; // strip \\n\n			}\n			\n			PushArrayString(g_playerscores, currentword); // add their name to our array\n			\n			// so our array is now set up as follows:\n			// steamid\n			// score\n			// player name\n		}\n		\n		CloseHandle(wordfile);\n	}\n	return true;\n}\n\nbool:FindTeleporters()\n{\n	decl String:classname[64];\n	decl String:targetname[64];\n	new max = GetMaxEntities();\n	new bool:foundguesser = false;\n	new bool:founddrawer = false;\n	\n	for (new i = 0; i < max; i++)\n	{\n		if(!IsValidEntity(i))\n		{\n			continue;\n		}\n		\n		GetEdictClassname(i,classname,sizeof(classname));\n		\n		if (StrEqual(classname, \"info_teleport_destination\"))\n		{\n			GetEntPropString(i, Prop_Data, \"m_iName\", targetname, sizeof(targetname));\n			\n			if (StrEqual(targetname, \"teleportguesser\"))\n			{\n				foundguesser = true;\n				GetEntPropVector(i, Prop_Send, \"m_vecOrigin\", g_guesserlocation);\n			}\n			else if (StrEqual(targetname, \"teleportdrawer\"))\n			{\n				founddrawer = true;\n				GetEntPropVector(i, Prop_Send, \"m_vecOrigin\", g_drawerlocation);\n			}\n			else if (StrEqual(targetname, \"black\"))\n			{\n				g_isblackdefault = true;\n			}\n		}\n	}\n	\n	// if we found both, then this map supports teleporters\n	if (foundguesser && founddrawer)\n	{\n		return true;\n	}\n	// else, don't teleport because it'll crash :(\n	return false;\n}\n\nbool:BuildWordList()\n{\n	if (g_wordlist != INVALID_HANDLE)\n	{\n		decl String:path[PLATFORM_MAX_PATH];\n		BuildPath(Path_SM, path, PLATFORM_MAX_PATH, \"configs/wordlist.txt\");\n		new Handle:wordfile = OpenFile(path, \"r\");\n		decl String:currentword[32];\n		while(ReadFileLine(wordfile, currentword, sizeof(currentword)))\n		{\n			if (currentword[strlen(currentword)-1] == '\\n')\n			{\n				currentword[strlen(currentword)-1] = '\\0'; // strip \\n\n			}\n			PushArrayString(g_wordlist, currentword);\n		}\n		\n		CloseHandle(wordfile);\n		return true;\n	}\n	return false;\n}\n\nbool:SetupRound()\n{\n	new bool:someoneplaying = false;\n	for (new i = 1; i < MaxClients; i++)\n	{\n		if (IsClientInGame(i))\n		{\n			if (IsPlayerAlive(i)) // makes sure they're playing rather then doing a team check for no spec or neither\n			{\n				g_players_playing[i] = true;\n				someoneplaying = true;\n				g_numplaying = g_numplaying + 1;\n			}\n		}\n	}\n	g_printtime = 1;\n	g_timeleft = 65;\n	g_numhints = 0;\n	g_istherewinner = false;\n	g_lasersize = 1;\n	g_isDrawing = false;\n	g_allowedtodraw = false;\n	g_firstguess = false;\n	g_alreadyforfeited = false;\n	g_numspaces = 0;\n	g_notafk = false;\n	//g_ismoreoneword = false;\n	if (!g_isblackdefault)\n	{\n		strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/white.vmt\");\n	}\n	else\n	{\n		strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/black.vmt\");\n	}\n	g_lastlaser[0] = 0.0; g_lastlaser[1] = 0.0; g_lastlaser[2] = 0.0; \n	for (new i = 0; i < 32; i++)\n	{\n		g_wordhint[i] = false;\n	}\n	\n	return someoneplaying;\n}\n\nAddDownloads()\n{\n	AddFileToDownloadsTable(\"materials/draw/black.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/black.vtf\");\n	AddFileToDownloadsTable(\"materials/draw/blue.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/blue.vtf\");\n	AddFileToDownloadsTable(\"materials/draw/brown.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/brown.vtf\");\n	AddFileToDownloadsTable(\"materials/draw/green.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/green.vtf\");\n	AddFileToDownloadsTable(\"materials/draw/grey.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/grey.vtf\");\n	AddFileToDownloadsTable(\"materials/draw/orange.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/orange.vtf\");\n	AddFileToDownloadsTable(\"materials/draw/pink.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/pink.vtf\");\n	AddFileToDownloadsTable(\"materials/draw/purple.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/purple.vtf\");\n	AddFileToDownloadsTable(\"materials/draw/red.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/red.vtf\");\n	AddFileToDownloadsTable(\"materials/draw/white.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/white.vtf\");\n	AddFileToDownloadsTable(\"materials/draw/yellow.vmt\");\n	AddFileToDownloadsTable(\"materials/draw/yellow.vtf\");\n}\n\npublic RepeatConVarChanged(Handle:convar, const String:oldValue[], const String:newValue[])\n{\n	if (convar == g_hamtrepeat)\n	{\n		g_amountrepeats = StringToInt(oldValue);\n	}\n}\n\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n//////////////////////////////////////////         DRAWING FUNCTION            ///////////////////////////////////////////////\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\npublic Action:PlayerLeave(Handle:event, const String:name[], bool:dontBroadcast)\n{\n	new clientid = GetEventInt(event,\"userid\"); \n	new client = GetClientOfUserId(clientid); \n	\n	g_ispunished[client] = false;\n	g_doesntwanttodraw[client] = false;\n	if (client == g_currentturn)\n	{\n		PrintToChatAll(\"Oh no! The current drawer has left! Ending the round.\");\n		if (g_timeleft > 6)\n		{\n			g_timeleft = 6;\n		}\n	}\n	g_wordguessed[client] = 0;\n	g_mapscores[client] = 0;\n	return Plugin_Continue;\n}\n\npublic OnClientAuthorized(client, const String:auth[])\n{\n	FindNewPlayerLocations(client);\n	return;\n}\n\npublic Action:EventPlayerDeath(Handle:event, const String:name[], bool:dontBroadcast) \n{\n	new clientid = GetEventInt(event,\"userid\"); \n	new client = GetClientOfUserId(clientid); \n	\n	if (client == g_currentturn)\n	{\n		PrintToChatAll(\"Oh no! The current drawer is gone! Ending the round.\");\n		if (g_timeleft > 6)\n		{\n			g_timeleft = 5;\n		}\n	}\n	g_wordguessed[client] = 0;\n	return Plugin_Handled;\n}\n\npublic Action:ChooseAWord(client, args)\n{\n	ChooseWord();\n	return Plugin_Handled;\n}\n\npublic Action:Help(client, args)\n{\n	PrintToChat(client, \"Each round a player is chosen to draw a certain word.\")\n	PrintToChat(client, \"If you are chosen to draw, you must draw what it tells you to in chat.\")\n	PrintToChat(client, \"If you are a guesser, you must guess what the drawer is drawing. Type your guess in chat.\")\n	PrintToChat(client, \"Available commands: !help, !menu, !score, !rank, !forfeit, !skip.\")\n	return Plugin_Handled;\n}\n\npublic Action:Skip(client, args)\n{\n	if (g_doesntwanttodraw[client])\n	{\n		PrintToChat(client, \"You are no longer skipping your turn.\");\n		g_doesntwanttodraw[client] = false;\n	}\n	else\n	{\n		PrintToChat(client, \"You are now skipping your turn.\");\n		g_doesntwanttodraw[client] = true;\n	}\n	return Plugin_Handled;\n}\n\nTraceEye(client, Float:pos[3])\n{\n	decl Float:vAngles[3], Float:vOrigin[3];\n	GetClientEyePosition(client, vOrigin);\n	GetClientEyeAngles(client, vAngles);\n	TR_TraceRayFilter(vOrigin, vAngles, MASK_SHOT, RayType_Infinite, TraceEntityFilterPlayer);\n	if(TR_DidHit(INVALID_HANDLE)) TR_GetEndPosition(pos, INVALID_HANDLE);\n	return;\n}\n\nstock DrawLaser(Float:start[3], Float:end[3])\n{\n	if (g_allowedtodraw)\n	{\n		new ent = CreateEntityByName(\"env_beam\");\n		g_notafk = true;\n		if (ent != -1)\n		{\n			TeleportEntity(ent, start, NULL_VECTOR, NULL_VECTOR);\n			SetEntityModel(ent, g_colorchosen);\n			SetEntPropVector(ent, Prop_Data, \"m_vecEndPos\", end);\n			DispatchKeyValue(ent, \"targetname\", \"beam\");\n			DispatchKeyValue(ent, \"rendercolor\", \"255 255 255\");\n			decl String:amt[32];\n			Format(amt, sizeof(amt), \"%i\", 100);\n			DispatchKeyValue(ent, \"renderamt\", amt);\n			DispatchSpawn(ent);\n			SetEntPropFloat(ent, Prop_Data, \"m_fWidth\", float(g_lasersize));\n			SetEntPropFloat(ent, Prop_Data, \"m_fEndWidth\", float(g_lasersize));\n			ActivateEntity(ent);\n			AcceptEntityInput(ent, \"TurnOn\");\n			PushArrayCell(g_lasers, ent);\n		}\n		else\n		{\n			PrintToChat(g_currentturn, \"You've hit the maximum drawing limit :(\"); // pretty sure this is actually impossible to hit in 60 seconds (that's 170 lasers per second...impossible)\n																				   // but it's better to be safe than sorry, so let's have it here. Perhaps if the map has thousands of entities? lol\n		}\n	}\n}\n\npublic Action:Timer_Pay(Handle:timer)\n{\n	// Code taken from Mitchel's LASERRRRRRRRRS plugin. All credits to him.\n	new Float:pos[3];\n	if (IsClientInGame(g_currentturn))\n	{\n		if (GetClientButtons(g_currentturn) & IN_ATTACK)\n		{\n			g_isDrawing = true;\n		}\n		else\n		{\n			g_isDrawing = false;\n			TraceEye(g_currentturn, pos);\n			g_lastlaser[0] = pos[0];\n			g_lastlaser[1] = pos[1];\n			g_lastlaser[2] = pos[2];\n		}\n		if (g_isDrawing)\n		{\n			TraceEye(g_currentturn, pos);\n			if(GetVectorDistance(pos, g_lastlaser) > 4.0)\n			{\n				DrawLaser(g_lastlaser, pos);\n				g_lastlaser[0] = pos[0];\n				g_lastlaser[1] = pos[1];\n				g_lastlaser[2] = pos[2];\n			}\n		}\n	}\n}\n\nEraseLasers()\n{\n	new size = GetArraySize(g_lasers);\n	if (size > 0)\n	{\n		for (new i = 0; i < size; i++)\n		{\n			new ent = GetArrayCell(g_lasers, i);\n			if (IsValidEdict(ent))\n			{\n				AcceptEntityInput(ent, \"Kill\");\n			}\n		}\n		ClearArray(g_lasers);\n	}\n}\n\npublic Action:PDrawLaser(client, args)\n{\n	// Code taken from Mitchel's LASERRRRRRRRRS plugin. All credits to him.\n	if (client == g_currentturn)\n	{\n		TraceEye(client, g_lastlaser);\n		g_isDrawing = true;\n	}\n	return Plugin_Handled;\n}\n\npublic bool:TraceEntityFilterPlayer(entity, contentsMask)\n{\n	return (entity > GetMaxClients() || !entity);\n}\n\nResetCurrentlyPlaying()\n{\n	for (new i = 1; i < MaxClients; i++)\n	{\n		g_players_playing[i] = false;\n		g_wordguessed[i] = 0;\n	}\n	g_numplaying = 0;\n}\n\nNextPersonsTurn()\n{\n	new tempcurrent = g_currentturn + 1;\n	new bool:notfound = true;\n	new counter = 0;\n	while(notfound)\n	{\n		if (tempcurrent == g_currentturn)\n		{\n			return tempcurrent; // if tempcurrent is equal to currentturn, then we've looped through all players, meaning there is only one person in the game\n		}\n		if (counter > 100) // failsafe incase we head into infinite loop\n		{\n			return g_currentturn;\n		}\n		if (tempcurrent > MaxClients)\n		{\n			tempcurrent = 1;\n		}\n		if (g_players_playing[tempcurrent])\n		{\n			if (!g_ispunished[tempcurrent]) // if an admin didn't punish this player, let's accept them for the current turn\n			{\n				if (!g_doesntwanttodraw[tempcurrent])\n				{\n					g_currentturn = tempcurrent;\n					return g_currentturn;\n				}\n			}\n		}\n		tempcurrent = tempcurrent + 1;\n		counter = counter + 1;\n	}\n	return g_currentturn; // will never actually make it here, but compiler warnings....\n}\n\nbool:CheckRepeat(number)\n{\n	new bool:found = false;\n	for (new i = 0; i < g_amountrepeats; i++)\n	{\n		if (g_recentlydone[i] == number)\n		{\n			found = true;\n		}\n	}\n	return found;\n}\n\nChooseWord()\n{\n	new random;\n	do\n	{\n		random = GetRandomInt(0, GetArraySize(g_wordlist)-1); // it must be size-1 or else we'll be larger then the array! that will crash the server, bad bad bad\n	} while (CheckRepeat(random))\n	\n	GetArrayString(g_wordlist, random, g_word, sizeof(g_word));\n	g_recentlydone[g_currentposition] = random;\n	g_currentposition = g_currentposition + 1;\n	if (g_currentposition == 100)\n	{\n		g_currentposition = 0;\n	}\n	\n	// Now we have the word that we're using, let's check if it's a word that contains more then one word, like \"baseball bat\"\n	\n	for (new i = 0; i < strlen(g_word); i++)\n	{\n		if (g_word[i] == ' ')\n		{\n			//g_ismoreoneword = true;\n			g_wordhint[i] = true; // since this will be a space, we want to show that to the players by default\n			g_numspaces = g_numspaces + 1;\n		}\n	}\n}\n\npublic Action:PrintTimer(Handle:timer)\n{\n	if (g_printtime == 1)\n	{\n		PrintCenterTextAll(\"Game begins in 5\");\n	}\n	else if (g_printtime == 2)\n	{\n		PrintCenterTextAll(\"Game begins in 4\");\n	}\n	else if (g_printtime == 3)\n	{\n		PrintCenterTextAll(\"Game begins in 3\");\n	}\n	else if (g_printtime == 4)\n	{\n		PrintCenterTextAll(\"Game begins in 2\");\n	}\n	else if (g_printtime == 5)\n	{\n		PrintCenterTextAll(\"Game begins in 1\");\n		EraseLasers(); // we erase the lasers here so people have time to look at the picture after the round is over\n		g_allowedtodraw = true;\n		MainMenu(g_currentturn);\n	}\n	else\n	{\n		PrintCenterTextAll(\"Game starting!\");\n		return Plugin_Stop;\n	}\n	g_printtime = g_printtime + 1;\n	return Plugin_Continue;\n}\n\nPrintSetupInfoToPlayers(client)\n{\n	decl String:playername[64];\n	GetClientName(client, playername, sizeof(playername));\n	CPrintToChatAll(\"The current drawer is {green}%s\", playername);\n	for (new i = 1; i < MaxClients; i++)\n	{\n		if (IsClientInGame(i))\n		{\n			if (g_players_playing[i])\n			{\n				if (client == i)\n				{\n					PrintToChat(i, \"If you close the menu, type !menu at any time to bring it back!\");\n					CPrintToChat(i, \"YOUR WORD: {green}%s.\", g_word);\n				}\n			}\n		}\n	}\n	CreateTimer(1.0, PrintTimer, _,TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE)\n}\n\nSetHint()\n{\n	new length = strlen(g_word)-1;\n	if (g_numhints < length)\n	{\n		new random = GetRandomInt(0, strlen(g_word)-1);\n		if (!g_wordhint[random])\n		{\n			//PrintToChatAll(\"Gave out first hint\");\n			g_wordhint[random] = true;\n		}\n		else\n		{\n			do // I've actually used a do{}while loop in a useful way, I'M ON A ROLL! :D\n			{\n				random = GetRandomInt(0, length);\n			} while (g_wordhint[random])\n			g_wordhint[random] = true;\n		}\n		g_numhints = g_numhints + 1;\n	}\n}\n\nUpdateHintAndPrint()\n{\n	// Time Left: \n	new String:timeleft[3]; timeleft[0] = '\\0';\n	IntToString(g_timeleft, timeleft, sizeof(timeleft));\n	// \\nHint: \n	new String:hint[32]; hint[0] = '\\0';\n	// \\n\n	new String:length[64]; length[0] = '\\0';\n	// \\n%i Words Total, g_numspaces+1);\n	\n	if (g_timeleft <= 50) // After 50 seconds, we print out what the word looks like. Ie if the word was \"test\", it would show _ _ _ _.\n	{\n		if ((g_timeleft == 35) || (g_timeleft == 40)) // if the word is reaaallllyyy long, even more hints!\n		{\n			if ((strlen(g_word)-g_numspaces) > 10) // we subtract g_numspaces becase we want to know how many actual letters are in the word, the spaces are given by default\n			{\n				SetHint();\n			}\n		}\n		\n		if (g_timeleft == 50)\n		{\n			if (IsClientInGame(g_currentturn))\n			{\n				if (!g_notafk) // if they're afk, give them a heads up\n				{\n					PrintToChat(g_currentturn, \"You have 10 seconds to begin drawing.\");\n				}\n			}\n		}\n		\n		if (g_timeleft == 40) // bad style since we check for 30 twice...oh well...\n		{\n			if (!g_notafk) // if they're still afk, boot them off :(\n			{\n				AfkEnd();\n			}\n		}\n		\n		if ((g_timeleft == 30) || (g_timeleft == 25)) // if the word is longer then normal, we give the players extra hints\n		{\n			if ((strlen(g_word)-g_numspaces) > 7)\n			{\n				SetHint();\n			}\n		}\n		\n		if ((g_timeleft == 20)|| (g_timeleft == 15) || (g_timeleft == 10) || (g_timeleft == 5)) // When it's at these values, that's when we know its time to update\n		{\n			SetHint();\n		}	\n		\n		// We build the hint here\n		for (new i = 0; i < strlen(g_word); i++) \n		{\n			if (g_wordhint[i])\n			{\n				hint[i] = g_word[i];\n			}\n			else\n			{\n				hint[i] = '_';\n			}\n		}\n		hint[strlen(g_word)] = '\\0'; // make sure it's null terminated so we can use strcat to append our timeleft in the round\n		\n		if (g_numspaces == 0) // if the number of spaces is 0, then we know its a single word and we can just count up the actual length of the word\n		{\n			Format(length, sizeof(length), \"\\n%i Letters\", strlen(g_word));\n		}\n		else // if it's not 0, then we must count up the length between spaces\n		{\n			decl String:templength[32]; templength[0] = '\\0';\n			new counter = 0;\n			for (new i = 0; i < strlen(g_word); i++)\n			{\n				if (g_word[i] != ' ')\n				{\n					counter = counter + 1;\n				}\n				else\n				{\n					Format(templength, sizeof(templength), \"%i letters, \", counter);\n					StrCat(length, sizeof(length), templength);\n					counter = 0;\n				}\n			}\n			// since there wont be a space at the end, we must manually add the last word amount :D\n			Format(templength, sizeof(templength), \"%i letters\", counter);\n			StrCat(length, sizeof(length), templength);\n		}\n	}\n	\n	// combine them into giant message :D\n	// i have no clue why, but if i decl these, it completely screws up hint box. while i'd rather not use new on big strings, it works, so i'll take it\n	decl String:message[192]; message[0] = '\\0';\n	decl String:messagedrawer[192]; messagedrawer[0] = '\\0';\n	\n	// if the timeleft is less than 50, then we want to start printing hints as well. if it's not, then we don't want to include hints\n	if (g_timeleft <= 50)\n	{\n		if (g_numspaces == 0) // for the default word list, it has higher chance of being 0, so lets just check that first\n		{\n			Format(message, sizeof(message), \"Time Left: %s\\nHint: %s%s\", timeleft, hint, length);\n			Format(messagedrawer, sizeof(messagedrawer), \"Time Left: %s\\nHint: %s%s\\nYour Word: %s\", timeleft, hint, length, g_word);\n		}\n		else\n		{\n			Format(message, sizeof(message), \"Time Left: %s\\nHint: %s\\n%s\\n%i Words Total\", timeleft, hint, length, g_numspaces+1);\n			Format(messagedrawer, sizeof(messagedrawer), \"Time Left: %s\\nHint: %s\\n%s\\n%i Words Total\\nYour Word: %s\", timeleft, hint, length, g_numspaces+1, g_word);\n		}\n	}\n	else\n	{\n		Format(message, sizeof(message), \"Time Left: %s\", timeleft);\n		if (g_numspaces == 0)\n		{\n			Format(messagedrawer, sizeof(messagedrawer), \"Time Left: %s\\nYour Word: %s\", timeleft, g_word);\n		}\n		else\n		{\n			Format(messagedrawer, sizeof(messagedrawer), \"Time Left: %s%s\\nYour Word: %s\", timeleft, length, g_word);\n		}\n	}\n	\n	// Print it off to everyone :D\n	for (new i = 1; i < MaxClients; i++)\n	{\n		if (IsClientInGame(i))\n		{\n			if (i != g_currentturn)\n			{\n				PrintHintText(i, message);\n			}\n			else\n			{\n				PrintHintText(i, messagedrawer);\n			}\n		}\n	}\n}\n\nTeleportToLocations()\n{\n	// if the map supporters teleporters, teleport people, otherwise we'll just ignore this\n	if (g_teleportersonmap)\n	{\n		for (new i = 1; i < MaxClients; i++)\n		{\n			if (IsClientInGame(i))\n			{\n				if (g_players_playing[i])\n				{\n					if (i == g_currentturn)\n					{\n						TeleportEntity(i, g_drawerlocation, NULL_VECTOR, NULL_VECTOR);\n					}\n					else\n					{\n						TeleportEntity(i, g_guesserlocation, NULL_VECTOR, NULL_VECTOR);\n					}\n				}\n			}\n		}\n	}\n}\n\nbool:IsSomeonePlaying()\n{\n	for (new i = 1; i < MaxClients; i++)\n	{\n		if (IsClientInGame(i))\n		{\n			if (IsPlayerAlive(i))\n			{\n				return true;\n			}\n		}\n	}\n	return false;\n}\n\npublic Action:UpdateRound(Handle:timer)\n{\n	if (!g_roundstarted)\n	{\n		if (IsSomeonePlaying())\n		{\n			ResetCurrentlyPlaying();\n			new bool:someoneplaying = SetupRound();\n			\n			if (someoneplaying)\n			{\n				g_printtime = 1;\n				new playersturn = NextPersonsTurn();\n				ChooseWord();\n				TeleportToLocations();\n				PrintSetupInfoToPlayers(playersturn);\n				g_roundstarted = true;\n			}\n		}\n	}\n	else\n	{\n		g_timeleft = g_timeleft - 1;\n		if (g_timeleft <= 60)\n		{\n			if (g_timeleft > 0)\n			{\n				UpdateHintAndPrint();\n			}\n			else\n			{\n				if (g_istherewinner)\n				{\n					new String:winnernames[256]; winnernames[0] = '\\0'; // i had trouble with just setting the text, so i abuse StrCat lol, bad style but works\n					//StrCat(winnernames, sizeof(winnernames), \"The round is over! The word was: \");\n					//StrCat(winnernames, sizeof(winnernames), g_word);\n					StrCat(winnernames, sizeof(winnernames), \"The winner(s) are: \");\n					for (new i = 1; i < MaxClients; i++)\n					{\n						if (g_wordguessed[i] > 0)\n						{\n							if (IsClientInGame(i))\n							{\n								new points = GetArrayCell(g_playerscores, g_playerpoints[i]+1)\n								points = points + 4 - g_wordguessed[i]\n								g_mapscores[i] = g_mapscores[i] + 4 - g_wordguessed[i];\n								SetEntProp(i, Prop_Data, \"m_iFrags\", g_mapscores[i]);\n								SetEntProp(i, Prop_Data, \"m_iDeaths\", 0);\n								SetArrayCell(g_playerscores, g_playerpoints[i]+1, points);\n								//g_playerpoints[i] = 4 - g_wordguessed[i]; // gives them correct amount of points\n								decl String:playername[64];\n								GetClientName(i, playername, sizeof(playername));\n								StrCat(winnernames, sizeof(winnernames), playername);\n								StrCat(winnernames, sizeof(winnernames), \",\");\n							}\n						}\n					}\n					winnernames[strlen(winnernames)-1] = '\\0';\n					PrintToChatAll(winnernames);\n					\n					g_roundstarted = false;\n					\n					for (new i = 1; i < MaxClients; i++)\n					{\n						if (IsClientInGame(i))\n						{\n							if (g_wordguessed[i] == 1)\n							{\n								CPrintToChat(i, \"You came in first place! You gained {green}3 Points\");\n							}\n							else if (g_wordguessed[i] == 2)\n							{\n								CPrintToChat(i, \"Your drawing was correctly guessed! You gained {green}2 Points\");\n							}\n							else if (g_wordguessed[i] == 3)\n							{\n								CPrintToChat(i, \"You weren't the first person to guess the word. You gained {green}1 Point\");\n							}\n						}\n					}\n					CPrintToChatAll(\"The word was: {green}%s\", g_word);\n				}\n				else\n				{\n					CPrintToChatAll(\"The round is over! There are no winners! The word was: {green}%s.\", g_word);\n				}\n				new timeleft;\n				GetMapTimeLeft(timeleft);\n				\n				if (timeleft <= 1)\n				{\n					PrintToChatAll(\"The game is over!\");\n					\n					// Once the time is over, then we want to kill everybody which will force a map change.\n					for (new i = 1; i < MaxClients; i++)\n					{\n						if (IsClientInGame(i))\n						{\n							if (IsPlayerAlive(i))\n							{\n								ForcePlayerSuicide(i);\n							}\n						}\n					}\n					EraseLasers();\n				}\n				g_allowedtodraw = false; // people could potentially draw after the game ended, so let's stop that\n				g_roundstarted = false;\n			}\n		}\n	}\n}\n\nbool:CheckAndDealWithText(client)\n{\n	if (client != g_currentturn)\n	{\n		if (g_players_playing[client])\n		{\n			if (g_wordguessed[client] == 0)\n			{\n				if (g_allowedtodraw)\n				{\n					decl String:playername[64];\n					GetClientName(client, playername, sizeof(playername));\n					PrintToChatAll(\"%s Has guessed the word!\", playername);\n					\n					if (!g_firstguess)\n					{\n						if (g_timeleft > 6)\n						{\n							g_timeleft = 6; // someone has guessed the word, end the round quickly\n						}\n						g_wordguessed[client] = 1;\n						g_wordguessed[g_currentturn] = 2;\n						g_firstguess = true;\n					}\n					else\n					{\n						g_wordguessed[client] = 3;\n					}\n					g_istherewinner = true;\n					return true;\n				}\n			}\n		}\n		else\n		{\n			PrintToChat(client, \"You joined late and aren't playing this round. Wait until next round!\");\n		}\n	}\n	else\n	{\n		return true;\n	}\n	return false;\n}\n\npublic Action:Command_Say(client, const String:command[], argc)\n{\n	decl String:text[192]; text[0]='\\0';\n	GetCmdArgString(text, sizeof(text)) // gets the current message\n	\n	new startidx = 0\n	if (text[0] == '\"')\n	{\n		startidx = 1\n		/* Strip the ending quote, if there is one */\n		// taken off the sourcemod wiki\n		new len = strlen(text);\n		if (text[len-1] == '\"')\n		{\n			text[len-1] = '\\0'\n		}\n	}\n	if (StrEqual(text[startidx], \"!forfeit\")) // if they say !forfeit, then end their round\n	{\n		if (client == g_currentturn)\n		{\n			Forfeit();\n		}\n	}\n	else if (StrEqual(text[startidx], \"rank\")) // if they say !forfeit, then end their round\n	{\n		DisplayRank(client);\n	}\n	else if (StrEqual(text[startidx], \"top10\")) // if they say !forfeit, then end their round\n	{\n		Top10(client);\n	}\n	else if (StrEqual(text[startidx], \"help\"))\n	{\n		Help(client, client);\n	}\n	else if (StrEqual(text[startidx], \"skip\"))\n	{\n		Skip(client, client);\n	}\n	else if(StrEqual(text[startidx], g_word, false)) // first we check if the word is literally equal, ie if the word is \"horse\", and they guess \"horse\"\n	{\n		if (CheckAndDealWithText(client))\n		{\n			return Plugin_Handled;\n		}\n		return Plugin_Continue;\n	}\n	else if (text[strlen(text[startidx])] == 's') // check if there is a minor typo, ie if the word is \"horse\", and they guess \"horses\", we still want to accept that as correct\n	{\n		text[strlen(text[startidx])] = '\\0'; // to accept it as correct, we chop off the last letter (ie the s), and check if it's equal again\n		if(StrEqual(text[startidx], g_word, false))\n		{\n			if (CheckAndDealWithText(client))\n			{\n				return Plugin_Handled;\n			}\n			return Plugin_Continue;\n		}\n	}\n	else // if we made it here, then there is no s at the end. So let's put one there and see if its correct. (ie they guess \"horse\", and the word is \"horses\"), we also want to accept that\n	{\n		new length = strlen(text[startidx]); // since we will be removing the \\0, we must get the length here, else we would crash when trying to call strlen again :[\n		text[length+1] = 's';\n		text[length+2] = '\\0'; \n		if(StrEqual(text[startidx], g_word, false)) // okay we've added the s, let's check if it's correct now\n		{\n			if (CheckAndDealWithText(client))\n			{\n				return Plugin_Handled;\n			}\n			return Plugin_Continue;\n		}\n	}\n	\n	// all preliminary checking is done.. if we reached this point, it's obviously not correct (or their spelling is bad), oh well... pass on the message as usual\n	return Plugin_Continue;\n}\n\npublic Action:Command_Jointeam(client, const String:command[], argc)\n{\n	decl String:text[192]; text[0] = '\\0';\n	GetCmdArgString(text, sizeof(text));\n \n	new startidx = 0\n	if (text[0] == '\"')\n	{\n		startidx = 1\n		/* Strip the ending quote, if there is one */\n		new len = strlen(text);\n		if (text[len-1] == '\"')\n		{\n			text[len-1] = '\\0'\n		}\n	}\n	//if ((StrEqual(text[startidx], \"2\")) || (StrEqual(text[startidx], \"3\")) || (StrEqual(text[startidx], \"0\"))) // check for t, ct, and auto assign respectively\n	if (!StrEqual(text[startidx], \"1\"))\n	{\n		g_players_playing[client] = true;\n		g_numplaying = g_numplaying + 1;\n	}\n	else\n	{\n		g_players_playing[client] = false;\n	}\n	return Plugin_Continue;\n}\n\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n//////////////////////////////////////////                ADMIN                ///////////////////////////////////////////////\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\npublic Action:Command_DisableDraw(client, args)\n{\n	\n	if (args != 1)\n	{\n		ReplyToCommand(client, \"[SM] Usage: sm_disabledraw <name|#userid>\");\n		return Plugin_Handled;	\n	}	\n	\n	decl String:starget[64]; starget[0] = '\\0';\n	GetCmdArg(1, starget, sizeof(starget));\n	\n	new target = FindTarget(client, starget);\n	if (target == -1)\n	{\n		return Plugin_Handled;\n	}\n	\n	if (!g_ispunished[target]) // if they're not punished, let's punish them\n	{\n		g_ispunished[target] = true;\n		\n		if (target == g_currentturn) // if the person we're punishing is currently drawing, let's end their turn. rage :[\n		{\n			decl String:playername[64];\n			GetClientName(g_currentturn, playername, sizeof(playername));\n			PrintToChatAll(\"%s is not allowed to draw anymore. Ending the round.\", playername);\n			g_timeleft = 2;\n			g_alreadyforfeited = true;\n		}\n	}\n	else // if they're already punished, lets unpunish them\n	{\n		decl String:playername[64];\n		GetClientName(g_currentturn, playername, sizeof(playername));\n		PrintToChatAll(\"%s is allowed to draw again.\", playername);\n		g_ispunished[target] = false;\n	}\n	\n	return Plugin_Handled;\n}\n\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n//////////////////////////////////////////                MENUS                ///////////////////////////////////////////////\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\nAfkEnd()\n{\n	// afk kill is identical to forfeit...except we print out different info.\n	decl String:playername[64];\n	GetClientName(g_currentturn, playername, sizeof(playername));\n	PrintToChatAll(\"%s is afk. Ending the round.\", playername);\n	g_timeleft = 2;\n	g_alreadyforfeited = true;\n	ChangeClientTeam(g_currentturn, 1);\n}\n\nForfeit()\n{\n	if (!g_alreadyforfeited)\n	{\n		decl String:playername[64];\n		GetClientName(g_currentturn, playername, sizeof(playername));\n		PrintToChatAll(\"%s has given up!\", playername);\n		if (g_timeleft > 6)\n		{\n			g_timeleft = 6;\n		}\n		g_alreadyforfeited = true;\n	}\n}\n\npublic Action:MenuCheck(client, args)\n{\n	if (client == g_currentturn)\n	{\n		MainMenu(client);\n	}\n	return Plugin_Handled;\n}\n\npublic Action:ScoreCheck(client, args)\n{\n	ScoreMenu(client);\n	return Plugin_Handled;\n}\n\npublic Action:Top10Check(client, args)\n{\n	Top10(client);\n	return Plugin_Handled;\n}\n\nTop10(client)\n{\n	BubbleSortScores();\n	// while technically this should go under the \"RANK\" section, i feel its more fitting here...cant make it under both!\n	new Handle:menu = CreateMenu(ScoreMenuHandler);\n	SetMenuTitle(menu, \"Top10\");\n	decl String:name[32];\n	new score;\n	decl String:format[64];\n	new size = GetArraySize(g_playerscores);\n	new endpoint;\n	\n	// if there's less then 10 people, let's not try to add 10 people, since it'll crash the server. only add as many as we can\n	if (size < 30) // the reason it's 20 is because each player has 2 parts, steamid then points\n	{\n		endpoint = size;\n	}\n	else\n	{\n		endpoint = 30;\n	}\n	\n	for (new i = size-3; i > size-endpoint-3; i=i-3)\n	{\n		GetArrayString(g_playerscores, i+2, name, sizeof(name));\n		score = GetArrayCell(g_playerscores, i+1);\n		Format(format, sizeof(format), \"%s %i\", name, score); // size-i is the current index (ie rank 1, rank 2, rank 3...etc)\n		AddMenuItem(menu, name, format);\n	}\n	SetMenuExitButton(menu, true);\n	DisplayMenu(menu, client, 20);\n}\n\nScoreMenu(client)\n{\n	new Handle:menu = CreateMenu(ScoreMenuHandler);\n	SetMenuTitle(menu, \"Score\");\n	decl String:name[32];\n	new score;\n	decl String:format[64];\n	for (new i = 1; i < MaxClients; i++)\n	{\n		if (IsClientInGame(client))\n		{\n			if (g_players_playing[i])\n			{\n				GetClientName(i, name, sizeof(name));\n				score = GetArrayCell(g_playerscores, g_playerpoints[i]+1);\n				Format(format, sizeof(format), \"%s %i\", name, score);\n				AddMenuItem(menu, name, format);\n			}\n		}\n	}\n	SetMenuExitButton(menu, true);\n	DisplayMenu(menu, client, 20);\n}\n\nMainMenu(client)\n{\n	new Handle:menu = CreateMenu(MainMenuHandler);\n	SetMenuTitle(menu, \"Drawing Menu\");\n	AddMenuItem(menu, \"size\", \"Pen Size\");\n	AddMenuItem(menu, \"color\", \"Pen Color\");\n	AddMenuItem(menu, \"undo\", \"Undo\");\n	AddMenuItem(menu, \"forfeit\", \"Forfeit\");\n	AddMenuItem(menu, \"eraseall\", \"Erase All\");\n	SetMenuExitButton(menu, true);\n	DisplayMenu(menu, client, 60);\n}\n\nSizeMenu(client)\n{\n	new Handle:menu = CreateMenu(SizeMenuHandler);\n	SetMenuTitle(menu, \"Size\");\n	AddMenuItem(menu, \"1\", \"1\");\n	AddMenuItem(menu, \"2\", \"2\");\n	AddMenuItem(menu, \"3\", \"3\");\n	SetMenuExitBackButton(menu, true);\n	SetMenuExitButton(menu, true);\n	DisplayMenu(menu, client, 60);\n}\n\nColorMenu(client)\n{\n	new Handle:menu = CreateMenu(ColorMenuHandler);\n	SetMenuTitle(menu, \"Color\");\n	AddMenuItem(menu, \"grey\", \"Grey\");\n	AddMenuItem(menu, \"black\", \"Black\");\n	AddMenuItem(menu, \"white\", \"White\");\n	AddMenuItem(menu, \"red\", \"Red\");\n	AddMenuItem(menu, \"green\", \"Green\");\n	AddMenuItem(menu, \"blue\", \"Blue\");\n	AddMenuItem(menu, \"yellow\", \"Yellow\");\n	AddMenuItem(menu, \"orange\", \"Orange\");\n	AddMenuItem(menu, \"purple\", \"Purple\");\n	AddMenuItem(menu, \"pink\", \"Pink\");\n	AddMenuItem(menu, \"brown\", \"Brown\");\n	SetMenuExitButton(menu, true);\n	SetMenuExitBackButton(menu, true);\n	DisplayMenu(menu, client, 60);\n}\n\nUndo()\n{\n	new size = GetArraySize(g_lasers) - 1;\n	\n	if (size < 0)\n	{\n		return;\n	}\n	new ent = GetArrayCell(g_lasers, size);\n	RemoveFromArray(g_lasers, size);\n	\n	if (IsValidEdict(ent))\n	{\n		AcceptEntityInput(ent, \"Kill\"); \n	}\n}\npublic ScoreMenuHandler(Handle:menu, MenuAction:action, client, param2)\n{\n	if (action == MenuAction_Cancel)\n    {\n        if (param2 == MenuCancel_ExitBack)\n        {\n            ScoreMenu(client);\n        }\n    }\n	else if (action == MenuAction_End)\n    {\n        CloseHandle(menu);\n    }\n}\n\npublic ColorMenuHandler(Handle:menu, MenuAction:action, client, param2)\n{\n	if (client == g_currentturn)\n	{\n		if (action == MenuAction_Select)\n		{\n			if (param2 == 0) // grey\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/grey.vmt\");\n			}\n			else if (param2 == 1) // black\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/black.vmt\");\n			}\n			else if (param2 == 2) // white\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/white.vmt\");\n			}\n			else if (param2 == 3) // red\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/red.vmt\");\n			}\n			else if (param2 == 4) // green\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/green.vmt\");\n			}\n			else if (param2 == 5) // blue\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/blue.vmt\");\n			}\n			else if (param2 == 6) // yellow\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/yellow.vmt\");\n			}\n			else if (param2 == 7) // orange\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/orange.vmt\");\n			}\n			else if (param2 == 8) // purple\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/purple.vmt\");\n			}\n			else if (param2 == 9) // pink\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/pink.vmt\");\n			}\n			else if (param2 == 10) // brown\n			{\n				strcopy(g_colorchosen, sizeof(g_colorchosen), \"draw/brown.vmt\");\n			}\n			ColorMenu(client);\n		}\n		if (action == MenuAction_Cancel)\n		{\n			if (param2 == MenuCancel_ExitBack)\n			{\n				MainMenu(client);\n			}\n		}\n		else if (action == MenuAction_End)\n		{\n			CloseHandle(menu);\n		}\n	}\n}\n\npublic SizeMenuHandler(Handle:menu, MenuAction:action, client, param2)\n{\n	if (client == g_currentturn)\n	{\n		if (action == MenuAction_Select)\n		{\n			if (param2 == 0) // size == 1\n			{\n				g_lasersize = 1;\n			}\n			else if (param2 == 1) // size == 2\n			{\n				g_lasersize = 2;\n			}\n			else if (param2 == 2) // size == 3\n			{\n				g_lasersize = 3;\n			}\n			SizeMenu(client);\n		}\n		\n		if (action == MenuAction_Cancel)\n		{\n			if (param2 == MenuCancel_ExitBack)\n			{\n				MainMenu(client);\n			}\n		}\n		else if (action == MenuAction_End)\n		{\n			CloseHandle(menu);\n		}\n	}\n}\n\npublic MainMenuHandler(Handle:menu, MenuAction:action, client, buttonnum)\n{\n	if (client == g_currentturn)\n	{\n		new bool:stayopen = true;\n		if (action == MenuAction_Select)\n		{\n			if (buttonnum == 0)\n			{\n				stayopen = false;\n				SizeMenu(client);\n			}\n			else if (buttonnum == 1)\n			{\n				stayopen = false;\n				ColorMenu(client);\n			}\n			else if (buttonnum == 2)\n			{\n				Undo();\n			}\n			else if (buttonnum == 3)\n			{\n				Forfeit();\n			}\n			else if (buttonnum == 4)\n			{\n				EraseLasers();\n			}\n			\n			if (stayopen)\n			{\n				MainMenu(client);\n			}\n		}\n		if (action == MenuAction_End)\n		{\n			CloseHandle(menu);\n		}\n	}\n}\n\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n//////////////////////////////////////////                RANK                ////////////////////////////////////////////////\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n// We need to be able sort our array of points to find whos number 1 etc..\n// Chose bubble sort because it's easy to implement, thats really it lol. it may not be the fastest, but it sure was the fastest to write! hah! Mergesort would blow my mind...\nBubbleSortScores()\n{\n	if (g_playerscores != INVALID_HANDLE)\n	{\n		new size = GetArraySize(g_playerscores);\n		// if there's nobody in the array, why would we sort it? lol\n		if (size > 0)\n		{\n			new bool:swapped = false;\n			decl String:jsteamid[32];\n			decl String:jsteamid1[32];\n			decl String:jname[32];\n			decl String:jname1[32];\n			// we increment by 2 because of the way the array is set up. first is steamid, then their score\n			for (new i = 0; i <= size-6; i=i+3)\n			{\n				for (new j = 0; j <= size-6; j=j+3)\n				{\n					new jscore = GetArrayCell(g_playerscores, j+1);\n					new jscore1 = GetArrayCell(g_playerscores, j+4);\n					\n					if (jscore > jscore1) // if A[j] > A[j + 1}\n					{\n						// put both in buffers\n						GetArrayString(g_playerscores, j, jsteamid, sizeof(jsteamid));\n						GetArrayString(g_playerscores, j+3, jsteamid1, sizeof(jsteamid1));\n						\n						GetArrayString(g_playerscores, j+2, jname, sizeof(jname));\n						GetArrayString(g_playerscores, j+5, jname1, sizeof(jname1));\n						\n						// A[j] = A[j + 1}\n						SetArrayString(g_playerscores, j, jsteamid1);\n						SetArrayCell(g_playerscores, j+1, jscore1);\n						SetArrayString(g_playerscores, j+2, jname1);\n						\n						// A[j + 1] = A[j]\n						SetArrayString(g_playerscores, j+3, jsteamid);\n						SetArrayCell(g_playerscores, j+4, jscore);\n						SetArrayString(g_playerscores, j+5, jname);\n						swapped = true;\n					}\n				}\n				if (!swapped)\n				{\n					break;\n				}\n			}\n			\n			// if you remember, we store the players location in the array for simplicity, so now that we've sorted everyone, we must find the players again! (all stored in g_playerpoints)\n			// but, since every players location (may) have changed, we must loop through all players and make sure we got them all!\n			for (new i = 1; i < MaxClients; i++)\n			{\n				if (IsClientInGame(i))\n				{\n					FindNewPlayerLocations(i);\n				}\n			}\n		}\n	}\n}\n\nFindNewPlayerLocations(client)\n{\n	if (g_playerscores != INVALID_HANDLE)\n	{\n		decl String:auth[32];\n		GetClientAuthString(client, auth, sizeof(auth));\n		new size = GetArraySize(g_playerscores);\n		//new String:steamid[32];\n		decl String:currentid[32];\n		//GetClientAuthString(client, steamid, sizeof(steamid));\n		\n		for (new i = 0; i < size; i=i+3)\n		{\n			GetArrayString(g_playerscores, i, currentid, sizeof(currentid));\n			if (strcmp(auth, currentid, true) == 0)\n			{\n				g_playerpoints[client] = i;\n				decl String:playername[64];\n				GetClientName(client, playername, sizeof(playername));\n				SetArrayString(g_playerscores, i+2, playername);\n				return;\n			}\n		}\n		// if it made it this far, then we know the person is a NEWBY!!! :D\n		// lets make that person a new spot in the array, oh boy\n		\n		new index = PushArrayString(g_playerscores, auth);\n		PushArrayCell(g_playerscores, 0);\n		\n		decl String:playername[64];\n		GetClientName(client, playername, sizeof(playername));\n		PushArrayString(g_playerscores, playername);\n		g_playerpoints[client] = index;\n	}\n	return;\n}\n\nDisplayRank(client)\n{\n	// Remember how we stored the players position within the giant array in g_playerpoints? Well if you didn't now you do lol. We can directly get their rank using that! Woohoo!\n	// The #1 player is stored at the \"top\" of the array (highest number), so let's use that...\n	BubbleSortScores();\n	new size = GetArraySize(g_playerscores)/3; // The array will always divisible by three, since it's made from three parts (steamid is one index, points is next, playername last)\n	new rank = size - (g_playerpoints[client]/3);\n	new points = GetArrayCell(g_playerscores, g_playerpoints[client]+1); // we need the +1 because g_playerspoints[client] points first to their steamid, and next index is their points!\n	decl String:playername[64];\n	GetClientName(client, playername, sizeof(playername));\n	\n	for (new i = 1; i < MaxClients; i++)\n	{\n		if (IsClientInGame(i))\n		{\n			if (i == client)\n			{\n				PrintToChat(i, \"You are ranked %i out of %i with %i points.\", rank, size, points); // Bam! It's that easy.\n			}\n			else\n			{\n				PrintToChat(i, \"%s is ranked %i out of %i with %i points.\", playername, rank, size, points);\n			}\n		}\n	}\n}\n\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n//////////////////////////////////////////                DEBUG                ///////////////////////////////////////////////\n//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\npublic Action:GetIndex(client, args)\n{\n	// Prints out the location in the adt_array of a given player\n	PrintToConsole(client, \"%i\", g_playerpoints[client]);\n	return Plugin_Handled;\n}\n\npublic Action:GetScores(client, args)\n{\n	// Prints to console everyones scores\n	// WARNING: It will not send everyones if the array is too large\n	new size = GetArraySize(g_playerscores);\n	decl String:arraystring[32];\n	decl String:playername[64];\n	decl String:formated[64];\n	new arraycell;\n	for (new i = 0; i < size; i=i+3)\n	{\n		GetArrayString(g_playerscores, i, arraystring, sizeof(arraystring));\n		arraycell = GetArrayCell(g_playerscores, i+1);\n		GetArrayString(g_playerscores, i+2, playername, sizeof(playername));\n		Format(formated, sizeof(formated), \"%s %s %i\", arraystring, playername, arraycell);\n		PrintToConsole(client, \"%s\", formated);\n	}\n	return Plugin_Handled;\n}\n\npublic Action:PrintRecent(client, args)\n{\n	// Prints out the numerical value of the most recently used words\n	for (new i = 0; i < 100; i++)\n	{\n		PrintToConsole(client, \"%i\", g_recentlydone[i]);\n	}\n	return Plugin_Handled;\n}\n\npublic Action:FakeWin(client, args)\n{\n	// Wins the round immediately.\n	if (!g_firstguess)\n	{\n		g_wordguessed[client] = 1;\n		//g_wordguessed[g_currentturn] = 2;\n		g_firstguess = true;\n	}\n	else\n	{\n		g_wordguessed[client] = 3;\n	}\n	g_istherewinner = true;\n	return Plugin_Handled;\n}\n\npublic Action:Erase(client, args)\n{\n	// Prints out all entities class type\n	decl String:classname[64];\n	for (new i = 0; i < GetMaxEntities(); i++)\n	{\n		if(!IsValidEntity(i))\n		{\n			continue;\n		}\n		\n		GetEdictClassname(i,classname,sizeof(classname));\n		\n		PrintToConsole(client, \"%s\", classname);\n	}\n	return Plugin_Handled;\n}\n\npublic Action:HintCheck(client, args)\n{\n	// Prints out the hint\n	for (new i = 0; i < strlen(g_word); i++)\n	{\n		PrintToConsole(client, \"Letter %i is %b\", i, g_wordhint[i]);\n	}\n	return Plugin_Handled;\n}",
+			"file": "/C/Users/Alon/AppData/Local/Temp/7zOD57E.tmp/draw.sp",
+			"file_size": 52056,
+			"file_write_time": 130014491435268336,
+			"settings":
+			{
+				"buffer_size": 50286,
+				"line_ending": "Windows"
+			}
+		}
 	],
 	"build_system": "Packages/SourcePawn/SourcePawn.sublime-build",
 	"command_palette":
@@ -80,16 +139,33 @@
 	},
 	"file_history":
 	[
+		"/C/Users/Alon/Downloads/tf_rocket_multi (1).SP",
+		"/C/Users/Alon/Dropbox/upe/base/upe-core.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
+		"/C/Users/Alon/Downloads/ljstats.sp",
+		"/C/Users/Alon/Downloads/rockthemode.sp",
+		"/C/Users/Alon/Downloads/survive_credits.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
+		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-inventory.inc",
+		"/C/Users/Alon/AppData/Local/Temp/7zO5176.tmp/fragradio.sp",
+		"/C/Users/Alon/AppData/Local/Temp/7zO8E57.tmp/tazer.sp",
+		"/C/Users/Alon/Downloads/BlessCurse.sp",
+		"/C/Users/Alon/Downloads/PeriodicMessage.sp",
+		"/C/Users/Alon/Downloads/zprop.sp",
+		"/C/Users/Alon/Downloads/antistuck_noblock.sp",
+		"/C/Users/Alon/AppData/Local/Temp/7zODB12.tmp/configlist.sp",
+		"/C/Users/Alon/AppData/Local/Temp/7zOE87B.tmp/tazerfuncs.sp",
+		"/C/Users/Alon/Downloads/antistuck_noblock (1).sp",
+		"/C/Users/Alon/Downloads/jailbreakbox.sp",
+		"/C/Users/Alon/AppData/Local/Temp/7zOB6CE.tmp/tazerfuncs.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-logging.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-gifting.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-backend.inc",
 		"/C/Users/Alon/Documents/GitHub/store/translations/store.phrases.txt",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-refund.sp",
 		"/C/Users/Alon/Documents/GitHub/store/configs/store/gifting.cfg",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-backend.sp",
 		"/C/Users/Alon/Documents/GitHub/store/configs/store/refund.cfg",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-core.sp",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/store-distributor.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-inventory.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-loadout.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-shop.sp",
@@ -101,7 +177,6 @@
 		"/C/Users/Alon/Documents/GitHub/store/configs/store/sql-init-scripts/store.sql",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-core.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-refund",
-		"/C/Users/Alon/Documents/GitHub/store/scripting/include/store/store-inventory.inc",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-trails.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-equipment.sp",
 		"/C/Users/Alon/Documents/GitHub/store/scripting/store-skins.sp",
@@ -154,7 +229,7 @@
 	],
 	"find":
 	{
-		"height": 36.0
+		"height": 48.0
 	},
 	"find_in_files":
 	{
@@ -168,6 +243,15 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"EraseLasers",
+			"g_clock",
+			"UpdateRound",
+			"g_clock",
+			"CheckTrust",
+			"g_hTeam",
+			"IsClientValid",
+			"MaxClients",
+			"acquire_",
 			"printto",
 			"OpenChoosePlayerMenu",
 			"player",
@@ -286,16 +370,7 @@
 			"PrintToServer",
 			"g_itemTypeNameIndex",
 			"g_allPluginsLoaded",
-			"ConnectSQL",
-			"g_databaseInitialized",
-			"ReloadItemCache",
-			"g_itemTypeNamenIdex",
-			"Command_list",
-			"GetPluginInfo",
-			"Command_OpenInventory",
-			"Command_GetRegisteredItemTypes",
-			"Command_OpenInventory",
-			"g_itemTypeNameIndex\n"
+			"ConnectSQL"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -313,8 +388,198 @@
 	"groups":
 	[
 		{
+			"selected": 4,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "scripting/store-backend.sp",
+					"settings":
+					{
+						"buffer_size": 58072,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								23746,
+								23746
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 2982.0,
+						"translation.y": 10019.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/C/Users/Alon/Downloads/trusted.sp",
+					"settings":
+					{
+						"buffer_size": 9485,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1880,
+								1884
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 899.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/C/Users/Alon/Downloads/bhopcommands.sp",
+					"settings":
+					{
+						"buffer_size": 11881,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								11408,
+								11408
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 5175.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/C/Users/Alon/Downloads/bhopcommands (1).sp",
+					"settings":
+					{
+						"buffer_size": 11995,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4982,
+								4994
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 5220.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/C/Users/Alon/Downloads/bhopcommands (2).sp",
+					"settings":
+					{
+						"buffer_size": 11984,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7398,
+								8387
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 4135.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/C/Users/Alon/Downloads/HardCoreFriendlyFire.sp",
+					"settings":
+					{
+						"buffer_size": 3627,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3396,
+								3129
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1935.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/C/Users/Alon/AppData/Local/Temp/7zOD57E.tmp/draw.sp",
+					"settings":
+					{
+						"buffer_size": 50286,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6593,
+								6604
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SourcePawn/sourcepawn.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 2090.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
 			]
 		}
 	],
