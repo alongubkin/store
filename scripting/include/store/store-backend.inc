@@ -18,6 +18,13 @@
 functag Store_GetItemsCallback public(items[], count, any:data);
 functag Store_GetUserItemsCallback public(useritems[], bool:equipped[], useritemCount[], count, loadoutId, any:data);
 
+funcenum Store_ItemGetAttributesCallback 
+{
+	public(const String:itemName[], const String:attrs[]),
+	public(const String:itemName[], const String:attrs[], any:data)
+}
+
+
 functag Store_GetCreditsCallback public(credits, any:data);
 functag Store_GiveCreditsCallback public(accountId, any:data);
 
@@ -363,6 +370,16 @@ native bool:Store_IsItemTradeable(id);
  * @return True if refundable, false otherwise.
  */
 native bool:Store_IsItemRefundable(id);
+
+/** 
+ * Retrieves item attributes asynchronously.
+ *
+ * @param itemName			Item's name.
+ *
+ * @noreturn
+ */
+native Store_GetItemAttributes(const String:itemName[], Store_ItemGetAttributesCallback:callback = Store_ItemGetAttributesCallback:0, any:data = 0);
+native Store_WriteItemAttributes(const String:itemName[], const String:attrs[], Store_BuyItemCallback:callback = Store_BuyItemCallback:0, any:data = 0);
 
 /**
  * Retrieves loadouts from the database. 
@@ -785,10 +802,11 @@ public __pl_store_backend_SetNTVOptional()
 	MarkNativeAsOptional("Store_GetItemType");
 	MarkNativeAsOptional("Store_GetItemLoadoutSlot");
 	MarkNativeAsOptional("Store_GetItemPrice");
-	MarkNativeAsOptional("Store_GetItemAttributes");
 	MarkNativeAsOptional("Store_IsItemTradeable");
 	MarkNativeAsOptional("Store_IsItemBuyable");
 	MarkNativeAsOptional("Store_IsItemRefundable");	
+	MarkNativeAsOptional("Store_GetItemAttributes");
+	MarkNativeAsOptional("Store_WriteItemAttributes");
 
 	MarkNativeAsOptional("Store_GetUserItems");
 	MarkNativeAsOptional("Store_GetUserItemCount");
