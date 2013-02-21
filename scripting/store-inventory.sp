@@ -2,10 +2,10 @@
 
 #include <sourcemod>
 #include <store/store-core>
+#include <store/store-backend>
 #include <store/store-inventory>
 #include <store/store-logging>
 #include <store/store-loadout>
-#include <store/store-backend>
 
 new String:g_menuCommands[32][32];
 
@@ -538,7 +538,7 @@ public Native_CallItemAttrsCallback(Handle:plugin, params)
 
 	new Handle:pack = GetArrayCell(g_itemTypes, typeIndex);
 	ResetPack(pack);
-	
+
 	new Handle:callbackPlugin = Handle:ReadPackCell(pack);
 	
 	SetPackPosition(pack, 16);

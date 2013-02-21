@@ -88,6 +88,8 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_IsItemBuyable", Native_IsItemBuyable);
 	CreateNative("Store_IsItemTradeable", Native_IsItemTradeable);	
 	CreateNative("Store_IsItemRefundable", Native_IsItemRefundable);	
+	CreateNative("Store_GetItemAttributes", Native_GetItemAttributes);	
+	CreateNative("Store_WriteItemAttributes", Native_WriteItemAttributes);	
 
 	CreateNative("Store_GetLoadouts", Native_GetLoadouts);
 	CreateNative("Store_GetLoadoutDisplayName", Native_GetLoadoutDisplayName);
@@ -490,6 +492,123 @@ GetItemIndex(id)
 	return -1;
 }
 
+/** 
+ * Retrieves item attributes asynchronously.
+ *
+ * @param itemName			Item's name.
+ *
+ * @noreturn
+ */
+GetItemAttributes(const String:itemName[], Store_ItemGetAttributesCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0) 
+{
+	new Handle:pack = CreateDataPack();
+	WritePackString(pack, itemName);
+	WritePackCell(pack, _:callback);
+	WritePackCell(pack, _:plugin);
+	WritePackCell(pack, _:data);
+
+	new itemNameLength = 2*strlen(itemName)+1;
+	
+	decl String:itemNameSafe[itemNameLength];
+	SQL_EscapeString(g_hSQL, itemName, itemNameSafe, itemNameLength);
+
+	decl String:query[256];
+	Format(query, sizeof(query), "SELECT attrs, LENGTH(attrs) AS attrs_len FROM store_items WHERE name = '%s'", itemNameSafe);
+	
+	SQL_TQuery(g_hSQL, T_GetItemAttributesCallback, query, pack);
+}
+
+public T_GetItemAttributesCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
+{
+	if (hndl == INVALID_HANDLE)
+	{
+		CloseHandle(pack);
+			
+		Store_LogError("SQL Error on GetItemAttributes: %s", error);
+		return;
+	}
+	
+	ResetPack(pack);
+	
+	decl String:itemName[STORE_MAX_NAME_LENGTH];
+	ReadPackString(pack, itemName, sizeof(itemName));
+
+	new Store_ItemGetAttributesCallback:callback = Store_ItemGetAttributesCallback:ReadPackCell(pack);
+	new Handle:plugin = Handle:ReadPackCell(pack);
+	new arg = ReadPackCell(pack);
+	
+	CloseHandle(pack);
+
+	if (SQL_FetchRow(hndl))
+	{
+		if (!SQL_IsFieldNull(hndl, 0))
+		{
+			new attrsLength = SQL_FetchInt(hndl, 1);
+
+			decl String:attrs[attrsLength+1];
+			SQL_FetchString(hndl, 0, attrs, attrsLength+1);
+
+			if (callback != Store_ItemGetAttributesCallback:0)
+			{
+				Call_StartFunction(plugin, callback);
+				Call_PushString(itemName);
+				Call_PushString(attrs);
+				Call_PushCell(arg);
+				Call_Finish();					
+			}
+		
+		}
+	}
+}
+
+WriteItemAttributes(const String:itemName[], const String:attrs[], Store_BuyItemCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
+{
+	new Handle:pack = CreateDataPack();
+	WritePackCell(pack, _:callback);
+	WritePackCell(pack, _:plugin);
+	WritePackCell(pack, _:data);
+
+	new itemNameLength = 2*strlen(itemName)+1;
+	decl String:itemNameSafe[itemNameLength];
+	SQL_EscapeString(g_hSQL, itemName, itemNameSafe, itemNameLength);
+
+	new attrsLength = 10 * 1024;
+	decl String:attrsSafe[2*attrsLength+1];
+	SQL_EscapeString(g_hSQL, attrs, attrsSafe, 2*attrsLength+1);
+	
+	decl String:query[attrsLength + 256];
+	Format(query, attrsLength + 256, "UPDATE store_items SET attrs = '%s}' WHERE name = '%s'", attrsSafe, itemNameSafe);	
+
+	SQL_TQuery(g_hSQL, T_WriteItemAttributesCallback, query, pack);	
+}
+
+public T_WriteItemAttributesCallback(Handle:owner, Handle:hndl, const String:error[], any:pack)
+{
+	if (hndl == INVALID_HANDLE)
+	{
+		CloseHandle(pack);
+			
+		Store_LogError("SQL Error on WriteItemAttributes: %s", error);
+		return;
+	}
+	
+	ResetPack(pack);
+
+	new Store_BuyItemCallback:callback = Store_BuyItemCallback:ReadPackCell(pack);
+	new Handle:plugin = Handle:ReadPackCell(pack);
+	new arg = ReadPackCell(pack);
+	
+	CloseHandle(pack);
+
+	if (callback != Store_BuyItemCallback:0)
+	{
+		Call_StartFunction(plugin, callback);
+		Call_PushCell(true);
+		Call_PushCell(arg);
+		Call_Finish();					
+	}
+}
+
 /**
  * Retrieves loadouts from the database. 
  *
@@ -805,8 +924,10 @@ GetUserItemCount(accountId, const String:itemName[], Store_GetUserItemCountCallb
 	WritePackCell(pack, _:plugin);
 	WritePackCell(pack, _:data);
 
-	decl String:itemNameSafe[STORE_MAX_NAME_LENGTH];
-	SQL_EscapeString(g_hSQL, itemName, itemNameSafe, sizeof(itemNameSafe));
+	new itemNameLength = 2*strlen(itemName)+1;
+
+	decl String:itemNameSafe[itemNameLength];
+	SQL_EscapeString(g_hSQL, itemName, itemNameSafe, itemNameLength);
 
 	decl String:query[255];
 	Format(query, sizeof(query), "SELECT COUNT(*) AS count FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_items.name = '%s' AND store_users.auth = %d", itemNameSafe, accountId);
@@ -1658,6 +1779,38 @@ public Native_IsItemTradeable(Handle:plugin, params)
 public Native_IsItemRefundable(Handle:plugin, params)
 {
 	return g_items[GetItemIndex(GetNativeCell(1))][ItemIsRefundable];
+}
+
+public Native_GetItemAttributes(Handle:plugin, params)
+{
+	new any:data = 0;
+	
+	if (params == 3)
+		data = GetNativeCell(3);
+	
+	decl String:itemName[STORE_MAX_NAME_LENGTH];
+	GetNativeString(1, itemName, sizeof(itemName));
+
+	GetItemAttributes(itemName, Store_ItemGetAttributesCallback:GetNativeCell(2), plugin, data);
+}
+
+public Native_WriteItemAttributes(Handle:plugin, params)
+{
+	new any:data = 0;
+	
+	if (params == 4)
+		data = GetNativeCell(4);
+	
+	decl String:itemName[STORE_MAX_NAME_LENGTH];
+	GetNativeString(1, itemName, sizeof(itemName));
+
+	new attrsLength = 10*1024;
+	GetNativeStringLength(2, attrsLength);
+
+	decl String:attrs[attrsLength];
+	GetNativeString(2, attrs, attrsLength);
+
+	WriteItemAttributes(itemName, attrs, Store_BuyItemCallback:GetNativeCell(3), plugin, data);
 }
 
 public Native_GetLoadouts(Handle:plugin, params)

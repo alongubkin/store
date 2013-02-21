@@ -11,7 +11,6 @@ enum Store_ItemUseAction
 	Store_DoNothing
 }
 
-functag Store_ItemGetAttributesCallback public(const String:itemName[], const String:attrs[]);
 functag Store_ItemUseCallback Store_ItemUseAction:public(client, itemId, bool:equipped);
 
 /**
@@ -94,6 +93,6 @@ public __pl_store_inventory_SetNTVOptional()
 	MarkNativeAsOptional("Store_RegisterItemType"); 
 	MarkNativeAsOptional("Store_IsItemTypeRegistered");
 	
-	// MarkNativeAsOptional("Store_CallItemAttrsCallback");
+	MarkNativeAsOptional("Store_CallItemAttrsCallback");
 }
 #endif
