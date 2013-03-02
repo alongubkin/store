@@ -2,6 +2,9 @@ plugins/
 *.smx
 *.zip
 
+*.sublime-project
+*.sublime-workspace
+
 ##DEFAULTS##
 
 #################
