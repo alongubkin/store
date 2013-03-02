@@ -561,6 +561,13 @@ public T_GetItemAttributesCallback(Handle:owner, Handle:hndl, const String:error
 	}
 }
 
+/** 
+ * Modifies item attributes asynchronously.
+ *
+ * @param itemName			Item's name.
+ *
+ * @noreturn
+ */
 WriteItemAttributes(const String:itemName[], const String:attrs[], Store_BuyItemCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();

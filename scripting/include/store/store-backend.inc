@@ -379,6 +379,14 @@ native bool:Store_IsItemRefundable(id);
  * @noreturn
  */
 native Store_GetItemAttributes(const String:itemName[], Store_ItemGetAttributesCallback:callback = Store_ItemGetAttributesCallback:0, any:data = 0);
+
+/** 
+ * Modifies item attributes asynchronously.
+ *
+ * @param itemName			Item's name.
+ *
+ * @noreturn
+ */
 native Store_WriteItemAttributes(const String:itemName[], const String:attrs[], Store_BuyItemCallback:callback = Store_BuyItemCallback:0, any:data = 0);
 
 /**
