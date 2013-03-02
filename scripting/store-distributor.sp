@@ -15,7 +15,8 @@ enum Filter
 	Float:FilterMaximumMultiplier,
 	FilterAddend,
 	FilterMinimumAddend,
-	FilterMaximumAddend
+	FilterMaximumAddend,
+	FilterTeam
 }
 
 new String:g_currencyName[64];
@@ -98,7 +99,8 @@ LoadConfig()
 					g_filters[g_filterCount][FilterMaximumAddend] = KvGetNum(kv, "max_addend");
 
 					g_filters[g_filterCount][FilterPlayerCount] = KvGetNum(kv, "player_count", 0);
-
+					g_filters[g_filterCount][FilterTeam] = KvGetNum(kv, "team", -1);
+                                       
 					decl String:flags[32];
 					KvGetString(kv, "flags", flags, sizeof(flags));
 
@@ -157,7 +159,8 @@ Calculate(client, const String:map[], clientCount)
 	{
 		if ((g_filters[filter][FilterPlayerCount] == 0 || clientCount >= g_filters[filter][FilterPlayerCount]) && 
 			(StrEqual(g_filters[filter][FilterMap], "") || StrEqual(g_filters[filter][FilterMap], map)) && 
-			(g_filters[filter][FilterFlags] == 0 || HasPermission(client, g_filters[filter][FilterFlags])))
+			(g_filters[filter][FilterFlags] == 0 || HasPermission(client, g_filters[filter][FilterFlags])) &&
+			(g_filters[filter][FilterTeam] == -1 || g_filters[filter][FilterTeam] == GetClientTeam(client)))
 		{
 			min = RoundToZero(min * g_filters[filter][FilterMultiplier] * g_filters[filter][FilterMinimumMultiplier]) 
 					+ g_filters[filter][FilterAddend] + g_filters[filter][FilterMinimumAddend];
