@@ -1449,14 +1449,14 @@ public T_GiveCreditsCallback(Handle:owner, Handle:hndl, const String:error[], an
  *
  * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
  * @param itemId 			The ID of the item to give to the player.
- * @param aquireMethod 		
+ * @param acquireMethod 		
  * @param callback		    A callback which will be called when the operation is finished.
  * @param plugin			The plugin owner of the callback.
  * @param data              Extra data value to pass to the callback.
  *
  * @noreturn
  */
-GiveItem(accountId, itemId, Store_AquireMethod:aquireMethod = Store_Unknown, Store_GiveCreditsCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
+GiveItem(accountId, itemId, Store_AcquireMethod:acquireMethod = Store_Unknown, Store_GiveCreditsCallback:callback, Handle:plugin = INVALID_HANDLE, any:data = 0)
 {
 	new Handle:pack = CreateDataPack();
 	WritePackCell(pack, accountId);
@@ -1465,22 +1465,22 @@ GiveItem(accountId, itemId, Store_AquireMethod:aquireMethod = Store_Unknown, Sto
 	WritePackCell(pack, _:data);
 
 	decl String:query[255];
-	Format(query, sizeof(query), "INSERT INTO store_users_items (user_id, item_id, acquire_date, aquire_method) SELECT store_users.id AS userId, '%d' AS item_id, NOW() as aquire_date, ", itemId);
+	Format(query, sizeof(query), "INSERT INTO store_users_items (user_id, item_id, acquire_date, acquire_method) SELECT store_users.id AS userId, '%d' AS item_id, NOW() as acquire_date, ", itemId);
 
-	if (aquireMethod == Store_Shop)
+	if (acquireMethod == Store_Shop)
 		Format(query, sizeof(query), "%s'shop'", query);
-	else if (aquireMethod == Store_Trade)
+	else if (acquireMethod == Store_Trade)
 		Format(query, sizeof(query), "%s'trade'", query);
-	else if (aquireMethod == Store_Gift)
+	else if (acquireMethod == Store_Gift)
 		Format(query, sizeof(query), "%s'gift'", query);
-	else if (aquireMethod == Store_Admin)
+	else if (acquireMethod == Store_Admin)
 		Format(query, sizeof(query), "%s'admin'", query);
-	else if (aquireMethod == Store_Web)
+	else if (acquireMethod == Store_Web)
 		Format(query, sizeof(query), "%s'web'", query);
-	else if (aquireMethod == Store_Unknown)
+	else if (acquireMethod == Store_Unknown)
 		Format(query, sizeof(query), "%sNULL", query);
 
-	Format(query, sizeof(query), "%s AS aquire_method FROM store_users WHERE auth = %d", query, accountId);
+	Format(query, sizeof(query), "%s AS acquire_method FROM store_users WHERE auth = %d", query, accountId);
 
 	SQL_TQuery(g_hSQL, T_GiveItemCallback, query, pack, DBPrio_High);	
 }
@@ -1941,7 +1941,7 @@ public Native_GiveItem(Handle:plugin, params)
 	if (params == 5)
 		data = GetNativeCell(5);
 
-	GiveItem(GetNativeCell(1), GetNativeCell(2), Store_AquireMethod:GetNativeCell(3), Store_GiveCreditsCallback:GetNativeCell(4), plugin, data);
+	GiveItem(GetNativeCell(1), GetNativeCell(2), Store_AcquireMethod:GetNativeCell(3), Store_GiveCreditsCallback:GetNativeCell(4), plugin, data);
 }
 
 public Native_GiveDifferentCreditsToUsers(Handle:plugin, params)
