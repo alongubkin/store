@@ -27,6 +27,8 @@ new String:g_creditsCommand[32];
 new g_menuItems[MAX_MENU_ITEMS + 1][MenuItem];
 new g_menuItemCount = 0;
 
+new g_firstConnectionCredits = 0;
+
 new bool:g_allPluginsLoaded = false;
 
 /**
@@ -102,7 +104,7 @@ public OnAllPluginsLoaded()
  */
 public OnClientPostAdminCheck(client)
 {	
-	Store_RegisterClient(client);
+	Store_RegisterClient(client, g_firstConnectionCredits);
 }
 
 /**
@@ -232,6 +234,8 @@ LoadConfig()
 	
 	KvGetString(kv, "currency_name", g_currencyName, sizeof(g_currencyName));
 	KvGetString(kv, "credits_command", g_creditsCommand, sizeof(g_creditsCommand), "sm_credits");
+
+	g_firstConnectionCredits = KvGetNum(kv, "first_connection_credits");
 
 	CloseHandle(kv);
 }

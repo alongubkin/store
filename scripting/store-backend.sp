@@ -166,16 +166,17 @@ public OnMapStart()
  *
  * @param accountId		The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
  * @param name          The name of the player.
+ * @param credits 		The amount of credits to give to the player if it's his first register.
  *
  * @noreturn
  */
-Register(accountId, const String:name[] = "")
+Register(accountId, const String:name[] = "", credits = 0)
 {
 	decl String:safeName[2 * 32 + 1];
 	SQL_EscapeString(g_hSQL, name, safeName, sizeof(safeName));
 	
 	decl String:query[255];
-	Format(query, sizeof(query), "INSERT INTO store_users (auth, name, credits) VALUES (%d, '%s', 0) ON DUPLICATE KEY UPDATE name = '%s';", accountId, safeName, safeName);
+	Format(query, sizeof(query), "INSERT INTO store_users (auth, name, credits) VALUES (%d, '%s', %d) ON DUPLICATE KEY UPDATE name = '%s';", accountId, safeName, credits, safeName);
 	
 	SQL_TQuery(g_hSQL, T_RegisterCallback, query, _, DBPrio_High);
 }
@@ -193,10 +194,11 @@ Register(accountId, const String:name[] = "")
  * As with all other store-backend methods, this method is completely asynchronous.
  *
  * @param client 		Client index.
+ * @param credits 		The amount of credits to give to the player if it's his first register. 
  *
  * @noreturn
  */
-RegisterClient(client)
+RegisterClient(client, credits = 0)
 {
 	if (!IsClientInGame(client))
 		return;
@@ -207,7 +209,7 @@ RegisterClient(client)
 	decl String:name[64];
 	GetClientName(client, name, sizeof(name));
 	
-	Register(Store_GetClientAccountID(client), name);
+	Register(Store_GetClientAccountID(client), name, credits);
 }
 
 public T_RegisterCallback(Handle:owner, Handle:hndl, const String:error[], any:data)
@@ -1695,12 +1697,12 @@ public Native_Register(Handle:plugin, params)
 	new String:name[64];
 	GetNativeString(2, name, sizeof(name));    
 	
-	Register(GetNativeCell(1), name);
+	Register(GetNativeCell(1), name, GetNativeCell(3));
 }
 
 public Native_RegisterClient(Handle:plugin, params)
 {
-	RegisterClient(GetNativeCell(1));
+	RegisterClient(GetNativeCell(1), GetNativeCell(2));
 }
 
 public Native_GetCategories(Handle:plugin, params)

@@ -62,10 +62,11 @@ enum Store_AcquireMethod
  *
  * @param accountId			The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
  * @param name 				The name of the player.
+ * @param credits 			The amount of credits to give to the player if it's his first register. 
  *
  * @noreturn
  */
-native Store_Register(accountId, const String:name[] = "");
+native Store_Register(accountId, const String:name[] = "", credits = 0);
 
 /**
  * Registers a player in the database, provided his client index only. 
@@ -80,10 +81,11 @@ native Store_Register(accountId, const String:name[] = "");
  * As with all other store-backend methods, this method is completely asynchronous.
  *
  * @param client			Client index.
+ * @param credits 			The amount of credits to give to the player if it's his first register. 
  *
  * @noreturn
  */
-native Store_RegisterClient(client);
+native Store_RegisterClient(client, credits = 0);
 
 /**
  * Retrieves all item categories from the database. 
