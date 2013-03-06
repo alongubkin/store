@@ -24,7 +24,6 @@ funcenum Store_ItemGetAttributesCallback
 	public(const String:itemName[], const String:attrs[], any:data)
 }
 
-
 functag Store_GetCreditsCallback public(credits, any:data);
 functag Store_GiveCreditsCallback public(accountId, any:data);
 

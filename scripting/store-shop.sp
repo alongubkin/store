@@ -11,6 +11,8 @@ new String:g_menuCommands[32][32];
 
 new bool:g_confirmItemPurchase = false;
 
+new Handle:g_buyItemForward;
+
 /**
  * Called before plugin is loaded.
  * 
@@ -45,6 +47,8 @@ public Plugin:myinfo =
 public OnPluginStart()
 {
 	LoadConfig();
+
+	g_buyItemForward = CreateGlobalForward("Store_OnBuyItem", ET_Event, Param_Cell, Param_Cell, Param_Cell);
 
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
@@ -326,17 +330,22 @@ public ConfirmationMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 {
 	if (action == MenuAction_Select)
 	{
-		new String:itemId[12];
-
-		if (GetMenuItem(menu, slot, itemId, sizeof(itemId)))
+		new String:value[12];
+		if (GetMenuItem(menu, slot, value, sizeof(value)))
 		{
-			if (StrEqual(itemId, "no"))
+			if (StrEqual(value, "no"))
 			{
 				OpenShop(client);
 			}
 			else
 			{
-				Store_BuyItem(Store_GetClientAccountID(client), StringToInt(itemId), OnBuyItemComplete, GetClientSerial(client));
+				new itemId = StringToInt(value);
+
+				new Handle:pack = CreateDataPack();
+				WritePackCell(pack, GetClientSerial(client));
+				WritePackCell(pack, itemId);
+
+				Store_BuyItem(Store_GetClientAccountID(client), itemId, OnBuyItemComplete, pack);
 			}
 		}
 	}
@@ -362,17 +371,29 @@ public ConfirmationMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 	return false;
 }
 
-public OnBuyItemComplete(bool:success, any:serial)
+public OnBuyItemComplete(bool:success, any:pack)
 {
-	new client = GetClientFromSerial(serial);
-	
+	ResetPack(pack);
+
+	new client = GetClientFromSerial(ReadPackCell(pack));
 	if (client == 0)
+	{
+		CloseHandle(pack);
 		return;
-	
+	}
+
+	new itemId = ReadPackCell(pack);
+
 	if (!success)
 	{
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits to buy", g_currencyName);
 	}
+
+	Call_StartForward(g_buyItemForward);
+	Call_PushCell(client);
+	Call_PushCell(itemId);
+	Call_PushCell(success);
+	Call_Finish();
 	
 	OpenShop(client);
 }
