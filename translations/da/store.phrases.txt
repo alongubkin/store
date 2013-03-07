@@ -1,0 +1,192 @@
+"Phrases"
+{
+	"Store Menu Title"
+	{
+		"da"				"Du har {1} {2}."
+	}
+
+	"Inventory"
+	{
+		"da"				"Lager"	
+	}
+
+	"Shop"
+	{
+		"da"				"Butik"	
+	}
+
+	"Loadout"
+	{
+		"da"				"Loadout"	
+	}
+
+	"No items in this category"
+	{
+		"da"				"Der er ingen ting i denne kategori."
+	}
+
+	"Item type not registered"
+	{
+		"da"				"Ting typen '{1}' var ikke registreret af nogen plugin."
+	}
+
+	"Not enough credits to buy"
+	{
+		"da"				"Du har ikke nok {1} til at koebe denne ting."
+	}
+
+	"No item attributes"
+	{
+		"da"				"Ingen ting egenskaber fundet."
+	}
+
+	"Equipped item"
+	{
+		"da"				"Du har taget {1} paa."
+	}
+
+	"Unequipped item"
+	{
+		"da"				"Du har taget {1} af."
+	}
+
+	"Must be alive to equip"
+	{
+		"da"				"Du skal vaere i live for at tage denne ting paa."
+	}
+
+	"Must be alive to use"
+	{
+		"da"				"Du skal vaere i live for at bruge denne ting."
+	}	
+
+	"Must be human to equip"
+	{
+		"da"				"Du skal vaere et menneske for at tage denne ting paa."	
+	}
+
+	"Must be human to use"
+	{
+		"da"				"Du skal vaere et menneske for at bruge denne ting."	
+	}	
+
+	"Limit item uses in a round"
+	{
+		"da"				"Du kan kun bruge denne ting {1} gange per runde."
+	}
+
+	"Player model unsupported"
+	{
+		"da"				"Din spiller model understoetter ikke udstyr."
+	}
+
+	"Received Credits"
+	{
+		"da"				"Du har lige modtaget {1} {2}!"
+	}
+
+	"Item Purchase Confirmation"
+	{
+		"da"				"Er du sikker paa at du vil koebe {1}?"
+	}
+
+	"Refund"
+	{
+		"da"				"Refunder"
+	}
+
+	"Gift"
+	{
+		"da"				"Gave"
+	}
+	
+	"Refund Message"
+	{
+		"da"				"Du har refunderet {1} for {2} {3}."
+	}
+
+	"Item Refund Confirmation"
+	{
+		"da"				"Er du sikker paa at du vil refundere {1} for {2} {3}?"
+	}
+
+	"Equipped item apply next spawn"
+	{
+		"da"				"Du har taget et item paa. Det vil traede i kraft naeste gang du spawner."
+	}
+
+	"Shop Description"
+	{
+		"da"				"Koeb fede ting her!"
+	}
+
+	"Inventory Description"
+	{
+		"da"				"Tag en ting paa eller brug dine ting."
+	}
+
+	"Refund Description"
+	{
+		"da"				"Ikke tilfreds? Refunder ting herinde."
+	}
+
+	"Gift Description"
+	{
+		"da"				"Doner points eller items til dem i noed!"
+	}
+
+	"Loadout Description"
+	{
+		"da"				"Konfigurer alle dine ting."
+	}
+
+	"Gift Type Menu Title"
+	{
+		"da"				"Hvad vil du give som gave?"
+	}
+
+	"Item"
+	{
+		"da"				"Ting"
+	}
+
+	"Gift Credit Confirmation"
+	{
+		"da"				"Er du sikker paa at du vil give {1} {2} {3}?"
+	}
+
+	"Gift Item Confirmation"
+	{
+		"da"				"Er du sikker paa at du vil give {1} en {2} item?"
+	}
+
+	"No items"
+	{
+		"da"				"Du har ingenting."
+	}
+
+	"Gift Request Accept"
+	{
+		"da"				"{teamcolor}{1} {default}vil gerne give dig {olive}{2}{default}. Skriv {teamcolor}!accept {default}for at acceptere gaven."
+	}
+
+	"Gift Waiting to accept"
+	{
+		"da"				"Vent paa at {teamcolor}{1} {default}accepterer gaven."
+	}	
+
+	"Not enough credits"
+	{
+		"da"				"Du har ikke nok {1}."
+	}
+
+	"Gift accepted - sender"
+	{
+		"da"				"{teamcolor}{1} {default}har accepteret din gave."
+	}
+
+	"Gift accepted - receiver"
+	{
+		"da"				"Du har accepteret {teamcolor}{1}{default}'s gave."
+	}
+}
