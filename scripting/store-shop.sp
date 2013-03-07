@@ -284,17 +284,22 @@ public ShopCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 {
 	if (action == MenuAction_Select)
 	{
-		new String:itemId[12];
+		new String:value[12];
 
-		if (GetMenuItem(menu, slot, itemId, sizeof(itemId)))
+		if (GetMenuItem(menu, slot, value, sizeof(value)))
 		{
+			new itemId = StringToInt(value);
+		
 			if (g_confirmItemPurchase)
 			{
-				DisplayConfirmationMenu(client, StringToInt(itemId));
+				DisplayConfirmationMenu(client, itemId);
 			}
 			else
 			{
-				Store_BuyItem(Store_GetClientAccountID(client), StringToInt(itemId), OnBuyItemComplete, GetClientSerial(client));
+				new Handle:pack = CreateDataPack();
+				WritePackCell(pack, GetClientSerial(client));
+				WritePackCell(pack, itemId);
+				Store_BuyItem(Store_GetClientAccountID(client), itemId, OnBuyItemComplete, pack);
 			}
 		}
 	}
