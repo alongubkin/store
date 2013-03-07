@@ -389,7 +389,14 @@ public OnBuyItemComplete(bool:success, any:pack)
 
 	new itemId = ReadPackCell(pack);
 
-	if (!success)
+	if (success)
+	{
+		decl String:displayName[64];
+		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
+
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Item Purchase Successful", displayName);
+	}
+	else
 	{
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits to buy", g_currencyName);
 	}
