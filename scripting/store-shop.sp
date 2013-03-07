@@ -5,6 +5,7 @@
 #include <store/store-backend>
 #include <store/store-logging>
 #include <store/store-inventory>
+#include <colors>
 
 new String:g_currencyName[64];
 new String:g_menuCommands[32][32];
@@ -394,11 +395,11 @@ public OnBuyItemComplete(bool:success, any:pack)
 		decl String:displayName[64];
 		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 
-		PrintToChat(client, "%s%t", STORE_PREFIX, "Item Purchase Successful", displayName);
+		CPrintToChat(client, "%s%t", STORE_PREFIX, "Item Purchase Successful", displayName);
 	}
 	else
 	{
-		PrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits to buy", g_currencyName);
+		CPrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits to buy", g_currencyName);
 	}
 
 	Call_StartForward(g_buyItemForward);
