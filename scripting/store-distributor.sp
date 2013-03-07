@@ -79,7 +79,7 @@ LoadConfig()
 
 	if (KvJumpToKey(kv, "distribution"))
 	{
-		g_baseMinimum = KvGetNum(kv, "base_minumum", 1);
+		g_baseMinimum = KvGetNum(kv, "base_minimum", 1);
 		g_baseMaximum = KvGetNum(kv, "base_maximum", 3);
 
 		if (KvJumpToKey(kv, "filters"))
