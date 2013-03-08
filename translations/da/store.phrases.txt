@@ -90,6 +90,11 @@
 		"da"				"Er du sikker paa at du vil koebe {1}?"
 	}
 
+	"Item Purchase Successful"
+	{
+		"da"				"You bought '{olive}{1}{default}'!"
+	}
+
 	"Refund"
 	{
 		"da"				"Refunder"
