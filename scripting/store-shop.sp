@@ -5,6 +5,7 @@
 #include <store/store-backend>
 #include <store/store-logging>
 #include <store/store-inventory>
+#include <colors>
 
 new String:g_currencyName[64];
 new String:g_menuCommands[32][32];
@@ -284,17 +285,22 @@ public ShopCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 {
 	if (action == MenuAction_Select)
 	{
-		new String:itemId[12];
+		new String:value[12];
 
-		if (GetMenuItem(menu, slot, itemId, sizeof(itemId)))
+		if (GetMenuItem(menu, slot, value, sizeof(value)))
 		{
+			new itemId = StringToInt(value);
+		
 			if (g_confirmItemPurchase)
 			{
-				DisplayConfirmationMenu(client, StringToInt(itemId));
+				DisplayConfirmationMenu(client, itemId);
 			}
 			else
 			{
-				Store_BuyItem(Store_GetClientAccountID(client), StringToInt(itemId), OnBuyItemComplete, GetClientSerial(client));
+				new Handle:pack = CreateDataPack();
+				WritePackCell(pack, GetClientSerial(client));
+				WritePackCell(pack, itemId);
+				Store_BuyItem(Store_GetClientAccountID(client), itemId, OnBuyItemComplete, pack);
 			}
 		}
 	}
@@ -384,9 +390,16 @@ public OnBuyItemComplete(bool:success, any:pack)
 
 	new itemId = ReadPackCell(pack);
 
-	if (!success)
+	if (success)
 	{
-		PrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits to buy", g_currencyName);
+		decl String:displayName[64];
+		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
+
+		CPrintToChat(client, "%s%t", STORE_PREFIX, "Item Purchase Successful", displayName);
+	}
+	else
+	{
+		CPrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits to buy", g_currencyName);
 	}
 
 	Call_StartForward(g_buyItemForward);

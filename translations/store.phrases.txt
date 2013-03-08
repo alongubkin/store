@@ -98,6 +98,12 @@
 		"en"				"Are you sure you want to purchase {1}?"
 	}
 
+	"Item Purchase Successful"
+	{
+		"#format"			"{1:s}"
+		"en"				"You bought '{olive}{1}{default}'!"
+	}
+
 	"Refund"
 	{
 		"en"				"Refund"

@@ -4,6 +4,7 @@ plugins/
 
 *.sublime-project
 *.sublime-workspace
+*.sublime-build
 
 ##DEFAULTS##
 
