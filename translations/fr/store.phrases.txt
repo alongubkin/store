@@ -100,7 +100,6 @@
 
 	"Limit item uses in a round"
 	{
-		"#format"			"{1:s}"
 		"fr"				"Vous pouvez utiliser cette item que {1} fois par round."
 	}
 
