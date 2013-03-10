@@ -150,6 +150,21 @@
 		"da"				"Hvad vil du give som gave?"
 	}
 
+	"Gift Delivery Method"
+	{
+		"da"				"Hvordan vil du aflevere gaven?"
+	}
+
+	"Gift Method Send"
+	{
+		"da"				"Send til spiller"
+	}
+
+	"Gift Method Drop"
+	{
+		"da"				"Laeg paa jorden"
+	}
+
 	"Item"
 	{
 		"da"				"Ting"
@@ -163,6 +178,36 @@
 	"Gift Item Confirmation"
 	{
 		"da"				"Er du sikker paa at du vil give {1} en {2} item?"
+	}
+
+	"Drop Credit Confirmation"
+	{
+		"da"				"Er du sikker paa at du vil laegge {1} {2}?"
+	}
+
+	"Drop Item Confirmation"
+	{
+		"da"				"Er du sikker paa at du vil laegge {1}?"
+	}
+
+	"Gift Item Dropped"
+	{
+		"da"				"Du lagde {olive}{1}{default}!"
+	}
+
+	"Gift Credits Dropped"
+	{
+		"da"				"Du lagde {olive}{1}{default} {2}!"
+	}
+
+	"Gift Credits Found"
+	{
+		"da"				"Du fandt {olive}{1}{default} {2}!"
+	}
+
+	"Gift Item Found"
+	{
+		"da"				"Du fandt {olive}{1}{default}!"
 	}
 
 	"No items"

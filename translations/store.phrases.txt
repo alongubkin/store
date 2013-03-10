@@ -161,6 +161,21 @@
 		"en"				"What do you want to gift?"
 	}
 
+	"Gift Delivery Method"
+	{
+		"en"				"How do you want to deliver the gift?"
+	}
+
+	"Gift Method Send"
+	{
+		"en"				"Send to player"
+	}
+
+	"Gift Method Drop"
+	{
+		"en"				"Drop on ground"
+	}
+
 	"Item"
 	{
 		"en"				"Item"
@@ -176,6 +191,42 @@
 	{
 		"#format"			"{1:s},{2:s}"
 		"en"				"Are you sure you want to give {1} a {2} item?"
+	}
+
+	"Drop Credit Confirmation"
+	{
+		"#format"			"{1:d},{2:s}"
+		"en"				"Are you sure you want to drop {1} {2}?"
+	}
+
+	"Drop Item Confirmation"
+	{
+		"#format"			"{1:s}"
+		"en"				"Are you sure you want to drop {1}?"
+	}
+
+	"Gift Item Dropped"
+	{
+		"#format"			"{1:s}"
+		"en"				"You dropped {olive}{1}{default}!"
+	}
+
+	"Gift Credits Dropped"
+	{
+		"#format"			"{1:d}{2:s}"
+		"en"				"You dropped {olive}{1}{default} {2}!"
+	}
+
+	"Gift Credits Found"
+	{
+		"#format"			"{1:d},{2:s}"
+		"en"				"You found {olive}{1}{default} {2}!"
+	}
+
+	"Gift Item Found"
+	{
+		"#format"			"{1:s}"
+		"en"				"You found {olive}{1}{default}!"
 	}
 
 	"No items"
