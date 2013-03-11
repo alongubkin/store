@@ -140,14 +140,19 @@ LoadConfig()
 		KvGetString(kv, "model", g_presentModel, sizeof(g_presentModel), "Set this if you're not running css, tf2 or dod:s");
 	}
 
+	if (!FileExists(g_presentModel) || !FileExists(g_presentModel, true))
+	{
+		g_drop_enabled = false;
+	}
+
 	CloseHandle(kv);
 }
 
 public OnMapStart()
 {
-	if(g_drop_enabled &&  (FileExists(g_presentModel) || FileExists(g_presentModel, true)))
+	if(g_drop_enabled && (FileExists(g_presentModel) || FileExists(g_presentModel, true)))
 	{
-		PrecacheModel(g_presentModel);
+		PrecacheModel(g_presentModel, true);
 		Downloader_AddFileToDownloadsTable(g_presentModel);
 	}
 }
