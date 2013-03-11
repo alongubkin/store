@@ -6,6 +6,7 @@
 #include <adminmenu>
 #include <store>
 #include <colors>
+#include <smartdm>
 
 #define MAX_CREDIT_CHOICES 100
 
@@ -147,7 +148,7 @@ public OnMapStart()
 	if(g_drop_enabled &&  (FileExists(g_presentModel) || FileExists(g_presentModel, true)))
 	{
 		PrecacheModel(g_presentModel);
-		AddFileToDownloadsTable(g_presentModel);
+		Downloader_AddFileToDownloadsTable(g_presentModel);
 	}
 }
 
