@@ -31,7 +31,7 @@ public Plugin:myinfo =
 	author      = "eXemplar",
 	description = "Award kills component for [Store]",
 	version     = STORE_VERSION,
-	url         = "https://github.com/eggsampler/store-killawards"
+	url         = "https://github.com/alongubkin/store"
 };
 
 /**
