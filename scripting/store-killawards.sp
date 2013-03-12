@@ -131,7 +131,7 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 		GiveCreditsToClient(client_killer, points);
 		if (g_enable_message_per_kill)
 		{
-			PrintToChat(client_killer, "%s%t", STORE_PREFIX, "Received Credits Reason", points, g_currencyName, "suicide");
+			PrintToChat(client_killer, "%s%t", STORE_PREFIX, "Received Credits Suicide", points, g_currencyName);
 		}
 		return Plugin_Continue;
 	}
@@ -142,7 +142,7 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 		GiveCreditsToClient(client_killer, points);
 		if (g_enable_message_per_kill)
 		{
-			PrintToChat(client_killer, "%s%t %N", STORE_PREFIX, "Received Credits Reason", points, g_currencyName, "team killed", client_died);
+			PrintToChat(client_killer, "%s%t", STORE_PREFIX, "Received Credits TeamKill", points, g_currencyName, client_died);
 		}
 		return Plugin_Continue;
 	}
@@ -151,7 +151,7 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 	GiveCreditsToClient(client_killer, points);
 	if (g_enable_message_per_kill)
 	{
-		PrintToChat(client_killer, "%s%t %N", STORE_PREFIX, "Received Credits Reason", points, g_currencyName, "killed", client_died);
+		PrintToChat(client_killer, "%s%t", STORE_PREFIX, "Received Credits Kill", points, g_currencyName, client_died);
 	}
 
 	return Plugin_Continue;
