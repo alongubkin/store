@@ -1,0 +1,213 @@
+// Spanish translation by Franc1sco
+"Phrases"
+{
+	"Store Menu Title"
+	{
+		"es"				"Tu tienes {1} {2}."
+	}
+
+	"Inventory"
+	{
+		"es"				"Inventario"	
+	}
+
+	"Shop"
+	{
+		"es"				"Tienda"	
+	}
+
+	"Loadout"
+	{
+		"es"				"Conjunto de articulos"	
+	}
+
+	"No items in this category"
+	{
+		"es"				"No hay articulos en esta categoria."
+	}
+
+	"Item type not registered"
+	{
+
+		"es"				"El articulo '{1}' no ha sido registrado por ningun plugin."
+	}
+
+	"Not enough credits to buy"
+	{
+
+		"es"				"Tu no tienes suficiente {1} para comprar este articulo."
+	}
+
+	"No item attributes"
+	{
+		"es"				"No se han encontrado atributos para el articulo."
+	}
+
+	"Equipped item"
+	{
+
+		"es"				"Te has equipado {1}."
+	}
+
+	"Unequipped item"
+	{
+
+		"es"				"Te has desequipado {1}."
+	}
+
+	"Must be alive to equip"
+	{
+		"es"				"Tienes que estar vivo para equiparte este articulo."
+	}
+
+	"Must be alive to use"
+	{
+		"es"				"Tienes que estar vivo para usar este articulo."
+	}	
+
+	"Must be human to equip"
+	{
+		"es"				"Tienes que ser humano para equiparte este articulo."	
+	}
+
+	"Must be human to use"
+	{
+		"es"				"Tienes que ser humano para usar este articulo."	
+	}	
+
+	"Limit item uses in a round"
+	{
+
+		"es"				"Solo puedes usar este articulo {1} veces por ronda."
+	}
+
+	"Player model unsupported"
+	{
+		"es"				"Tu modelo de jugador no soporta este articulo."
+	}
+
+	"Received Credits"
+	{
+
+		"es"				"Has recibido {1} {2}!"
+	}
+
+	"Item Purchase Confirmation"
+	{
+
+		"es"				"Estas seguro que quieres comprar {1}?"
+	}
+
+	"Refund"
+	{
+		"es"				"Reembolso"
+	}
+
+	"Gift"
+	{
+		"es"				"Regalo"
+	}
+	
+	"Refund Message"
+	{
+
+		"es"				"Te has reembolsado {1} por {2} {3}."
+	}
+
+	"Item Refund Confirmation"
+	{
+
+		"es"				"Estas seguro que quieres reembolsar {1} por {2} {3}?"
+	}
+
+	"Equipped item apply next spawn"
+	{
+		"es"				"Te has equipado un articulo. Esto tendra efecto en la proxima aparicion."
+	}
+
+	"Shop Description"
+	{
+		"es"				"Comprar cosas increibles aqui! (Traducido por Franc1sco steam: franug)"
+	}
+
+	"Inventory Description"
+	{
+		"es"				"Equipar o usar articulos."
+	}
+
+	"Refund Description"
+	{
+		"es"				"Insatisfecho? Reembolsalo aqui."
+	}
+
+	"Gift Description"
+	{
+		"es"				"Dona dinero o articulos a los necesitados!"
+	}
+
+	"Loadout Description"
+	{
+		"es"				"Configura todos tus articulos."
+	}
+
+	"Gift Type Menu Title"
+	{
+		"es"				"Que es lo que quieres regalar?"
+	}
+
+	"Item"
+	{
+		"es"				"Articulo"
+	}
+
+	"Gift Credit Confirmation"
+	{
+
+		"es"				"Estas seguro que deseas dar a {1} {2} {3}?"
+	}
+
+	"Gift Item Confirmation"
+	{
+
+		"es"				"Estas seguro que quieres dar a {1} un articulo {2}?"
+	}
+
+	"No items"
+	{
+		"es"				"Tu no tienes articulos."
+	}
+
+	"Gift Request Accept"
+	{
+
+		"es"				"{teamcolor}{1} {default}desea darte {olive}{2}{default}. Escribe {teamcolor}!accept {default}para aceptar el regalo."
+	}
+
+	"Gift Waiting to accept"
+	{
+
+		"es"				"Esperando a {teamcolor}{1} {default}para aceptar el regalo."
+	}	
+
+	"Not enough credits"
+	{
+
+		"es"				"No tienes suficientes {1}."
+	}
+
+	"Gift accepted - sender"
+	{
+
+		"es"				"{teamcolor}{1} {default}ha aceptado tu regalo."
+	}
+
+	"Gift accepted - receiver"
+	{
+
+		"es"				"Has aceptado el regalo de {teamcolor}{1}"
+	}
+	"Item Purchase Successful"
+	{
+		"es"				"Has comprado '{olive}{1}{default}'!"
+	}
+}
