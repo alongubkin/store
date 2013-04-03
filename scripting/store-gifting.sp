@@ -43,7 +43,8 @@ new g_creditChoices[MAX_CREDIT_CHOICES];
 new g_giftRequests[MAXPLAYERS+1][GiftRequest];
 
 new g_spawnedPresents[2048][Present];
-new String:g_presentModel[32];
+new String:g_itemModel[32];
+new String:g_creditsModel[32];
 new bool:g_drop_enabled;
 
 new String:g_game[32];
@@ -121,28 +122,36 @@ LoadConfig()
 	for (new choice = 0; choice < choices; choice++)
 		g_creditChoices[choice] = StringToInt(creditChoices[choice]);
 
-	g_drop_enabled = bool:KvGetNum(kv, "drop_enabled", 1);
+	g_drop_enabled = bool:KvGetNum(kv, "drop_enabled", 0);
 
-	if(StrEqual(g_game, "cstrike"))
+	if (g_drop_enabled)
 	{
-		strcopy(g_presentModel,sizeof(g_presentModel),"models/items/cs_gift.mdl");
-	}
-	else if (StrEqual(g_game, "tf"))
-	{
-		strcopy(g_presentModel,sizeof(g_presentModel),"models/items/tf_gift.mdl");
-	}
-	else if (StrEqual(g_game, "dod"))
-	{
-		strcopy(g_presentModel,sizeof(g_presentModel),"models/items/dod_gift.mdl");
-	}
-	else
-	{
-		KvGetString(kv, "model", g_presentModel, sizeof(g_presentModel), "Set this if you're not running css, tf2 or dod:s");
-	}
+		KvGetString(kv, "itemModel", g_itemModel, sizeof(g_itemModel), "");
+		KvGetString(kv, "creditsModel", g_creditsModel, sizeof(g_creditsModel), "");
 
-	if (!FileExists(g_presentModel) || !FileExists(g_presentModel, true))
-	{
-		g_drop_enabled = false;
+		if (!g_itemModel[0] || !FileExists(g_itemModel, true))
+		{
+			if(StrEqual(g_game, "cstrike"))
+			{
+				strcopy(g_itemModel,sizeof(g_itemModel), "models/items/cs_gift.mdl");
+			}
+			else if (StrEqual(g_game, "tf"))
+			{
+				strcopy(g_itemModel,sizeof(g_itemModel), "models/items/tf_gift.mdl");
+			}
+			else if (StrEqual(g_game, "dod"))
+			{
+				strcopy(g_itemModel,sizeof(g_itemModel), "models/items/dod_gift.mdl");
+			}
+			else
+				g_drop_enabled = false;
+		}
+		
+		if (g_drop_enabled && (!g_creditsModel[0] || !FileExists(g_creditsModel, true))) 
+		{
+			// if the credits model can't be found, use the item model
+			strcopy(g_creditsModel,sizeof(g_creditsModel),g_itemModel);
+		}
 	}
 
 	CloseHandle(kv);
@@ -150,10 +159,16 @@ LoadConfig()
 
 public OnMapStart()
 {
-	if(g_drop_enabled && (FileExists(g_presentModel) || FileExists(g_presentModel, true)))
+	if(g_drop_enabled) // false if the files are not found
 	{
-		PrecacheModel(g_presentModel, true);
-		Downloader_AddFileToDownloadsTable(g_presentModel);
+		PrecacheModel(g_itemModel, true);
+		Downloader_AddFileToDownloadsTable(g_itemModel);
+
+		if (!StrEqual(g_itemModel, g_creditsModel))
+		{
+			PrecacheModel(g_creditsModel, true);
+			Downloader_AddFileToDownloadsTable(g_creditsModel);
+		}
 	}
 }
 
@@ -161,14 +176,24 @@ public Action:Command_Drop(client, args)
 {
 	if (args==0)
 	{
-		ReplyToCommand(client, "%s Usage: sm_drop <%s>", STORE_PREFIX, g_currencyName);
-		return Plugin_Handled;
+		ReplyToCommand(client, "%sUsage: sm_drop <%s>", STORE_PREFIX, g_currencyName);
+		{
+			return Plugin_Handled;
+		}
 	}
 
 	decl String:sCredits[10];
 	GetCmdArg(1, sCredits, sizeof(sCredits));
 
 	new credits = StringToInt(sCredits);
+
+	if (credits < 1)
+	{
+		ReplyToCommand(client, "%s%d is not a valid amount!", STORE_PREFIX, credits);
+		{
+			return Plugin_Handled;
+		}
+	}
 
 	new Handle:pack = CreateDataPack();
 	WritePackCell(pack, client);
@@ -207,7 +232,7 @@ public DropGiveCreditsCallback(accountId, any:pack)
 	CPrintToChat(client, "%s%t", STORE_PREFIX, "Gift Credits Dropped", credits, g_currencyName);
 
 	new present;
-	if((present = SpawnPresent(client)) != -1)
+	if((present = SpawnPresent(client, g_creditsModel)) != -1)
 	{
 		strcopy(g_spawnedPresents[present][Present_Data], 64, value);
 		g_spawnedPresents[present][Present_Owner] = client;
@@ -769,7 +794,7 @@ public ItemConfirmMenuSelectItem(Handle:menu, MenuAction:action, client, slot)
 				else if (giftAction == GiftAction_Drop)
 				{
 					new present;
-					if((present = SpawnPresent(client)) != -1)
+					if((present = SpawnPresent(client, g_itemModel)) != -1)
 					{
 						decl String:data[32];
 						Format(data, sizeof(data), "item,%d", itemId);
@@ -913,7 +938,7 @@ public RemoveUserItemCallback(accountId, itemId, any:pack)
 	Store_GiveItem(Store_GetClientAccountID(to), itemId, Store_Gift, GiveCreditsCallback, pack);
 }
 
-SpawnPresent(owner)
+SpawnPresent(owner, const String:model[])
 {
 	decl present;
 
@@ -923,7 +948,7 @@ SpawnPresent(owner)
 
 		Format(targetname, sizeof(targetname), "gift_%i", present);
 
-		DispatchKeyValue(present, "model", g_presentModel);
+		DispatchKeyValue(present, "model", model);
 		DispatchKeyValue(present, "physicsmode", "2");
 		DispatchKeyValue(present, "massScale", "1.0");
 		DispatchKeyValue(present, "targetname", targetname);
@@ -934,6 +959,7 @@ SpawnPresent(owner)
 		
 		decl Float:pos[3];
 		GetClientAbsOrigin(owner, pos);
+		pos[2] += 16;
 
 		TeleportEntity(present, pos, NULL_VECTOR, NULL_VECTOR);
 		
