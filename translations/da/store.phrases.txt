@@ -32,7 +32,7 @@
 
 	"Not enough credits to buy"
 	{
-		"da"				"Du har ikke nok {1} til at koebe denne ting."
+		"da"				"Du har ikke nok {1} til at købe denne ting."
 	}
 
 	"No item attributes"
@@ -42,7 +42,7 @@
 
 	"Equipped item"
 	{
-		"da"				"Du har taget {1} paa."
+		"da"				"Du har taget {1} på."
 	}
 
 	"Unequipped item"
@@ -52,22 +52,22 @@
 
 	"Must be alive to equip"
 	{
-		"da"				"Du skal vaere i live for at tage denne ting paa."
+		"da"				"Du skal være i live for at tage denne ting på."
 	}
 
 	"Must be alive to use"
 	{
-		"da"				"Du skal vaere i live for at bruge denne ting."
+		"da"				"Du skal være i live for at bruge denne ting."
 	}	
 
 	"Must be human to equip"
 	{
-		"da"				"Du skal vaere et menneske for at tage denne ting paa."	
+		"da"				"Du skal være et menneske for at tage denne ting på."	
 	}
 
 	"Must be human to use"
 	{
-		"da"				"Du skal vaere et menneske for at bruge denne ting."	
+		"da"				"Du skal være et menneske for at bruge denne ting."	
 	}	
 
 	"Limit item uses in a round"
@@ -77,7 +77,7 @@
 
 	"Player model unsupported"
 	{
-		"da"				"Din spiller model understoetter ikke udstyr."
+		"da"				"Din spiller model understøtter ikke udstyr."
 	}
 
 	"Received Credits"
@@ -87,17 +87,17 @@
 
 	"Item Purchase Confirmation"
 	{
-		"da"				"Er du sikker paa at du vil koebe {1}?"
+		"da"				"Er du sikker på at du vil købe {1}?"
 	}
 
 	"Item Purchase Successful"
 	{
-		"da"				"You bought '{olive}{1}{default}'!"
+		"da"				"Du købte '{olive}{1}{default}'!"
 	}
 
 	"Refund"
 	{
-		"da"				"Refunder"
+		"da"				"Sælg"
 	}
 
 	"Gift"
@@ -107,37 +107,37 @@
 	
 	"Refund Message"
 	{
-		"da"				"Du har refunderet {1} for {2} {3}."
+		"da"				"Du har solgt {1} for {2} {3}."
 	}
 
 	"Item Refund Confirmation"
 	{
-		"da"				"Er du sikker paa at du vil refundere {1} for {2} {3}?"
+		"da"				"Er du sikker på at du vil sælge {1} for {2} {3}?"
 	}
 
 	"Equipped item apply next spawn"
 	{
-		"da"				"Du har taget et item paa. Det vil traede i kraft naeste gang du spawner."
+		"da"				"Du har taget et item på. Det vil træde i kraft næste gang du genopliver."
 	}
 
 	"Shop Description"
 	{
-		"da"				"Koeb fede ting her!"
+		"da"				"Køb fede ting her!"
 	}
 
 	"Inventory Description"
 	{
-		"da"				"Tag en ting paa eller brug dine ting."
+		"da"				"Tag en ting på eller brug dine ting."
 	}
 
 	"Refund Description"
 	{
-		"da"				"Ikke tilfreds? Refunder ting herinde."
+		"da"				"Ikke tilfreds? Sælg ting herinde."
 	}
 
 	"Gift Description"
 	{
-		"da"				"Doner points eller items til dem i noed!"
+		"da"				"Doner points eller items til dem i nød!"
 	}
 
 	"Loadout Description"
@@ -162,7 +162,7 @@
 
 	"Gift Method Drop"
 	{
-		"da"				"Laeg paa jorden"
+		"da"				"Læg på jorden"
 	}
 
 	"Item"
@@ -172,22 +172,22 @@
 
 	"Gift Credit Confirmation"
 	{
-		"da"				"Er du sikker paa at du vil give {1} {2} {3}?"
+		"da"				"Er du sikker på at du vil give {1} {2} {3}?"
 	}
 
 	"Gift Item Confirmation"
 	{
-		"da"				"Er du sikker paa at du vil give {1} en {2} item?"
+		"da"				"Er du sikker på at du vil give {1} en {2} item?"
 	}
 
 	"Drop Credit Confirmation"
 	{
-		"da"				"Er du sikker paa at du vil laegge {1} {2}?"
+		"da"				"Er du sikker på at du vil lægge {1} {2}?"
 	}
 
 	"Drop Item Confirmation"
 	{
-		"da"				"Er du sikker paa at du vil laegge {1}?"
+		"da"				"Er du sikker på at du vil lægge {1}?"
 	}
 
 	"Gift Item Dropped"
@@ -222,7 +222,7 @@
 
 	"Gift Waiting to accept"
 	{
-		"da"				"Vent paa at {teamcolor}{1} {default}accepterer gaven."
+		"da"				"Vent på at {teamcolor}{1} {default}accepterer gaven."
 	}	
 
 	"Not enough credits"
