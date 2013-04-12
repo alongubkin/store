@@ -406,7 +406,7 @@ GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store
 				(!tradeableFilter || isTradeable == g_items[item][ItemIsTradeable]) &&
 				(!refundableFilter || isRefundable == g_items[item][ItemIsRefundable]) &&
 				(!typeFilter || StrEqual(type, g_items[item][ItemType])) &&
-				(!flagsFilter || !flags || !g_items[item][ItemFlags] || flags & g_items[item][ItemFlags]))
+				(!flagsFilter || !g_items[item][ItemFlags] || (flags & g_items[item][ItemFlags])))
 			{
 				items[count] = g_items[item][ItemId];
 				count++;
