@@ -10,6 +10,8 @@
 new String:g_currencyName[64];
 new String:g_menuCommands[32][32];
 
+new bool:g_hideEmptyCategories = false;
+
 new bool:g_confirmItemPurchase = false;
 
 new Handle:g_buyItemForward;
@@ -91,6 +93,8 @@ LoadConfig()
 	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
 	
 	g_confirmItemPurchase = bool:KvGetNum(kv, "confirm_item_purchase", 0);
+
+	g_hideEmptyCategories = bool:KvGetNum(kv, "hide_empty_categories", 0);
 
 	CloseHandle(kv);
 }
@@ -197,7 +201,10 @@ public GetItemsForCategoryCallback(ids[], count, any:pack)
 	
 	new client = GetClientFromSerial(serial);
 	
-	if (client == 0 || count == 0)
+	if (client == 0)
+		return;
+
+	if (g_hideEmptyCategories && count == 0)
 		return;
 
 	decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
