@@ -183,6 +183,7 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		
 		new Handle:filter = CreateTrie();
 		SetTrieValue(filter, "is_buyable", 1);
+		SetTrieValue(filter, "flags", GetUserFlagBits(client));
 		SetTrieValue(filter, "category_id", ids[category]);
 
 		Store_GetItems(filter, GetItemsForCategoryCallback, true, pack);

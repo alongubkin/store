@@ -29,7 +29,8 @@ enum Item
 	ItemCategoryId,
 	bool:ItemIsBuyable,
 	bool:ItemIsTradeable,
-	bool:ItemIsRefundable
+	bool:ItemIsRefundable,
+	ItemFlags
 }
 
 enum Loadout
@@ -341,6 +342,7 @@ GetCategoryIndex(id)
  *  - is_buyable (cell)
  *  - is_tradeable (cell)
  *  - type (string)
+ *  - flags (cell)
  *
  * To use it, set it to a trie with some or all of the above properties.
  * IMPORTANT: You are *not* resposible for closing the filter trie's handle, 
@@ -388,6 +390,9 @@ GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store
 		decl String:type[STORE_MAX_TYPE_LENGTH];
 		new bool:typeFilter = filter == INVALID_HANDLE ? false : GetTrieString(filter, "type", type, sizeof(type));
 
+		new flags;
+		new bool:flagsFilter = filter == INVALID_HANDLE ? false : GetTrieValue(filter, "flags", flags);
+
 		CloseHandle(filter);
 		
 		new items[g_itemCount];
@@ -400,7 +405,8 @@ GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store
 				(!buyableFilter || isBuyable == g_items[item][ItemIsBuyable]) &&
 				(!tradeableFilter || isTradeable == g_items[item][ItemIsTradeable]) &&
 				(!refundableFilter || isRefundable == g_items[item][ItemIsRefundable]) &&
-				(!typeFilter || StrEqual(type, g_items[item][ItemType])))
+				(!typeFilter || StrEqual(type, g_items[item][ItemType])) &&
+				(!flagsFilter || flags > 0 && (flags & g_items[item][ItemFlags])))
 			{
 				items[count] = g_items[item][ItemId];
 				count++;
@@ -421,7 +427,7 @@ GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store
 		WritePackCell(pack, _:plugin);
 		WritePackCell(pack, _:data);
 	
-		SQL_TQuery(g_hSQL, T_GetItemsCallback, "SELECT id, name, display_name, description, type, loadout_slot, price, category_id, attrs, LENGTH(attrs) AS attrs_len, is_buyable, is_tradeable, is_refundable FROM store_items", pack);
+		SQL_TQuery(g_hSQL, T_GetItemsCallback, "SELECT id, name, display_name, description, type, loadout_slot, price, category_id, attrs, LENGTH(attrs) AS attrs_len, is_buyable, is_tradeable, is_refundable, flags FROM store_items", pack);
 	}
 }
 
@@ -473,6 +479,10 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 		g_items[g_itemCount][ItemIsBuyable] = bool:SQL_FetchInt(hndl, 10);
 		g_items[g_itemCount][ItemIsTradeable] = bool:SQL_FetchInt(hndl, 11);
 		g_items[g_itemCount][ItemIsRefundable] = bool:SQL_FetchInt(hndl, 12);
+
+		decl String:flags[11];
+		SQL_FetchString(hndl, 13, flags, sizeof(flags));
+		g_items[g_itemCount][ItemFlags] = ReadFlagString(flags);
 
 		g_itemCount++;
 	}
