@@ -206,6 +206,7 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		
 		new Handle:filter = CreateTrie();
 		SetTrieValue(filter, "category_id", ids[category]);
+		SetTrieValue(filter, "flags", GetUserFlagBits(client));
 
 		Store_GetItems(filter, GetItemsForCategoryCallback, true, pack);
 	}
