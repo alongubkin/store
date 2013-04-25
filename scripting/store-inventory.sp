@@ -208,11 +208,11 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		SetTrieValue(filter, "category_id", ids[category]);
 		SetTrieValue(filter, "flags", GetUserFlagBits(client));
 
-		Store_GetItems(filter, GetItemsForCategoryCallback, true, pack);
+		Store_GetUserItems(filter, Store_GetClientAccountID(client), Store_GetClientLoadout(client), GetItemsForCategoryCallback, pack);
 	}
 }
 
-public GetItemsForCategoryCallback(ids[], count, any:pack)
+public GetItemsForCategoryCallback(ids[], bool:equipped[], itemCount[], count, loadoutId, any:pack)
 {
 	ResetPack(pack);
 	
@@ -224,25 +224,27 @@ public GetItemsForCategoryCallback(ids[], count, any:pack)
 	
 	new client = GetClientFromSerial(serial);
 	
-	if (client == 0)
+	if (client <= 0)
 		return;
 
-	if (g_hideEmptyCategories && count == 0)
+	if (g_hideEmptyCategories && count <= 0)
 		return;
 
 	decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 	Store_GetCategoryDisplayName(categoryId, displayName, sizeof(displayName));
 
-	decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
-	Store_GetCategoryDescription(categoryId, description, sizeof(description));
+	//PrintToChatAll("%s %i %i", g_hideEmptyCategories, count, displayName);
 
-	decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
-	Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
+	//decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
+	//Store_GetCategoryDescription(categoryId, description, sizeof(description));
+
+	//decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
+	//Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
 	
 	decl String:itemValue[8];
 	IntToString(categoryId, itemValue, sizeof(itemValue));
 	
-	AddMenuItem(categories_menu[client], itemValue, itemText);
+	AddMenuItem(categories_menu[client], itemValue, displayName);
 
 	if (left == 0)
 	{
@@ -290,6 +292,7 @@ OpenInventoryCategory(client, categoryId, slot = 0)
 	
 	new Handle:filter = CreateTrie();
 	SetTrieValue(filter, "category_id", categoryId);
+	SetTrieValue(filter, "flags", GetUserFlagBits(client));
 
 	Store_GetUserItems(filter, Store_GetClientAccountID(client), Store_GetClientLoadout(client), GetUserItemsCallback, pack);
 }
