@@ -228,12 +228,19 @@ public GetItemsForCategoryCallback(ids[], bool:equipped[], itemCount[], count, l
 		return;
 
 	if (g_hideEmptyCategories && count <= 0)
+	{
+		if (left == 0)
+		{
+			SetMenuExitBackButton(categories_menu[client], true);
+			DisplayMenu(categories_menu[client], client, 0);
+		}
 		return;
+	}
 
 	decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 	Store_GetCategoryDisplayName(categoryId, displayName, sizeof(displayName));
 
-	//PrintToChatAll("%s %i %i", g_hideEmptyCategories, count, displayName);
+	//PrintToChatAll("%s %i %i %i", displayName, g_hideEmptyCategories, count, left);
 
 	//decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
 	//Store_GetCategoryDescription(categoryId, description, sizeof(description));
