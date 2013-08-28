@@ -427,7 +427,7 @@ GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store
 		WritePackCell(pack, _:plugin);
 		WritePackCell(pack, _:data);
 	
-		SQL_TQuery(g_hSQL, T_GetItemsCallback, "SELECT id, name, display_name, description, type, loadout_slot, price, category_id, attrs, LENGTH(attrs) AS attrs_len, is_buyable, is_tradeable, is_refundable, flags FROM store_items", pack);
+		SQL_TQuery(g_hSQL, T_GetItemsCallback, "SELECT id, name, display_name, description, type, loadout_slot, price, category_id, attrs, LENGTH(attrs) AS attrs_len, is_buyable, is_tradeable, is_refundable, flags FROM store_items ORDER BY price, display_name", pack);
 	}
 }
 
@@ -948,7 +948,7 @@ GetUserItemCount(accountId, const String:itemName[], Store_GetUserItemCountCallb
 	decl String:itemNameSafe[itemNameLength];
 	SQL_EscapeString(g_hSQL, itemName, itemNameSafe, itemNameLength);
 
-	decl String:query[255];
+	decl String:query[512];
 	Format(query, sizeof(query), "SELECT COUNT(*) AS count FROM store_users_items INNER JOIN store_users ON store_users.id = store_users_items.user_id INNER JOIN store_items ON store_items.id = store_users_items.item_id WHERE store_items.name = '%s' AND store_users.auth = %d", itemNameSafe, accountId);
 
 	SQL_TQuery(g_hSQL, T_GetUserItemCountCallback, query, pack, DBPrio_High);
