@@ -209,22 +209,22 @@ public GetItemsForCategoryCallback(ids[], count, any:pack)
 	if (client == 0)
 		return;
 
-	if (g_hideEmptyCategories && count == 0)
-		return;
+	if (g_hideEmptyCategories && count != 0)
+	{
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
+		Store_GetCategoryDisplayName(categoryId, displayName, sizeof(displayName));
 
-	decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
-	Store_GetCategoryDisplayName(categoryId, displayName, sizeof(displayName));
+		//decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
+		//Store_GetCategoryDescription(categoryId, description, sizeof(description));
 
-	//decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
-	//Store_GetCategoryDescription(categoryId, description, sizeof(description));
-
-	//decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
-	//Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
-	
-	decl String:itemValue[8];
-	IntToString(categoryId, itemValue, sizeof(itemValue));
-	
-	AddMenuItem(categories_menu[client], itemValue, displayName);
+		//decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
+		//Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
+		
+		decl String:itemValue[8];
+		IntToString(categoryId, itemValue, sizeof(itemValue));
+		
+		AddMenuItem(categories_menu[client], itemValue, displayName);
+	}
 
 	if (left == 0)
 	{
