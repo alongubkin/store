@@ -269,4 +269,9 @@
 		"#format"			"{1:s}"
 		"en"				"You have already purchased this item: {1}"
 	}
+	
+	"You can't wear this item"
+	{
+		"en"				"You can't wear this item."
+	}
 }
