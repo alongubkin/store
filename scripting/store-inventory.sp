@@ -208,7 +208,7 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		SetTrieValue(filter, "category_id", ids[category]);
 		SetTrieValue(filter, "flags", GetUserFlagBits(client));
 
-		Store_GetUserItems(filter, Store_GetClientAccountID(client), Store_GetClientLoadout(client), GetItemsForCategoryCallback, pack);
+		Store_GetUserItems(filter, GetSteamAccountID(client), Store_GetClientLoadout(client), GetItemsForCategoryCallback, pack);
 	}
 }
 
@@ -301,7 +301,7 @@ OpenInventoryCategory(client, categoryId, slot = 0)
 	SetTrieValue(filter, "category_id", categoryId);
 	SetTrieValue(filter, "flags", GetUserFlagBits(client));
 
-	Store_GetUserItems(filter, Store_GetClientAccountID(client), Store_GetClientLoadout(client), GetUserItemsCallback, pack);
+	Store_GetUserItems(filter, GetSteamAccountID(client), Store_GetClientLoadout(client), GetUserItemsCallback, pack);
 }
 
 public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutId, any:pack)
@@ -415,7 +415,7 @@ public InventoryCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client,
 			
 			if (callbackValue != Store_DoNothing)
 			{
-				new auth = Store_GetClientAccountID(client);
+				new auth = GetSteamAccountID(client);
 					
 				new Handle:pack = CreateDataPack();
 				WritePackCell(pack, GetClientSerial(client));

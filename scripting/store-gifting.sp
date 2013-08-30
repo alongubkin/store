@@ -199,7 +199,7 @@ public Action:Command_Drop(client, args)
 	WritePackCell(pack, client);
 	WritePackCell(pack, credits);
 
-	Store_GetCredits(Store_GetClientAccountID(client), DropGetCreditsCallback, pack);
+	Store_GetCredits(GetSteamAccountID(client), DropGetCreditsCallback, pack);
 	return Plugin_Handled;
 }
 
@@ -211,7 +211,7 @@ public DropGetCreditsCallback(credits, any:pack)
 
 	if (credits >= needed)
 	{
-		Store_GiveCredits(Store_GetClientAccountID(client), -needed, DropGiveCreditsCallback, pack);
+		Store_GiveCredits(GetSteamAccountID(client), -needed, DropGiveCreditsCallback, pack);
 	}
 	else
 	{
@@ -543,7 +543,7 @@ public CreditsMenuSelectItem(Handle:menu, MenuAction:action, client, slot)
 			WritePackCell(pack, giftTo);
 			WritePackCell(pack, credits);
 
-			Store_GetCredits(Store_GetClientAccountID(client), GetCreditsCallback, pack);
+			Store_GetCredits(GetSteamAccountID(client), GetCreditsCallback, pack);
 		}
 	}
 	else if (action == MenuAction_Cancel)
@@ -634,7 +634,7 @@ public CreditsConfirmMenuSelectItem(Handle:menu, MenuAction:action, client, slot
 					WritePackCell(pack, client);
 					WritePackCell(pack, credits);
 
-					Store_GetCredits(Store_GetClientAccountID(client), DropGetCreditsCallback, pack);
+					Store_GetCredits(GetSteamAccountID(client), DropGetCreditsCallback, pack);
 				}
 			}
 		}
@@ -674,7 +674,7 @@ OpenSelectItemMenu(client, GiftAction:giftAction, giftTo = -1)
 	new Handle:filter = CreateTrie();
 	SetTrieValue(filter, "is_tradeable", 1);
 
-	Store_GetUserItems(filter, Store_GetClientAccountID(client), Store_GetClientLoadout(client), GetUserItemsCallback, pack);
+	Store_GetUserItems(filter, GetSteamAccountID(client), Store_GetClientLoadout(client), GetUserItemsCallback, pack);
 }
 
 public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutId, any:pack)
@@ -802,7 +802,7 @@ public ItemConfirmMenuSelectItem(Handle:menu, MenuAction:action, client, slot)
 						strcopy(g_spawnedPresents[present][Present_Data], 64, data);
 						g_spawnedPresents[present][Present_Owner] = client;
 
-						Store_RemoveUserItem(Store_GetClientAccountID(client), itemId, DropItemCallback, client);
+						Store_RemoveUserItem(GetSteamAccountID(client), itemId, DropItemCallback, client);
 					}
 				}
 			}
@@ -886,7 +886,7 @@ GiftCredits(from, to, amount)
 	WritePackCell(pack, to); // 8
 	WritePackCell(pack, amount);
 
-	Store_GiveCredits(Store_GetClientAccountID(from), -amount, TakeCreditsCallback, pack);
+	Store_GiveCredits(GetSteamAccountID(from), -amount, TakeCreditsCallback, pack);
 }
 
 public TakeCreditsCallback(accountId, any:pack)
@@ -896,7 +896,7 @@ public TakeCreditsCallback(accountId, any:pack)
 	new to = ReadPackCell(pack);
 	new amount = ReadPackCell(pack);
 
-	Store_GiveCredits(Store_GetClientAccountID(to), amount, GiveCreditsCallback, pack);
+	Store_GiveCredits(GetSteamAccountID(to), amount, GiveCreditsCallback, pack);
 }
 
 public GiveCreditsCallback(accountId, any:pack)
@@ -926,7 +926,7 @@ GiftItem(from, to, itemId)
 	WritePackCell(pack, to); // 8
 	WritePackCell(pack, itemId);
 
-	Store_RemoveUserItem(Store_GetClientAccountID(from), itemId, RemoveUserItemCallback, pack);
+	Store_RemoveUserItem(GetSteamAccountID(from), itemId, RemoveUserItemCallback, pack);
 }
 
 public RemoveUserItemCallback(accountId, itemId, any:pack)
@@ -935,7 +935,7 @@ public RemoveUserItemCallback(accountId, itemId, any:pack)
 
 	new to = ReadPackCell(pack);
 
-	Store_GiveItem(Store_GetClientAccountID(to), itemId, Store_Gift, GiveCreditsCallback, pack);
+	Store_GiveItem(GetSteamAccountID(to), itemId, Store_Gift, GiveCreditsCallback, pack);
 }
 
 SpawnPresent(owner, const String:model[])
@@ -1008,13 +1008,13 @@ public OnStartTouch(present, client)
 	{
 		new credits = StringToInt(values[1]);
 		WritePackCell(pack, credits);
-		Store_GiveCredits(Store_GetClientAccountID(client), credits, PickupGiveCallback, pack);
+		Store_GiveCredits(GetSteamAccountID(client), credits, PickupGiveCallback, pack);
 	}
 	else if (StrEqual(values[0], "item"))
 	{
 		new itemId = StringToInt(values[1]);
 		WritePackCell(pack, itemId);
-		Store_GiveItem(Store_GetClientAccountID(client), itemId, Store_Gift, PickupGiveCallback, pack);
+		Store_GiveItem(GetSteamAccountID(client), itemId, Store_Gift, PickupGiveCallback, pack);
 	}
 }
 

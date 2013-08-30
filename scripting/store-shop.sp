@@ -362,7 +362,7 @@ DoBuyItem(client, itemId, bool:confirmed=false, bool:checkeddupes=false)
 		WritePackCell(pack, GetClientSerial(client));
 		WritePackCell(pack, itemId);
 
-		Store_GetUserItemCount(Store_GetClientAccountID(client), itemName, DoBuyItem_ItemCountCallBack, pack);
+		Store_GetUserItemCount(GetSteamAccountID(client), itemName, DoBuyItem_ItemCountCallBack, pack);
 	}
 	else
 	{
@@ -370,7 +370,7 @@ DoBuyItem(client, itemId, bool:confirmed=false, bool:checkeddupes=false)
 		WritePackCell(pack, GetClientSerial(client));
 		WritePackCell(pack, itemId);
 
-		Store_BuyItem(Store_GetClientAccountID(client), itemId, OnBuyItemComplete, pack);
+		Store_BuyItem(GetSteamAccountID(client), itemId, OnBuyItemComplete, pack);
 	}
 }
 

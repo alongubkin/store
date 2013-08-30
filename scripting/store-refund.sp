@@ -209,7 +209,7 @@ OpenRefundCategory(client, categoryId, slot = 0)
 	SetTrieValue(filter, "is_refundable", 1);
 	SetTrieValue(filter, "category_id", categoryId);
 
-	Store_GetUserItems(filter, Store_GetClientAccountID(client), Store_GetClientLoadout(client), GetUserItemsCallback, pack);
+	Store_GetUserItems(filter, GetSteamAccountID(client), Store_GetClientLoadout(client), GetUserItemsCallback, pack);
 }
 
 public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutId, any:pack)
@@ -282,7 +282,7 @@ public RefundCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, sl
 			}
 			else
 			{			
-				Store_RemoveUserItem(Store_GetClientAccountID(client), StringToInt(itemId), OnRemoveUserItemComplete, GetClientSerial(client));
+				Store_RemoveUserItem(GetSteamAccountID(client), StringToInt(itemId), OnRemoveUserItemComplete, GetClientSerial(client));
 			}
 		}
 	}
@@ -327,7 +327,7 @@ public ConfirmationMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 			}
 			else
 			{
-				Store_RemoveUserItem(Store_GetClientAccountID(client), StringToInt(itemId), OnRemoveUserItemComplete, GetClientSerial(client));
+				Store_RemoveUserItem(GetSteamAccountID(client), StringToInt(itemId), OnRemoveUserItemComplete, GetClientSerial(client));
 			}
 		}
 	}

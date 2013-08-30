@@ -135,7 +135,7 @@ public Action:ForgivePoints(Handle:timer)
 	{
 		if (IsClientInGame(client) && !IsFakeClient(client) && !IsClientObserver(client))
 		{
-			accountIds[count] = Store_GetClientAccountID(client);
+			accountIds[count] = GetSteamAccountID(client);
 			credits[count] = Calculate(client, map, clientCount);
 
 			if (g_enableMessagePerTick)
