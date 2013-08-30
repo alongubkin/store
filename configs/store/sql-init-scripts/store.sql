@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `store_items` (
   `is_tradeable` tinyint(1) NOT NULL DEFAULT '1',
   `is_refundable` tinyint(1) NOT NULL DEFAULT '1',
   `expiry_time` int(11) NULL,
-  `flags` varchar(11) NOT NULL,
+  `flags` varchar(11) default NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=150 ;
