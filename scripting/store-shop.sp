@@ -10,7 +10,11 @@
 new String:g_currencyName[64];
 new String:g_menuCommands[32][32];
 
+new bool:g_hideEmptyCategories = false;
+
 new bool:g_confirmItemPurchase = false;
+
+new bool:g_allowBuyingDuplicates = false;
 
 new Handle:g_buyItemForward;
 
@@ -92,6 +96,10 @@ LoadConfig()
 	
 	g_confirmItemPurchase = bool:KvGetNum(kv, "confirm_item_purchase", 0);
 
+	g_hideEmptyCategories = bool:KvGetNum(kv, "hide_empty_categories", 0);
+
+	g_allowBuyingDuplicates = bool:KvGetNum(kv, "allow_buying_duplicates", 0);
+
 	CloseHandle(kv);
 }
 
@@ -152,15 +160,17 @@ OpenShop(client)
 	Store_GetCategories(GetCategoriesCallback, true, GetClientSerial(client));
 }
 
+new Handle:categories_menu[MAXPLAYERS+1];
+
 public GetCategoriesCallback(ids[], count, any:serial)
 {		
 	new client = GetClientFromSerial(serial);
 	
 	if (client == 0)
 		return;
-		
-	new Handle:menu = CreateMenu(ShopMenuSelectHandle);
-	SetMenuTitle(menu, "%T\n \n", "Shop", client);
+	
+	categories_menu[client] = CreateMenu(ShopMenuSelectHandle);
+	SetMenuTitle(categories_menu[client], "%T\n \n", "Shop", client);
 	
 	for (new category = 0; category < count; category++)
 	{
@@ -169,24 +179,58 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		
 		if (!StrEqual(requiredPlugin, "") && !Store_IsItemTypeRegistered(requiredPlugin))
 			continue;
-			
+
+		new Handle:pack = CreateDataPack();
+		WritePackCell(pack, GetClientSerial(client));
+		WritePackCell(pack, ids[category]);
+		WritePackCell(pack, count - category - 1);
+		
+		new Handle:filter = CreateTrie();
+		SetTrieValue(filter, "is_buyable", 1);
+		SetTrieValue(filter, "category_id", ids[category]);
+		SetTrieValue(filter, "flags", GetUserFlagBits(client));
+
+		Store_GetItems(filter, GetItemsForCategoryCallback, true, pack);
+	}
+}
+
+public GetItemsForCategoryCallback(ids[], count, any:pack)
+{
+	ResetPack(pack);
+	
+	new serial = ReadPackCell(pack);
+	new categoryId = ReadPackCell(pack);
+	new left = ReadPackCell(pack);
+	
+	CloseHandle(pack);
+	
+	new client = GetClientFromSerial(serial);
+	
+	if (client == 0)
+		return;
+
+	if (g_hideEmptyCategories && count != 0)
+	{
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
-		Store_GetCategoryDisplayName(ids[category], displayName, sizeof(displayName));
+		Store_GetCategoryDisplayName(categoryId, displayName, sizeof(displayName));
 
-		decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
-		Store_GetCategoryDescription(ids[category], description, sizeof(description));
+		//decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
+		//Store_GetCategoryDescription(categoryId, description, sizeof(description));
 
-		decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
-		Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
+		//decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
+		//Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
 		
 		decl String:itemValue[8];
-		IntToString(ids[category], itemValue, sizeof(itemValue));
+		IntToString(categoryId, itemValue, sizeof(itemValue));
 		
-		AddMenuItem(menu, itemValue, itemText);
+		AddMenuItem(categories_menu[client], itemValue, displayName);
 	}
-	
-	SetMenuExitBackButton(menu, true);
-	DisplayMenu(menu, client, 0);
+
+	if (left == 0)
+	{
+		SetMenuExitBackButton(categories_menu[client], true);
+		DisplayMenu(categories_menu[client], client, 0);
+	}
 }
 
 public ShopMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
@@ -228,6 +272,7 @@ OpenShopCategory(client, categoryId)
 	new Handle:filter = CreateTrie();
 	SetTrieValue(filter, "is_buyable", 1);
 	SetTrieValue(filter, "category_id", categoryId);
+	SetTrieValue(filter, "flags", GetUserFlagBits(client));
 
 	Store_GetItems(filter, GetItemsCallback, true, pack);
 }
@@ -289,19 +334,7 @@ public ShopCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 
 		if (GetMenuItem(menu, slot, value, sizeof(value)))
 		{
-			new itemId = StringToInt(value);
-		
-			if (g_confirmItemPurchase)
-			{
-				DisplayConfirmationMenu(client, itemId);
-			}
-			else
-			{
-				new Handle:pack = CreateDataPack();
-				WritePackCell(pack, GetClientSerial(client));
-				WritePackCell(pack, itemId);
-				Store_BuyItem(Store_GetClientAccountID(client), itemId, OnBuyItemComplete, pack);
-			}
+			DoBuyItem(client, StringToInt(value));
 		}
 	}
 	else if (action == MenuAction_Cancel)
@@ -314,9 +347,63 @@ public ShopCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 	}
 }
 
+DoBuyItem(client, itemId, bool:confirmed=false, bool:checkeddupes=false)
+{
+	if (g_confirmItemPurchase && !confirmed)
+	{
+		DisplayConfirmationMenu(client, itemId);
+	}
+	else if (!g_allowBuyingDuplicates && !checkeddupes)
+	{
+		decl String:itemName[STORE_MAX_NAME_LENGTH];
+		Store_GetItemName(itemId, itemName, sizeof(itemName));
+
+		new Handle:pack = CreateDataPack();
+		WritePackCell(pack, GetClientSerial(client));
+		WritePackCell(pack, itemId);
+
+		Store_GetUserItemCount(Store_GetClientAccountID(client), itemName, DoBuyItem_ItemCountCallBack, pack);
+	}
+	else
+	{
+		new Handle:pack = CreateDataPack();
+		WritePackCell(pack, GetClientSerial(client));
+		WritePackCell(pack, itemId);
+
+		Store_BuyItem(Store_GetClientAccountID(client), itemId, OnBuyItemComplete, pack);
+	}
+}
+
+public DoBuyItem_ItemCountCallBack(count, any:pack)
+{
+	ResetPack(pack);
+
+	new client = GetClientFromSerial(ReadPackCell(pack));
+	if (client == 0)
+	{
+		CloseHandle(pack);
+		return;
+	}
+
+	new itemId = ReadPackCell(pack);
+
+	CloseHandle(pack);
+
+	if (count <= 0)
+	{
+		DoBuyItem(client, itemId, true, true);
+	}
+	else
+	{
+		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
+		Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
+		PrintToChat(client, "%s%t", STORE_PREFIX, "Already purchased item", displayName);
+	}
+}
+
 DisplayConfirmationMenu(client, itemId)
 {
-	decl String:displayName[64];
+	decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 	Store_GetItemDisplayName(itemId, displayName, sizeof(displayName));
 
 	new Handle:menu = CreateMenu(ConfirmationMenuSelectHandle);
@@ -345,13 +432,7 @@ public ConfirmationMenuSelectHandle(Handle:menu, MenuAction:action, client, slot
 			}
 			else
 			{
-				new itemId = StringToInt(value);
-
-				new Handle:pack = CreateDataPack();
-				WritePackCell(pack, GetClientSerial(client));
-				WritePackCell(pack, itemId);
-
-				Store_BuyItem(Store_GetClientAccountID(client), itemId, OnBuyItemComplete, pack);
+				DoBuyItem(client, StringToInt(value), true);
 			}
 		}
 	}
@@ -389,6 +470,8 @@ public OnBuyItemComplete(bool:success, any:pack)
 	}
 
 	new itemId = ReadPackCell(pack);
+
+	CloseHandle(pack);
 
 	if (success)
 	{

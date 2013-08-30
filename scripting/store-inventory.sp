@@ -7,6 +7,8 @@
 #include <store/store-logging>
 #include <store/store-loadout>
 
+new bool:g_hideEmptyCategories = false;
+
 new String:g_menuCommands[32][32];
 
 new Handle:g_itemTypes;
@@ -82,8 +84,9 @@ LoadConfig()
 
 	decl String:menuCommands[255];
 	KvGetString(kv, "inventory_commands", menuCommands, sizeof(menuCommands));
-	
 	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
+
+	g_hideEmptyCategories = bool:KvGetNum(kv, "hide_empty_categories", 0);
 		
 	CloseHandle(kv);
 }
@@ -175,6 +178,8 @@ OpenInventory(client)
 	Store_GetCategories(GetCategoriesCallback, true, GetClientSerial(client));
 }
 
+new Handle:categories_menu[MAXPLAYERS+1];
+
 public GetCategoriesCallback(ids[], count, any:serial)
 {	
 	new client = GetClientFromSerial(serial);
@@ -182,8 +187,8 @@ public GetCategoriesCallback(ids[], count, any:serial)
 	if (client == 0)
 		return;
 	
-	new Handle:menu = CreateMenu(InventoryMenuSelectHandle);
-	SetMenuTitle(menu, "%T\n \n", "Inventory", client);
+	categories_menu[client] = CreateMenu(InventoryMenuSelectHandle);
+	SetMenuTitle(categories_menu[client], "%T\n \n", "Inventory", client);
 		
 	for (new category = 0; category < count; category++)
 	{
@@ -193,24 +198,66 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		new typeIndex;
 		if (!StrEqual(requiredPlugin, "") && !GetTrieValue(g_itemTypeNameIndex, requiredPlugin, typeIndex))
 			continue;
-		
-		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
-		Store_GetCategoryDisplayName(ids[category], displayName, sizeof(displayName));
 
-		decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
-		Store_GetCategoryDescription(ids[category], description, sizeof(description));
+		new Handle:pack = CreateDataPack();
+		WritePackCell(pack, GetClientSerial(client));
+		WritePackCell(pack, ids[category]);
+		WritePackCell(pack, count - category - 1);
 		
-		decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
-		Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
-		
-		decl String:itemValue[8];
-		IntToString(ids[category], itemValue, sizeof(itemValue));
-		
-		AddMenuItem(menu, itemValue, itemText);
+		new Handle:filter = CreateTrie();
+		SetTrieValue(filter, "category_id", ids[category]);
+		SetTrieValue(filter, "flags", GetUserFlagBits(client));
+
+		Store_GetUserItems(filter, Store_GetClientAccountID(client), Store_GetClientLoadout(client), GetItemsForCategoryCallback, pack);
 	}
+}
+
+public GetItemsForCategoryCallback(ids[], bool:equipped[], itemCount[], count, loadoutId, any:pack)
+{
+	ResetPack(pack);
 	
-	SetMenuExitBackButton(menu, true);
-	DisplayMenu(menu, client, 0);
+	new serial = ReadPackCell(pack);
+	new categoryId = ReadPackCell(pack);
+	new left = ReadPackCell(pack);
+	
+	CloseHandle(pack);
+	
+	new client = GetClientFromSerial(serial);
+	
+	if (client <= 0)
+		return;
+
+	if (g_hideEmptyCategories && count <= 0)
+	{
+		if (left == 0)
+		{
+			SetMenuExitBackButton(categories_menu[client], true);
+			DisplayMenu(categories_menu[client], client, 0);
+		}
+		return;
+	}
+
+	decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
+	Store_GetCategoryDisplayName(categoryId, displayName, sizeof(displayName));
+
+	//PrintToChatAll("%s %i %i %i", displayName, g_hideEmptyCategories, count, left);
+
+	//decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
+	//Store_GetCategoryDescription(categoryId, description, sizeof(description));
+
+	//decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
+	//Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
+	
+	decl String:itemValue[8];
+	IntToString(categoryId, itemValue, sizeof(itemValue));
+	
+	AddMenuItem(categories_menu[client], itemValue, displayName);
+
+	if (left == 0)
+	{
+		SetMenuExitBackButton(categories_menu[client], true);
+		DisplayMenu(categories_menu[client], client, 0);
+	}
 }
 
 public InventoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
@@ -252,6 +299,7 @@ OpenInventoryCategory(client, categoryId, slot = 0)
 	
 	new Handle:filter = CreateTrie();
 	SetTrieValue(filter, "category_id", categoryId);
+	SetTrieValue(filter, "flags", GetUserFlagBits(client));
 
 	Store_GetUserItems(filter, Store_GetClientAccountID(client), Store_GetClientLoadout(client), GetUserItemsCallback, pack);
 }
