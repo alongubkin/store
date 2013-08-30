@@ -149,7 +149,7 @@ public Action:Command_OpenMainMenu(client, args)
 
 public Action:Command_Credits(client, args)
 {
-	Store_GetCredits(Store_GetClientAccountID(client), OnCommandGetCredits, client);
+	Store_GetCredits(GetSteamAccountID(client), OnCommandGetCredits, client);
 	return Plugin_Handled;
 }
 
@@ -196,7 +196,7 @@ public Action:Command_GiveCredits(client, args)
 	{
 		if (IsClientInGame(target_list[i]) && !IsFakeClient(target_list[i]))
 		{
-			accountIds[count] = Store_GetClientAccountID(target_list[i]);
+			accountIds[count] = GetSteamAccountID(target_list[i]);
 			count++;
 
 			PrintToChat(target_list[i], "%s%t", STORE_PREFIX, "Received Credits", imoney, g_currencyName);
@@ -308,7 +308,7 @@ SortMainMenuItems()
  */
 OpenMainMenu(client)
 {	
-	Store_GetCredits(Store_GetClientAccountID(client), OnGetCreditsComplete, GetClientSerial(client));
+	Store_GetCredits(GetSteamAccountID(client), OnGetCreditsComplete, GetClientSerial(client));
 }
 
 public OnGetCreditsComplete(credits, any:serial)

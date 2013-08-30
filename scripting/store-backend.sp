@@ -165,7 +165,7 @@ public OnMapStart()
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param name          The name of the player.
  * @param credits 		The amount of credits to give to the player if it's his first register.
  *
@@ -210,7 +210,7 @@ RegisterClient(client, credits = 0)
 	decl String:name[64];
 	GetClientName(client, name, sizeof(name));
 	
-	Register(Store_GetClientAccountID(client), name, credits);
+	Register(GetSteamAccountID(client), name, credits);
 }
 
 public T_RegisterCallback(Handle:owner, Handle:hndl, const String:error[], any:data)
@@ -799,7 +799,7 @@ GetLoadoutIndex(id)
  * As with all other store-backend methods, this method is completely asynchronous.
  *
  * @param filter			A trie which will be used to filter the loadouts returned.
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param loadoutId         The loadout which will be used to determine whether an item is equipped or not.
  * @param callback		    A callback which will be called when the items are loaded.
  * @param plugin 			The plugin owner of the callback.
@@ -928,7 +928,7 @@ public T_GetUserItemsCallback(Handle:owner, Handle:hndl, const String:error[], a
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param itemName          The name of the item.
  * @param callback		    A callback which will be called when the items are loaded.
  * @param plugin			The plugin owner of the callback. 
@@ -986,7 +986,7 @@ public T_GetUserItemCountCallback(Handle:owner, Handle:hndl, const String:error[
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param callback		    A callback which will be called when the credits amount is loaded.
  * @param plugin			The plugin owner of the callback.
  * @param data              Extra data value to pass to the callback.
@@ -1042,7 +1042,7 @@ public T_GetCreditsCallback(Handle:owner, Handle:hndl, const String:error[], any
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param itemId            The ID of the item to buy.
  * @param callback		    A callback which will be called when the operation is finished.
  * @param plugin			The plugin owner of the callback.
@@ -1114,7 +1114,7 @@ public BuyItemGiveItemCallback(accountId, any:pack)
  * 
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param itemId            The ID of the item to use.
  * @param callback		    A callback which will be called when the operation is finished.
  * @param plugin			The plugin owner of the callback.
@@ -1174,7 +1174,7 @@ public T_RemoveUserItemCallback(Handle:owner, Handle:hndl, const String:error[],
  * 
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param itemId            The ID of the item to change equipped state to.
  * @param loadoutId         The loadout to equip the item in.
  * @param isEquipped		Whether or not the item is equipped in the specified loadout.
@@ -1200,7 +1200,7 @@ SetItemEquippedState(accountId, itemId, loadoutId, bool:isEquipped, Store_EquipI
  * 
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param itemId            The ID of the item to equip.
  * @param loadoutId         The loadout to equip the item in.
  * @param callback		    A callback which will be called when the operation is finished.
@@ -1266,7 +1266,7 @@ public T_EquipItemCallback(Handle:owner, Handle:hndl, const String:error[], any:
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param itemId           	The ID of the item to unequip.
  * @param loadoutId         The loadout to unequip the item in.
  * @param callback		    A callback which will be called when the operation is finished.
@@ -1346,7 +1346,7 @@ public T_UnequipItemCallback(Handle:owner, Handle:hndl, const String:error[], an
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param type              The category of the items you want to retrieve.
  * @param loadoutId         The loadout which will be used to determine whether an item is equipped or not.
  * @param callback		    A callback which will be called when the items are loaded.
@@ -1411,7 +1411,7 @@ public T_GetEquippedItemsByTypeCallback(Handle:owner, Handle:hndl, const String:
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param credits           The amount of credits to give to the player.
  * @param callback		    A callback which will be called when the operation is finished.
  * @param plugin			The plugin owner of the callback.
@@ -1466,7 +1466,7 @@ public T_GiveCreditsCallback(Handle:owner, Handle:hndl, const String:error[], an
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountId		    The account ID of the player, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountId		    The account ID of the player, use GetSteamAccountID to convert a client index to account ID.
  * @param itemId 			The ID of the item to give to the player.
  * @param acquireMethod 		
  * @param callback		    A callback which will be called when the operation is finished.
@@ -1540,7 +1540,7 @@ public T_GiveItemCallback(Handle:owner, Handle:hndl, const String:error[], any:p
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountIds	    	The account IDs of the players, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountIds	    	The account IDs of the players, use GetSteamAccountID to convert a client index to account ID.
  * @param accountIdsLength  	Players count.
  * @param credits           	The amount of credits to give to the players.
  *
@@ -1584,7 +1584,7 @@ public T_GiveCreditsToUsersCallback(Handle:owner, Handle:hndl, const String:erro
  *
  * As with all other store-backend methods, this method is completely asynchronous.
  *
- * @param accountIds	    	The account IDs of the players, use Store_GetClientAccountID to convert a client index to account ID.
+ * @param accountIds	    	The account IDs of the players, use GetSteamAccountID to convert a client index to account ID.
  * @param accountIdsLength  	Players count.
  * @param credits 				Amount of credits per player. 
  *

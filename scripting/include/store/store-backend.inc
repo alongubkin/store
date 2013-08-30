@@ -765,25 +765,6 @@ native Store_GetEquippedItemsByType(accountId, const String:type[], loadoutId, S
  */
 native Store_ReloadItemCache();
 
-stock Store_GetAccountIDFromAuthString(String:authString[])
-{
-	decl String:toks[3][16];
-	ExplodeString(authString, ":", toks, sizeof(toks), sizeof(toks[]));
-
-	new odd = StringToInt(toks[1]);
-	new halfAID = StringToInt(toks[2]);
-
-	return (halfAID*2) + odd;
-}
-
-stock Store_GetClientAccountID(client)
-{
-	decl String:buffer[32];
-	GetClientAuthString(client, buffer, sizeof(buffer));
-	
-	return Store_GetAccountIDFromAuthString(buffer);
-}
-
 public SharedPlugin:__pl_store_backend =
 {
 	name = "store-backend",
