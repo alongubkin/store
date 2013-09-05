@@ -16,6 +16,8 @@ new bool:g_confirmItemPurchase = false;
 
 new bool:g_allowBuyingDuplicates = false;
 
+new bool:g_hideCategoryDescriptions = false;
+
 new Handle:g_buyItemForward;
 
 /**
@@ -97,6 +99,8 @@ LoadConfig()
 	g_confirmItemPurchase = bool:KvGetNum(kv, "confirm_item_purchase", 0);
 
 	g_hideEmptyCategories = bool:KvGetNum(kv, "hide_empty_categories", 0);
+
+	g_hideCategoryDescriptions = bool:KvGetNum(kv, "hide_empty_categories", 0);
 
 	g_allowBuyingDuplicates = bool:KvGetNum(kv, "allow_buying_duplicates", 0);
 
@@ -214,11 +218,14 @@ public GetItemsForCategoryCallback(ids[], count, any:pack)
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetCategoryDisplayName(categoryId, displayName, sizeof(displayName));
 
-		//decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
-		//Store_GetCategoryDescription(categoryId, description, sizeof(description));
+		if (!g_hideCategoryDescriptions)
+		{
+			decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
+			Store_GetCategoryDescription(categoryId, description, sizeof(description));
 
-		//decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
-		//Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
+			decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
+			Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
+		}
 		
 		decl String:itemValue[8];
 		IntToString(categoryId, itemValue, sizeof(itemValue));
