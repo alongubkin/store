@@ -100,7 +100,7 @@ LoadConfig()
 
 	g_hideEmptyCategories = bool:KvGetNum(kv, "hide_empty_categories", 0);
 
-	g_hideCategoryDescriptions = bool:KvGetNum(kv, "hide_empty_categories", 0);
+	g_hideCategoryDescriptions = bool:KvGetNum(kv, "hide_category_descriptions", 0);
 
 	g_allowBuyingDuplicates = bool:KvGetNum(kv, "allow_buying_duplicates", 0);
 
