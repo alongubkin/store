@@ -8,7 +8,6 @@
 #include <store/store-loadout>
 
 new String:g_currencyName[64];
-new String:g_menuCommands[32][32];
 
 new Float:g_refundPricePercentage;
 new bool:g_confirmItemRefund = true;
@@ -33,11 +32,6 @@ public OnPluginStart()
 	LoadTranslations("store.phrases");
 
 	Store_AddMainMenuItem("Refund", "Refund Description", _, OnMainMenuRefundClick, 6);
-	
-	RegConsoleCmd("sm_refund", Command_OpenRefund);
-
-	AddCommandListener(Command_Say, "say");
-	AddCommandListener(Command_Say, "say_team");
 }
 
 /**
@@ -65,8 +59,8 @@ LoadConfig()
 	}
 
 	decl String:menuCommands[255];
-	KvGetString(kv, "refund_commands", menuCommands, sizeof(menuCommands));
-	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
+	KvGetString(kv, "refund_commands", menuCommands, sizeof(menuCommands), "!refund /refund !sell /sell");
+	Store_RegisterChatCommands(menuCommands, ChatCommand_OpenRefund);
 	
 	g_refundPricePercentage = KvGetFloat(kv, "refund_price_percentage", 0.5);
 	g_confirmItemRefund = bool:KvGetNum(kv, "confirm_item_refund", 1);
@@ -79,44 +73,9 @@ public OnMainMenuRefundClick(client, const String:value[])
 	OpenRefundMenu(client);
 }
 
-/**
- * Called when a client has typed a message to the chat.
- *
- * @param client		Client index.
- * @param command		Command name, lower case.
- * @param args          Argument count. 
- *
- * @return				Action to take.
- */
-public Action:Command_Say(client, const String:command[], args)
-{
-	if (0 < client <= MaxClients && !IsClientInGame(client)) 
-		return Plugin_Continue;   
-	
-	decl String:text[256];
-	GetCmdArgString(text, sizeof(text));
-	StripQuotes(text);
-	
-	for (new index = 0; index < sizeof(g_menuCommands); index++) 
-	{
-		if (StrEqual(g_menuCommands[index], text))
-		{
-			OpenRefundMenu(client);
-			
-			if (text[0] == 0x2F)
-				return Plugin_Handled;
-			
-			return Plugin_Continue;
-		}
-	}
-	
-	return Plugin_Continue;
-}
-
-public Action:Command_OpenRefund(client, args)
+public ChatCommand_OpenRefund(client)
 {
 	OpenRefundMenu(client);
-	return Plugin_Handled;
 }
 
 /**

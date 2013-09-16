@@ -8,7 +8,6 @@
 #include <colors>
 
 new String:g_currencyName[64];
-new String:g_menuCommands[32][32];
 
 new bool:g_hideEmptyCategories = false;
 
@@ -61,11 +60,6 @@ public OnPluginStart()
 	LoadTranslations("store.phrases");
 
 	Store_AddMainMenuItem("Shop", "Shop Description", _, OnMainMenuShopClick, 2);
-	
-	RegConsoleCmd("sm_shop", Command_OpenShop);
-
-	AddCommandListener(Command_Say, "say");
-	AddCommandListener(Command_Say, "say_team");
 }
 
 /**
@@ -93,8 +87,8 @@ LoadConfig()
 	}
 
 	decl String:menuCommands[255];
-	KvGetString(kv, "shop_commands", menuCommands, sizeof(menuCommands));
-	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
+	KvGetString(kv, "shop_commands", menuCommands, sizeof(menuCommands), "!shop /shop");
+	Store_RegisterChatCommands(menuCommands, ChatCommand_OpenShop);
 	
 	g_confirmItemPurchase = bool:KvGetNum(kv, "confirm_item_purchase", 0);
 
@@ -112,44 +106,9 @@ public OnMainMenuShopClick(client, const String:value[])
 	OpenShop(client);
 }
 
-/**
- * Called when a client has typed a message to the chat.
- *
- * @param client		Client index.
- * @param command		Command name, lower case.
- * @param args          Argument count. 
- *
- * @return				Action to take.
- */
-public Action:Command_Say(client, const String:command[], args)
-{
-	if (0 < client <= MaxClients && !IsClientInGame(client)) 
-		return Plugin_Continue;   
-	
-	decl String:text[256];
-	GetCmdArgString(text, sizeof(text));
-	StripQuotes(text);
-	
-	for (new index = 0; index < sizeof(g_menuCommands); index++) 
-	{
-		if (StrEqual(g_menuCommands[index], text))
-		{
-			OpenShop(client);
-			
-			if (text[0] == 0x2F)
-				return Plugin_Handled;
-			
-			return Plugin_Continue;
-		}
-	}
-	
-	return Plugin_Continue;
-}
-
-public Action:Command_OpenShop(client, args)
+public ChatCommand_OpenShop(client)
 {
 	OpenShop(client);
-	return Plugin_Handled;
 }
 
 /**

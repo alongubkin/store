@@ -9,8 +9,6 @@
 
 new bool:g_hideEmptyCategories = false;
 
-new String:g_menuCommands[32][32];
-
 new Handle:g_itemTypes;
 new Handle:g_itemTypeNameIndex;
 
@@ -59,11 +57,7 @@ public OnPluginStart()
 
 	Store_AddMainMenuItem("Inventory", "Inventory Description", _, OnMainMenuInventoryClick, 4);
 
-	RegConsoleCmd("sm_inventory", Command_OpenInventory);
 	RegAdminCmd("store_itemtypes", Command_PrintItemTypes, ADMFLAG_RCON, "Prints registered item types");
-
-	AddCommandListener(Command_Say, "say");
-	AddCommandListener(Command_Say, "say_team");
 }
 
 /**
@@ -83,8 +77,8 @@ LoadConfig()
 	}
 
 	decl String:menuCommands[255];
-	KvGetString(kv, "inventory_commands", menuCommands, sizeof(menuCommands));
-	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
+	KvGetString(kv, "inventory_commands", menuCommands, sizeof(menuCommands), "!inventory /inventory !inv /inv");
+	Store_RegisterChatCommands(menuCommands, ChatCommand_OpenInventory);
 
 	g_hideEmptyCategories = bool:KvGetNum(kv, "hide_empty_categories", 0);
 		
@@ -96,44 +90,9 @@ public OnMainMenuInventoryClick(client, const String:value[])
 	OpenInventory(client);
 }
 
-/**
- * Called when a client has typed a message to the chat.
- *
- * @param client		Client index.
- * @param command		Command name, lower case.
- * @param args          Argument count. 
- *
- * @return				Action to take.
- */
-public Action:Command_Say(client, const String:command[], args)
-{
-	if (0 < client <= MaxClients && !IsClientInGame(client)) 
-		return Plugin_Continue;   
-	
-	decl String:text[256];
-	GetCmdArgString(text, sizeof(text));
-	StripQuotes(text);
-	
-	for (new index = 0; index < sizeof(g_menuCommands); index++) 
-	{
-		if (StrEqual(g_menuCommands[index], text))
-		{
-			OpenInventory(client);
-			
-			if (text[0] == 0x2F)
-				return Plugin_Handled;
-			
-			return Plugin_Continue;
-		}
-	}
-	
-	return Plugin_Continue;
-}
-
-public Action:Command_OpenInventory(client, args)
+public ChatCommand_OpenInventory(client)
 {
 	OpenInventory(client);
-	return Plugin_Handled;
 }
 
 public Action:Command_PrintItemTypes(client, args)

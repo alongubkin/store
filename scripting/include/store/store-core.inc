@@ -11,6 +11,13 @@ funcenum Store_MenuItemClickCallback
 	public(client, const String:value[])
 }
 
+funcenum Store_ChatCommandCallback
+{
+	public(client),
+	public(client, const String:command[]),
+	public(client, const String:command[], const String:args[])
+}
+
 /**
  * Opens the main menu for a player.
  *
@@ -43,6 +50,16 @@ native Store_AddMainMenuItem(const String:displayName[], const String:descriptio
  */
 native Store_GetCurrencyName(String:currencyName[], maxLength);
 
+/**
+ * Registers commands with the store plugin.
+ *
+ * @param commands		Space seperated list of commands to register, eg "!credits /credits"
+ * @param callback		Callback for the command
+ *
+ * @return Returns false if a duplicate command or number of commands > MAX_CHAT_COMMANDS, otherwise true.
+ */
+native bool:Store_RegisterChatCommands(const String:commands[], Store_ChatCommandCallback:callback);
+
 public SharedPlugin:__pl_store =
 {
 	name = "store",
@@ -60,5 +77,6 @@ public __pl_store_SetNTVOptional()
 	MarkNativeAsOptional("Store_OpenMainMenu");
 	MarkNativeAsOptional("Store_AddMainMenuItem");
 	MarkNativeAsOptional("Store_GetCurrencyName");
+	MarkNativeAsOptional("Store_RegisterChatCommands");
 }
 #endif

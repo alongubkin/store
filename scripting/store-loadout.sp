@@ -12,7 +12,6 @@ stock const String:TF2_ClassName[TFClassType][] = {"", "scout", "sniper", "soldi
                                                     "heavy", "pyro", "spy", "engineer" };
 
 new Handle:g_clientLoadoutChangedForward;
-new String:g_menuCommands[32][32];
 
 new String:g_game[STORE_MAX_LOADOUTGAME_LENGTH];
 
@@ -68,11 +67,6 @@ public OnPluginStart()
 	GetGameFolderName(g_game, sizeof(g_game));
 	
 	HookEvent("player_spawn", Event_PlayerSpawn);
-	
-	RegConsoleCmd("sm_loadout", Command_OpenLoadout);
-
-	AddCommandListener(Command_Say, "say");
-	AddCommandListener(Command_Say, "say_team");
 }
 
 /**
@@ -124,50 +118,14 @@ LoadConfig()
 
 	decl String:menuCommands[255];
 	KvGetString(kv, "loadout_commands", menuCommands, sizeof(menuCommands));
-
-	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
+	Store_RegisterChatCommands(menuCommands, ChatCommand_OpenLoadout);
 	
 	CloseHandle(kv);
 }
 
-/**
- * Called when a client has typed a message to the chat.
- *
- * @param client		Client index.
- * @param command		Command name, lower case.
- * @param args          Argument count. 
- *
- * @return				Action to take.
- */
-public Action:Command_Say(client, const String:command[], args)
-{
-	if (0 < client <= MaxClients && !IsClientInGame(client)) 
-		return Plugin_Continue;   
-	
-	decl String:text[256];
-	GetCmdArgString(text, sizeof(text));
-	StripQuotes(text);
-	
-	for (new index = 0; index < sizeof(g_menuCommands); index++) 
-	{
-		if (StrEqual(g_menuCommands[index], text))
-		{
-			OpenLoadoutMenu(client);
-			
-			if (text[0] == 0x2F)
-				return Plugin_Handled;
-			
-			return Plugin_Continue;
-		}        
-	}
-	
-	return Plugin_Continue;
-}
-
-public Action:Command_OpenLoadout(client, args)
+public ChatCommand_OpenLoadout(client)
 {
 	OpenLoadoutMenu(client);
-	return Plugin_Handled;
 }
 
 public OnMainMenuLoadoutClick(client, const String:value[])

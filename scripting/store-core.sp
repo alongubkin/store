@@ -8,7 +8,8 @@
 #include <colors>
 #include <morecolors_store>
 
-#define MAX_MENU_ITEMS	32
+#define MAX_MENU_ITEMS 32
+#define MAX_CHAT_COMMANDS 100
 
 enum MenuItem
 {
@@ -20,9 +21,17 @@ enum MenuItem
 	MenuItemOrder
 }
 
+enum ChatCommand
+{
+	String:ChatCommandName[32],
+	Handle:ChatCommandPlugin,
+	Store_ChatCommandCallback:ChatCommandCallback,
+}
+
 new String:g_currencyName[64];
-new String:g_menuCommands[32][32];
-new String:g_creditsCommand[32];
+
+new g_chatCommands[MAX_CHAT_COMMANDS + 1][ChatCommand];
+new g_chatCommandCount = 0;
 
 new g_menuItems[MAX_MENU_ITEMS + 1][MenuItem];
 new g_menuItemCount = 0;
@@ -46,6 +55,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("Store_OpenMainMenu", Native_OpenMainMenu);
 	CreateNative("Store_AddMainMenuItem", Native_AddMainMenuItem);
 	CreateNative("Store_GetCurrencyName", Native_GetCurrencyName);
+	CreateNative("Store_RegisterChatCommands", Native_RegisterChatCommands);
 
 	RegPluginLibrary("store");	
 	return APLRes_Success;
@@ -71,12 +81,6 @@ public OnPluginStart()
 	
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
-
-	AddCommandListener(Command_Say, "say");
-	AddCommandListener(Command_Say, "say_team");
-	
-	RegConsoleCmd("sm_store", Command_OpenMainMenu);
-	RegConsoleCmd(g_creditsCommand, Command_Credits);
 
 	RegAdminCmd("store_givecredits", Command_GiveCredits, ADMFLAG_ROOT, "Gives credits to a player.");
 
@@ -111,46 +115,55 @@ public OnClientPostAdminCheck(client)
  * Called when a client has typed a message to the chat.
  *
  * @param client		Client index.
- * @param command		Command name, lower case.
- * @param args          Argument count. 
+ * @param command		Command name.
+ * @param sArgs			Arguments. 
  *
  * @return				Action to take.
  */
-public Action:Command_Say(client, const String:command[], args)
+public Action:OnClientSayCommand(client, const String:command[], const String:sArgs[])
 {
-	if (0 < client <= MaxClients && !IsClientInGame(client)) 
-		return Plugin_Continue;   
+	if (0 < client <= MaxClients || !IsClientInGame(client))
+		return Plugin_Continue;
 
-	decl String:text[256];
-	GetCmdArgString(text, sizeof(text));
-	StripQuotes(text);
-	
-	for (new index = 0; index < sizeof(g_menuCommands); index++) 
+	static String:cmds[2][256];
+	ExplodeString(sArgs, " ", cmds, sizeof(cmds), sizeof(cmds[]), true);
+
+	if (strlen(cmds[0]) <= 0)
+		return Plugin_Continue;
+
+	for (new i = 0; i < g_chatCommandCount; i++)
 	{
-		if (StrEqual(g_menuCommands[index], text))
+		if (StrEqual(cmds[0], g_chatCommands[i][ChatCommandName], false))
 		{
-			OpenMainMenu(client);
-			
-			if (text[0] == 0x2F)
+			Call_StartFunction(g_chatCommands[i][ChatCommandPlugin], Function:g_chatCommands[i][ChatCommandCallback]);
+			Call_PushCell(client);
+			Call_PushString(cmds[0]);
+			Call_PushString(cmds[1]);
+			Call_Finish();
+
+			if (cmds[0][0] == 0x2F)
 				return Plugin_Handled;
-			
-			return Plugin_Continue;
-		}        
+			else
+				return Plugin_Continue;
+		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
-public Action:Command_OpenMainMenu(client, args)
+public ChatCommand_OpenMainMenu(client)
 {
 	OpenMainMenu(client);
-	return Plugin_Handled;
 }
 
-public Action:Command_Credits(client, args)
+public ChatCommand_Credits(client)
 {
 	Store_GetCredits(GetSteamAccountID(client), OnCommandGetCredits, client);
-	return Plugin_Handled;
+}
+
+public OnCommandGetCredits(credits, any:client)
+{
+	PrintToChat(client, "%s%t", STORE_PREFIX, "Store Menu Title", credits, g_currencyName);
 }
 
 public Action:Command_GiveCredits(client, args)
@@ -207,11 +220,6 @@ public Action:Command_GiveCredits(client, args)
 	return Plugin_Handled;
 }
 
-public OnCommandGetCredits(credits, any:client)
-{
-	PrintToChat(client, "%s%t", STORE_PREFIX, "Store Menu Title", credits, g_currencyName);
-}
-
 /**
  * Load plugin config.
  */
@@ -228,12 +236,15 @@ LoadConfig()
 		SetFailState("Can't read config file %s", path);
 	}
 
-	decl String:menuCommands[255];
-	KvGetString(kv, "mainmenu_commands", menuCommands, sizeof(menuCommands));
-	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
-	
-	KvGetString(kv, "currency_name", g_currencyName, sizeof(g_currencyName));
-	KvGetString(kv, "credits_command", g_creditsCommand, sizeof(g_creditsCommand), "sm_credits");
+	KvGetString(kv, "currency_name", g_currencyName, sizeof(g_currencyName), "Credits");
+
+	decl String:buffer[256];
+
+	KvGetString(kv, "mainmenu_commands", buffer, sizeof(buffer), "!store /store");
+	Store_RegisterChatCommands(buffer, ChatCommand_OpenMainMenu);
+
+	KvGetString(kv, "credits_commands", buffer, sizeof(buffer), "!credits /credits");
+	Store_RegisterChatCommands(buffer, ChatCommand_Credits);
 
 	g_firstConnectionCredits = KvGetNum(kv, "first_connection_credits");
 
@@ -373,4 +384,52 @@ public Native_AddMainMenuItem(Handle:plugin, params)
 public Native_GetCurrencyName(Handle:plugin, params)
 {       
 	SetNativeString(1, g_currencyName, GetNativeCell(2));
+}
+
+/**
+ * Registers a chat command
+ *
+ * @param plugin		The calling plugin for the callback.
+ * @param commands		Space seperated list of commands to register, eg "!credits /credits"
+ * @param callback		The callback for when the command is said in chat.
+ *
+ * @return Returns true if command was registered successfully.
+ */ 
+bool:RegisterCommands(Handle:plugin, const String:commands[], Store_ChatCommandCallback:callback)
+{
+	if (g_chatCommandCount >= MAX_CHAT_COMMANDS)
+		return false;
+
+	decl String:splitcommands[32][32];
+	new count;
+
+	count = ExplodeString(commands, " ", splitcommands, sizeof(splitcommands), sizeof(splitcommands[]));
+
+	if (count <= 0) // shouldn't happen?
+		return false;
+
+	if (g_chatCommandCount + count >= MAX_CHAT_COMMANDS)
+		return false;
+
+	for (new i = 0; i < g_chatCommandCount; i++)
+		for (new n = 0; n < count; n++)
+			if (StrEqual(splitcommands[n], g_chatCommands[i][ChatCommandName], false))
+				return false;
+
+	for (new i = 0; i < count; i++)
+	{
+		strcopy(g_chatCommands[g_chatCommandCount][ChatCommandName], 32, splitcommands[i]);
+		g_chatCommands[g_chatCommandCount][ChatCommandPlugin] = plugin;
+		g_chatCommands[g_chatCommandCount++][ChatCommandCallback] = callback;
+	}
+
+	return true;
+}
+
+public Native_RegisterChatCommands(Handle:plugin, params)
+{
+	decl String:command[32];
+	GetNativeString(1, command, sizeof(command));
+
+	return RegisterCommands(plugin, command, Store_ChatCommandCallback:GetNativeCell(2));
 }

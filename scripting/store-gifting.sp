@@ -37,7 +37,6 @@ enum GiftRequest
 }
 
 new String:g_currencyName[64];
-new String:g_menuCommands[32][32];
 
 new g_creditChoices[MAX_CREDIT_CHOICES];
 new g_giftRequests[MAXPLAYERS+1][GiftRequest];
@@ -70,17 +69,6 @@ public OnPluginStart()
 	LoadTranslations("store.phrases");
 
 	Store_AddMainMenuItem("Gift", "Gift Description", _, OnMainMenuGiftClick, 5);
-	
-	RegConsoleCmd("sm_gift", Command_OpenGifting);
-	RegConsoleCmd("sm_accept", Command_Accept);
-
-	if (g_drop_enabled)
-	{
-		RegConsoleCmd("sm_drop", Command_Drop);
-	}
-
-	AddCommandListener(Command_Say, "say");
-	AddCommandListener(Command_Say, "say_team");
 
 	HookEvent("player_disconnect", Event_PlayerDisconnect);
 }
@@ -109,9 +97,13 @@ LoadConfig()
 		SetFailState("Can't read config file %s", path);
 	}
 
-	decl String:menuCommands[255];
-	KvGetString(kv, "gifting_commands", menuCommands, sizeof(menuCommands));
-	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
+	decl String:buffer[256];
+
+	KvGetString(kv, "gifting_commands", buffer, sizeof(buffer), "!gift /gift");
+	Store_RegisterChatCommands(buffer, ChatCommand_Gift);
+
+	KvGetString(kv, "gifting_commands", buffer, sizeof(buffer), "!accept /accept");
+	Store_RegisterChatCommands(buffer, ChatCommand_Accept);
 	
 	new String:creditChoices[MAX_CREDIT_CHOICES][10];
 
@@ -147,10 +139,13 @@ LoadConfig()
 				g_drop_enabled = false;
 		}
 		
-		if (g_drop_enabled && (!g_creditsModel[0] || !FileExists(g_creditsModel, true))) 
+		if (g_drop_enabled) 
 		{
-			// if the credits model can't be found, use the item model
-			strcopy(g_creditsModel,sizeof(g_creditsModel),g_itemModel);
+			if (!g_creditsModel[0] || !FileExists(g_creditsModel, true)) // if the credits model can't be found, use the item model
+				strcopy(g_creditsModel,sizeof(g_creditsModel),g_itemModel);
+
+			KvGetString(kv, "drop_commands", buffer, sizeof(buffer), "!drop /drop");
+			Store_RegisterChatCommands(buffer, ChatCommand_Drop);
 		}
 	}
 
@@ -170,37 +165,6 @@ public OnMapStart()
 			Downloader_AddFileToDownloadsTable(g_creditsModel);
 		}
 	}
-}
-
-public Action:Command_Drop(client, args)
-{
-	if (args==0)
-	{
-		ReplyToCommand(client, "%sUsage: sm_drop <%s>", STORE_PREFIX, g_currencyName);
-		{
-			return Plugin_Handled;
-		}
-	}
-
-	decl String:sCredits[10];
-	GetCmdArg(1, sCredits, sizeof(sCredits));
-
-	new credits = StringToInt(sCredits);
-
-	if (credits < 1)
-	{
-		ReplyToCommand(client, "%s%d is not a valid amount!", STORE_PREFIX, credits);
-		{
-			return Plugin_Handled;
-		}
-	}
-
-	new Handle:pack = CreateDataPack();
-	WritePackCell(pack, client);
-	WritePackCell(pack, credits);
-
-	Store_GetCredits(GetSteamAccountID(client), DropGetCreditsCallback, pack);
-	return Plugin_Handled;
 }
 
 public DropGetCreditsCallback(credits, any:pack)
@@ -249,44 +213,51 @@ public Action:Event_PlayerDisconnect(Handle:event, const String:name[], bool:don
 	g_giftRequests[GetClientOfUserId(GetEventInt(event, "userid"))][GiftRequestActive] = false;
 }
 
-/**
- * Called when a client has typed a message to the chat.
- *
- * @param client		Client index.
- * @param command		Command name, lower case.
- * @param args          Argument count. 
- *
- * @return				Action to take.
- */
-public Action:Command_Say(client, const String:command[], args)
-{
-	if (0 < client <= MaxClients && !IsClientInGame(client)) 
-		return Plugin_Continue;   
-	
-	decl String:text[256];
-	GetCmdArgString(text, sizeof(text));
-	StripQuotes(text);
-	
-	for (new index = 0; index < sizeof(g_menuCommands); index++) 
-	{
-		if (StrEqual(g_menuCommands[index], text))
-		{
-			OpenGiftingMenu(client);
-			
-			if (text[0] == 0x2F)
-				return Plugin_Handled;
-			
-			return Plugin_Continue;
-		}
-	}
-	
-	return Plugin_Continue;
-}
-
-public Action:Command_OpenGifting(client, args)
+public ChatCommand_Gift(client)
 {
 	OpenGiftingMenu(client);
-	return Plugin_Handled;
+}
+
+public ChatCommand_Accept(client)
+{
+	if (!g_giftRequests[client][GiftRequestActive])
+		return;
+
+	if (g_giftRequests[client][GiftRequestType] == GiftType_Credits)
+		GiftCredits(g_giftRequests[client][GiftRequestSender], client, g_giftRequests[client][GiftRequestValue]);
+	else
+		GiftItem(g_giftRequests[client][GiftRequestSender], client, g_giftRequests[client][GiftRequestValue]);
+
+	g_giftRequests[client][GiftRequestActive] = false;
+}
+
+public ChatCommand_Drop(client, const String:command[], const String:args[])
+{
+	if (strlen(args) <= 0)
+	{
+		if (command[0] == 0x2F)
+			PrintToChat(client, "%sUsage: %s <%s>", STORE_PREFIX, command, g_currencyName);
+		else
+			PrintToChatAll("%sUsage: %s <%s>", STORE_PREFIX, command, g_currencyName);
+		return;
+	}
+
+	new credits = StringToInt(args);
+
+	if (credits < 1)
+	{
+		if (command[0] == 0x2F)
+			PrintToChat(client, "%s%d is not a valid amount!", STORE_PREFIX, credits);
+		else
+			PrintToChatAll("%s%d is not a valid amount!", STORE_PREFIX, credits);
+		return;
+	}
+
+	new Handle:pack = CreateDataPack();
+	WritePackCell(pack, client);
+	WritePackCell(pack, credits);
+
+	Store_GetCredits(GetSteamAccountID(client), DropGetCreditsCallback, pack);
 }
 
 /**
@@ -863,20 +834,6 @@ AskForPermission(client, giftTo, GiftType:giftType, value)
 	g_giftRequests[giftTo][GiftRequestSender] = client;
 	g_giftRequests[giftTo][GiftRequestType] = giftType;
 	g_giftRequests[giftTo][GiftRequestValue] = value;
-}
-
-public Action:Command_Accept(client, args)
-{
-	if (!g_giftRequests[client][GiftRequestActive])
-		return Plugin_Continue;
-
-	if (g_giftRequests[client][GiftRequestType] == GiftType_Credits)
-		GiftCredits(g_giftRequests[client][GiftRequestSender], client, g_giftRequests[client][GiftRequestValue]);
-	else
-		GiftItem(g_giftRequests[client][GiftRequestSender], client, g_giftRequests[client][GiftRequestValue]);
-
-	g_giftRequests[client][GiftRequestActive] = false;
-	return Plugin_Handled;
 }
 
 GiftCredits(from, to, amount)
