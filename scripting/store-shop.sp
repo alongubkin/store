@@ -18,6 +18,7 @@ new bool:g_allowBuyingDuplicates = false;
 new bool:g_hideCategoryDescriptions = false;
 
 new Handle:g_buyItemForward;
+new Handle:g_buyItemPostForward;
 
 /**
  * Called before plugin is loaded.
@@ -54,7 +55,8 @@ public OnPluginStart()
 {
 	LoadConfig();
 
-	g_buyItemForward = CreateGlobalForward("Store_OnBuyItem", ET_Event, Param_Cell, Param_Cell, Param_Cell);
+	g_buyItemForward = CreateGlobalForward("Store_OnBuyItem", ET_Event, Param_Cell, Param_Cell);
+	g_buyItemPostForward = CreateGlobalForward("Store_OnBuyItem_Post", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 
 	LoadTranslations("common.phrases");
 	LoadTranslations("store.phrases");
@@ -332,6 +334,17 @@ DoBuyItem(client, itemId, bool:confirmed=false, bool:checkeddupes=false)
 	}
 	else
 	{
+
+		decl Action:result;
+
+		Call_StartForward(g_buyItemForward);
+		Call_PushCell(client);
+		Call_PushCell(itemId);
+		Call_Finish(_:result);
+
+		if (result >= Plugin_Handled) // handled or stopped
+			return;
+
 		new Handle:pack = CreateDataPack();
 		WritePackCell(pack, GetClientSerial(client));
 		WritePackCell(pack, itemId);
@@ -450,14 +463,14 @@ public OnBuyItemComplete(bool:success, any:pack)
 	{
 		CPrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits to buy", g_currencyName);
 	}
+	
+	OpenShop(client);
 
-	Call_StartForward(g_buyItemForward);
+	Call_StartForward(g_buyItemPostForward);
 	Call_PushCell(client);
 	Call_PushCell(itemId);
 	Call_PushCell(success);
 	Call_Finish();
-	
-	OpenShop(client);
 }
 
 public Native_OpenShop(Handle:plugin, params)

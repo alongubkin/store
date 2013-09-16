@@ -18,6 +18,9 @@ funcenum Store_ChatCommandCallback
 	public(client, const String:command[], const String:args[])
 }
 
+forward Action:Store_OnChatCommand(client, const String:command[], const String:args[]);
+forward Store_OnChatCommand_Post(client, const String:command[], const String:args[]);
+
 /**
  * Opens the main menu for a player.
  *

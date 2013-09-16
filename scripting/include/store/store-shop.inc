@@ -3,7 +3,8 @@
 #endif
 #define _store_shop_included
 
-forward Store_OnShopBuyItem(client, itemId, bool:success);
+forward Action:Store_OnBuyItem(client, itemId);
+forward Store_OnBuyItem_Post(client, itemId, bool:success);
 
 /**
  * Opens the shop menu for a client.

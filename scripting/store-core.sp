@@ -40,6 +40,9 @@ new g_firstConnectionCredits = 0;
 
 new bool:g_allPluginsLoaded = false;
 
+new Handle:g_hOnChatCommandForward;
+new Handle:g_hOnChatCommandPostForward;
+
 /**
  * Called before plugin is loaded.
  * 
@@ -83,6 +86,9 @@ public OnPluginStart()
 	LoadTranslations("store.phrases");
 
 	RegAdminCmd("store_givecredits", Command_GiveCredits, ADMFLAG_ROOT, "Gives credits to a player.");
+
+	g_hOnChatCommandForward = CreateGlobalForward("Store_OnChatCommand", ET_Event, Param_Cell, Param_String, Param_String);
+	g_hOnChatCommandPostForward = CreateGlobalForward("Store_OnChatCommand_Post", ET_Ignore, Param_Cell, Param_String, Param_String);
 
 	g_allPluginsLoaded = false;
 }
@@ -135,7 +141,23 @@ public Action:OnClientSayCommand(client, const String:command[], const String:sA
 	{
 		if (StrEqual(cmds[0], g_chatCommands[i][ChatCommandName], false))
 		{
+			decl Action:result;
+			Call_StartForward(g_hOnChatCommandForward);
+			Call_PushCell(client);
+			Call_PushString(cmds[0]);
+			Call_PushString(cmds[1]);
+			Call_Finish(_:result);
+
+			if (result >= Plugin_Handled)
+				return Plugin_Continue;
+
 			Call_StartFunction(g_chatCommands[i][ChatCommandPlugin], Function:g_chatCommands[i][ChatCommandCallback]);
+			Call_PushCell(client);
+			Call_PushString(cmds[0]);
+			Call_PushString(cmds[1]);
+			Call_Finish();
+
+			Call_StartForward(g_hOnChatCommandPostForward);
 			Call_PushCell(client);
 			Call_PushString(cmds[0]);
 			Call_PushString(cmds[1]);
