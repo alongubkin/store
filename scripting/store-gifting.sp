@@ -269,6 +269,16 @@ public ChatCommand_Drop(client, const String:command[], const String:args[])
  */
 OpenGiftingMenu(client)
 {
+
+	for (new i = 1; i <= MAXPLAYERS; i++)
+	{
+		if (g_giftRequests[i][GiftRequestActive] && g_giftRequests[i][GiftRequestSender] == client)
+		{
+			PrintToChat(client, "%sYou can only have one active gift pending!", STORE_PREFIX);
+			return;
+		}
+	}
+
 	new Handle:menu = CreateMenu(GiftTypeMenuSelectHandle);
 	SetMenuTitle(menu, "%T", "Gift Type Menu Title", client);
 
