@@ -128,7 +128,7 @@ public OnClientPostAdminCheck(client)
  */
 public Action:OnClientSayCommand(client, const String:command[], const String:sArgs[])
 {
-	if (0 < client <= MaxClients)
+	if (client <= 0 || client > MaxClients)
 		return Plugin_Continue;
 		
 	if (!IsClientInGame(client))
