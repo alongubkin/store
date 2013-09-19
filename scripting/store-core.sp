@@ -445,7 +445,9 @@ bool:RegisterCommands(Handle:plugin, const String:commands[], Store_ChatCommandC
 	{
 		strcopy(g_chatCommands[g_chatCommandCount][ChatCommandName], 32, splitcommands[i]);
 		g_chatCommands[g_chatCommandCount][ChatCommandPlugin] = plugin;
-		g_chatCommands[g_chatCommandCount++][ChatCommandCallback] = callback;
+		g_chatCommands[g_chatCommandCount][ChatCommandCallback] = callback;
+		
+		g_chatCommandCount++;
 	}
 
 	return true;
