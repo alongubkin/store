@@ -128,9 +128,12 @@ public OnClientPostAdminCheck(client)
  */
 public Action:OnClientSayCommand(client, const String:command[], const String:sArgs[])
 {
-	if (0 < client <= MaxClients || !IsClientInGame(client))
+	if (0 < client <= MaxClients)
 		return Plugin_Continue;
-
+		
+	if (!IsClientInGame(client))
+		return Plugin_Continue;
+		
 	static String:cmds[2][256];
 	ExplodeString(sArgs, " ", cmds, sizeof(cmds), sizeof(cmds[]), true);
 
