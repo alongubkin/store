@@ -134,12 +134,12 @@ public Action:OnClientSayCommand(client, const String:command[], const String:sA
 	if (!IsClientInGame(client))
 		return Plugin_Continue;
 
-	decl sArgsTrimmed[256];
+	decl String:sArgsTrimmed[256];
 	new sArgsLen = strlen(sArgs);
 
 	if (sArgsLen >= 2 && sArgs[0] == '"' && sArgs[sArgsLen - 1] == '"')
 	{
-		// If he arguments are enclosed in "", trim them
+		// If the arguments are enclosed in "", trim them
 		strcopy(sArgsTrimmed, sArgsLen - 1, sArgs[1]);
 	}
 	else
