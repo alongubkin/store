@@ -158,14 +158,14 @@ public Action:OnClientSayCommand(client, const String:command[], const String:sA
 	{
 		if (StrEqual(cmds[0], g_chatCommands[i][ChatCommandName], false))
 		{
-			decl Action:result;
+			new Action:result = Plugin_Continue;
 			Call_StartForward(g_hOnChatCommandForward);
 			Call_PushCell(client);
 			Call_PushString(cmds[0]);
 			Call_PushString(cmds[1]);
 			Call_Finish(_:result);
 
-			if (result >= Plugin_Handled)
+			if (result == Plugin_Handled || result == Plugin_Stop)
 				return Plugin_Continue;
 
 			Call_StartFunction(g_chatCommands[i][ChatCommandPlugin], Function:g_chatCommands[i][ChatCommandCallback]);

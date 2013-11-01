@@ -337,8 +337,7 @@ DoBuyItem(client, itemId, bool:confirmed=false, bool:checkeddupes=false)
 	}
 	else
 	{
-
-		decl Action:result;
+		new Action:result = Plugin_Continue;
 
 		Call_StartForward(g_buyItemForward);
 		Call_PushCell(client);
