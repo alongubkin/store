@@ -345,8 +345,11 @@ DoBuyItem(client, itemId, bool:confirmed=false, bool:checkeddupes=false)
 		Call_PushCell(itemId);
 		Call_Finish(_:result);
 
-		if (result >= Plugin_Handled) // handled or stopped
+		if (result == Plugin_Handled || result == Plugin_Stop)
+		{
+			// handled or stopped
 			return;
+		}
 
 		new Handle:pack = CreateDataPack();
 		WritePackCell(pack, GetClientSerial(client));
