@@ -174,7 +174,10 @@ public GetItemsForCategoryCallback(ids[], count, any:pack)
 	if (client == 0)
 		return;
 
-	if (g_hideEmptyCategories && count != 0)
+
+	// Display this category if "hide_empty_categories"
+	// is disabled or if it has items.
+	if (!g_hideEmptyCategories || count > 0)
 	{
 		decl String:displayName[STORE_MAX_DISPLAY_NAME_LENGTH];
 		Store_GetCategoryDisplayName(categoryId, displayName, sizeof(displayName));
@@ -334,16 +337,18 @@ DoBuyItem(client, itemId, bool:confirmed=false, bool:checkeddupes=false)
 	}
 	else
 	{
-
-		decl Action:result;
+		new Action:result = Plugin_Continue;
 
 		Call_StartForward(g_buyItemForward);
 		Call_PushCell(client);
 		Call_PushCell(itemId);
 		Call_Finish(_:result);
 
-		if (result >= Plugin_Handled) // handled or stopped
+		if (result == Plugin_Handled || result == Plugin_Stop)
+		{
+			// handled or stopped
 			return;
+		}
 
 		new Handle:pack = CreateDataPack();
 		WritePackCell(pack, GetClientSerial(client));

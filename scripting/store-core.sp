@@ -133,9 +133,23 @@ public Action:OnClientSayCommand(client, const String:command[], const String:sA
 		
 	if (!IsClientInGame(client))
 		return Plugin_Continue;
-		
+
+	decl String:sArgsTrimmed[256];
+	new sArgsLen = strlen(sArgs);
+
+	if (sArgsLen >= 2 && sArgs[0] == '"' && sArgs[sArgsLen - 1] == '"')
+	{
+		// If the arguments are enclosed in "", trim them
+		strcopy(sArgsTrimmed, sArgsLen - 1, sArgs[1]);
+	}
+	else
+	{
+		// If there are not quotes, just copy the whole string
+		strcopy(sArgsTrimmed, sizeof(sArgsTrimmed), sArgs);
+	}
+
 	static String:cmds[2][256];
-	ExplodeString(sArgs, " ", cmds, sizeof(cmds), sizeof(cmds[]), true);
+	ExplodeString(sArgsTrimmed, " ", cmds, sizeof(cmds), sizeof(cmds[]), true);
 
 	if (strlen(cmds[0]) <= 0)
 		return Plugin_Continue;
@@ -144,14 +158,14 @@ public Action:OnClientSayCommand(client, const String:command[], const String:sA
 	{
 		if (StrEqual(cmds[0], g_chatCommands[i][ChatCommandName], false))
 		{
-			decl Action:result;
+			new Action:result = Plugin_Continue;
 			Call_StartForward(g_hOnChatCommandForward);
 			Call_PushCell(client);
 			Call_PushString(cmds[0]);
 			Call_PushString(cmds[1]);
 			Call_Finish(_:result);
 
-			if (result >= Plugin_Handled)
+			if (result == Plugin_Handled || result == Plugin_Stop)
 				return Plugin_Continue;
 
 			Call_StartFunction(g_chatCommands[i][ChatCommandPlugin], Function:g_chatCommands[i][ChatCommandCallback]);
