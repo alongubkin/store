@@ -12,6 +12,8 @@ new bool:g_hideEmptyCategories = false;
 new Handle:g_itemTypes;
 new Handle:g_itemTypeNameIndex;
 
+new Handle:categories_menu[MAXPLAYERS+1];
+
 /**
  * Called before plugin is loaded.
  * 
@@ -134,10 +136,12 @@ OpenInventory(client)
 	if (!IsClientInGame(client))
 		return;
 
+	if (categories_menu[client] != INVALID_HANDLE) {
+		return;
+	}
+
 	Store_GetCategories(GetCategoriesCallback, true, GetClientSerial(client));
 }
-
-new Handle:categories_menu[MAXPLAYERS+1];
 
 public GetCategoriesCallback(ids[], count, any:serial)
 {	
@@ -192,6 +196,7 @@ public GetItemsForCategoryCallback(ids[], bool:equipped[], itemCount[], count, l
 		{
 			SetMenuExitBackButton(categories_menu[client], true);
 			DisplayMenu(categories_menu[client], client, 0);
+			categories_menu[client] = INVALID_HANDLE;
 		}
 		return;
 	}
@@ -216,6 +221,7 @@ public GetItemsForCategoryCallback(ids[], bool:equipped[], itemCount[], count, l
 	{
 		SetMenuExitBackButton(categories_menu[client], true);
 		DisplayMenu(categories_menu[client], client, 0);
+		categories_menu[client] = INVALID_HANDLE;
 	}
 }
 
@@ -311,7 +317,7 @@ public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutI
 		decl String:value[16];
 		Format(value, sizeof(value), "%b,%d", equipped[item], ids[item]);
 		
-		AddMenuItem(menu, value, text);    
+		AddMenuItem(menu, value, text);
 	}
 
 	SetMenuExitBackButton(menu, true);
@@ -320,6 +326,8 @@ public GetUserItemsCallback(ids[], bool:equipped[], itemCount[], count, loadoutI
 		DisplayMenu(menu, client, 0);   
 	else
 		DisplayMenuAtItem(menu, client, slot, 0);
+
+	categories_menu[client] = INVALID_HANDLE;
 }
 
 public InventoryCategoryMenuSelectHandle(Handle:menu, MenuAction:action, client, slot)
