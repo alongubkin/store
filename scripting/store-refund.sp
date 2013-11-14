@@ -117,7 +117,7 @@ public GetCategoriesCallback(ids[], count, any:serial)
 
 
 		decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
-		if(g_hideCategoryDescriptions==false){
+		if(g_hideMenuItemDescriptions==false){
 			Store_GetCategoryDescription(ids[category], description, sizeof(description));
 			Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
 		} else {
