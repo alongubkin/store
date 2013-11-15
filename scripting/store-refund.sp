@@ -11,6 +11,7 @@ new String:g_currencyName[64];
 
 new Float:g_refundPricePercentage;
 new bool:g_confirmItemRefund = true;
+new bool:g_hideMenuItemDescriptions = false;
 
 public Plugin:myinfo =
 {
@@ -64,6 +65,7 @@ LoadConfig()
 	
 	g_refundPricePercentage = KvGetFloat(kv, "refund_price_percentage", 0.5);
 	g_confirmItemRefund = bool:KvGetNum(kv, "confirm_item_refund", 1);
+	g_hideMenuItemDescriptions = bool:KvGetNum(kv, "hide_menu_descriptions", 0);
 
 	CloseHandle(kv);
 }
@@ -112,10 +114,15 @@ public GetCategoriesCallback(ids[], count, any:serial)
 		Store_GetCategoryDisplayName(ids[category], displayName, sizeof(displayName));
 
 		decl String:description[STORE_MAX_DESCRIPTION_LENGTH];
-		Store_GetCategoryDescription(ids[category], description, sizeof(description));
+
 
 		decl String:itemText[sizeof(displayName) + 1 + sizeof(description)];
-		Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
+		if(g_hideMenuItemDescriptions==false){
+			Store_GetCategoryDescription(ids[category], description, sizeof(description));
+			Format(itemText, sizeof(itemText), "%s\n%s", displayName, description);
+		} else {
+			Format(itemText, sizeof(itemText), "%s", displayName);
+		}
 		
 		decl String:itemValue[8];
 		IntToString(ids[category], itemValue, sizeof(itemValue));

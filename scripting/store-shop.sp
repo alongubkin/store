@@ -279,13 +279,17 @@ public GetItemsCallback(ids[], count, any:pack)
 	for (new item = 0; item < count; item++)
 	{		
 		decl String:displayName[64];
-		Store_GetItemDisplayName(ids[item], displayName, sizeof(displayName));
-		
 		decl String:description[128];
-		Store_GetItemDescription(ids[item], description, sizeof(description));
-	
-		decl String:text[sizeof(displayName) + sizeof(description) + 5];
-		Format(text, sizeof(text), "%s [%d %s]\n%s", displayName, Store_GetItemPrice(ids[item]), g_currencyName, description);
+		decl String:text[sizeof(displayName) + sizeof(description) + 5];		
+
+		Store_GetItemDisplayName(ids[item], displayName, sizeof(displayName));
+
+		if(g_hideCategoryDescriptions==false){
+			Store_GetItemDescription(ids[item], description, sizeof(description));
+			Format(text, sizeof(text), "%s [%d %s]\n%s", displayName, Store_GetItemPrice(ids[item]), g_currencyName, description);
+		} else {
+			Format(text, sizeof(text), "%s [%d %s]", displayName, Store_GetItemPrice(ids[item]), g_currencyName);
+		}
 		
 		decl String:value[8];
 		IntToString(ids[item], value, sizeof(value));

@@ -43,6 +43,8 @@ new bool:g_allPluginsLoaded = false;
 new Handle:g_hOnChatCommandForward;
 new Handle:g_hOnChatCommandPostForward;
 
+new bool:g_hideMenuItemDescriptions = false;
+
 /**
  * Called before plugin is loaded.
  * 
@@ -286,6 +288,8 @@ LoadConfig()
 	Store_RegisterChatCommands(buffer, ChatCommand_Credits);
 
 	g_firstConnectionCredits = KvGetNum(kv, "first_connection_credits");
+	
+	g_hideMenuItemDescriptions = bool:KvGetNum(kv, "hide_menu_descriptions", 0);
 
 	CloseHandle(kv);
 }
@@ -374,7 +378,11 @@ public OnGetCreditsComplete(credits, any:serial)
 	for (new item = 0; item < g_menuItemCount; item++)
 	{
 		decl String:text[255];  
-		Format(text, sizeof(text), "%T\n%T", g_menuItems[item][MenuItemDisplayName], client, g_menuItems[item][MenuItemDescription], client);
+		if(g_hideMenuItemDescriptions == false){
+			Format(text, sizeof(text), "%T\n%T", g_menuItems[item][MenuItemDisplayName], client, g_menuItems[item][MenuItemDescription], client);
+		} else {
+			Format(text, sizeof(text), "%T", g_menuItems[item][MenuItemDisplayName], client);
+		}
 				
 		AddMenuItem(menu, g_menuItems[item][MenuItemValue], text);
 	}
