@@ -24,6 +24,8 @@ new String:g_currencyName[64];
 new String:g_menuCommands[32][32];
 new String:g_creditsCommand[32];
 
+new g_iMenuCommandCount;
+
 new g_menuItems[MAX_MENU_ITEMS + 1][MenuItem];
 new g_menuItemCount = 0;
 
@@ -125,7 +127,7 @@ public Action:Command_Say(client, const String:command[], args)
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
 	
-	for (new index = 0; index < sizeof(g_menuCommands); index++) 
+	for (new index = 0; index < g_iMenuCommandCount; index++) 
 	{
 		if (StrEqual(g_menuCommands[index], text))
 		{
@@ -230,7 +232,7 @@ LoadConfig()
 
 	decl String:menuCommands[255];
 	KvGetString(kv, "mainmenu_commands", menuCommands, sizeof(menuCommands));
-	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
+	g_iMenuCommandCount = ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
 	
 	KvGetString(kv, "currency_name", g_currencyName, sizeof(g_currencyName));
 	KvGetString(kv, "credits_command", g_creditsCommand, sizeof(g_creditsCommand), "sm_credits");

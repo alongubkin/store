@@ -14,6 +14,8 @@ stock const String:TF2_ClassName[TFClassType][] = {"", "scout", "sniper", "soldi
 new Handle:g_clientLoadoutChangedForward;
 new String:g_menuCommands[32][32];
 
+new g_iMenuCommandCount;
+
 new String:g_game[STORE_MAX_LOADOUTGAME_LENGTH];
 
 new g_clientLoadout[MAXPLAYERS+1];
@@ -125,7 +127,7 @@ LoadConfig()
 	decl String:menuCommands[255];
 	KvGetString(kv, "loadout_commands", menuCommands, sizeof(menuCommands));
 
-	ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
+	g_iMenuCommandCount = ExplodeString(menuCommands, " ", g_menuCommands, sizeof(g_menuCommands), sizeof(g_menuCommands[]));
 	
 	CloseHandle(kv);
 }
@@ -148,7 +150,7 @@ public Action:Command_Say(client, const String:command[], args)
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
 	
-	for (new index = 0; index < sizeof(g_menuCommands); index++) 
+	for (new index = 0; index < g_iMenuCommandCount; index++) 
 	{
 		if (StrEqual(g_menuCommands[index], text))
 		{
