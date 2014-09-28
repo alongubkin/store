@@ -35,8 +35,9 @@ Just download the attached zip archive and extract to your sourcemod folder inta
         "user"		    "<username>"
         "pass"		    "<password>"
     }
-    
-Then, navigate to `configs/store/sql-init-scripts` and execute `store.sql` in your database. For each item module you want to add, execute the corresponding SQL file in `configs/store/sql-init-scripts` and enable the plugin.
+   
+Then, navigate to `configs/store/sql-init-scripts` and execute `store.sql` in your database.
+Install the Webpanel and import the .json files for each item that you would like to use
 
 ([Tutorial](https://github.com/alongubkin/store/wiki/Installing-Store))
 ## License
