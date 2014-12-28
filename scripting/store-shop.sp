@@ -169,6 +169,7 @@ public GetCategoriesCallback(ids[], count, any:serial)
 	if (client == 0)
 		return;
 	
+	// FIXME: If one of the GetUserItems queries fails, this menu handle leaks.
 	categories_menu[client] = CreateMenu(ShopMenuSelectHandle);
 	SetMenuTitle(categories_menu[client], "%T\n \n", "Shop", client);
 	

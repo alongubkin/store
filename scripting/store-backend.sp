@@ -393,7 +393,8 @@ GetItems(Handle:filter = INVALID_HANDLE, Store_GetItemsCallback:callback = Store
 		new flags;
 		new bool:flagsFilter = filter == INVALID_HANDLE ? false : GetTrieValue(filter, "flags", flags);
 
-		CloseHandle(filter);
+		if(filter != INVALID_HANDLE)
+			CloseHandle(filter);
 		
 		new items[g_itemCount];
 
@@ -435,6 +436,10 @@ public T_GetItemsCallback(Handle:owner, Handle:hndl, const String:error[], any:p
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		ResetPack(pack);
+		new Handle:filter = Handle:ReadPackCell(pack);
+		if(filter != INVALID_HANDLE)
+			CloseHandle(filter);
 		CloseHandle(pack);
 			
 		Store_LogError("SQL Error on GetItems: %s", error);
@@ -683,7 +688,8 @@ GetLoadouts(Handle:filter, Store_GetItemsCallback:callback = Store_GetItemsCallb
 		// new team = -1;
 		// new bool:teamFilter = filter == INVALID_HANDLE ? false : GetTrieValue(filter, "team", team);
 		
-		CloseHandle(filter);
+		if(filter != INVALID_HANDLE)
+			CloseHandle(filter);
 		
 		for (new loadout = 0; loadout < g_loadoutCount; loadout++)
 		{	
@@ -720,6 +726,10 @@ public T_GetLoadoutsCallback(Handle:owner, Handle:hndl, const String:error[], an
 {
 	if (hndl == INVALID_HANDLE)
 	{
+		ResetPack(pack);
+		new Handle:filter = Handle:ReadPackCell(pack);
+		if(filter != INVALID_HANDLE)
+			CloseHandle(filter);
 		CloseHandle(pack);
 		
 		Store_LogError("SQL Error on GetLoadouts: %s", error);
@@ -791,7 +801,7 @@ GetLoadoutIndex(id)
  * To determine how many items the player has of the same name, the callback provides the
  * itemCount[] array.
  *
- * To deremine whether or not an item is equipped in the loadout specified, the callback
+ * To determine whether or not an item is equipped in the loadout specified, the callback
  * provides the equipped[] array.
  *
  * For a full example of a usage of this method, see the store-inventory module.
@@ -820,6 +830,7 @@ GetUserItems(Handle:filter, accountId, loadoutId, Store_GetUserItemsCallback:cal
 	if (g_itemCount == -1)
 	{
 		Store_LogWarning("Store_GetUserItems has been called before item loading.");
+		// FIXME: If the GetItems query fails, this pack handle as well as the filter handle leak!
 		GetItems(INVALID_HANDLE, GetUserItemsLoadCallback, INVALID_HANDLE, true, pack);
 		
 		return;
@@ -888,7 +899,9 @@ public T_GetUserItemsCallback(Handle:owner, Handle:hndl, const String:error[], a
 		return;
 	}
 	
-	SetPackPosition(pack, 16);	
+	ResetPack(pack);
+	ReadPackCell(pack); //filter
+	ReadPackCell(pack); //accountId
 
 	new loadoutId = ReadPackCell(pack);	
 	new Store_GetUserItemsCallback:callback = Store_GetUserItemsCallback:ReadPackCell(pack);
@@ -1059,6 +1072,7 @@ BuyItem(accountId, itemId, Store_BuyItemCallback:callback, Handle:plugin = INVAL
 	WritePackCell(pack, _:plugin); // 24
 	WritePackCell(pack, _:data); // 32
 	
+	// FIXME: If GetCredits query fails, this pack handle leaks!
 	GetCredits(accountId, T_BuyItemGetCreditsCallback, INVALID_HANDLE, pack);
 }
 
@@ -1074,6 +1088,8 @@ public T_BuyItemGetCreditsCallback(credits, any:pack)
 	
 	if (credits < g_items[GetItemIndex(itemId)][ItemPrice])
 	{
+		CloseHandle(pack);
+	
 		Call_StartFunction(plugin, callback);
 		Call_PushCell(0);
 		Call_PushCell(_:arg);
@@ -1082,6 +1098,7 @@ public T_BuyItemGetCreditsCallback(credits, any:pack)
 		return;
 	}
 
+	// FIXME: If GiveCredits query fails, this pack handle leaks!
 	GiveCredits(accountId, -g_items[GetItemIndex(itemId)][ItemPrice], BuyItemGiveCreditsCallback, _, pack);
 }
 
@@ -1095,7 +1112,9 @@ public BuyItemGiveCreditsCallback(accountId, any:pack)
 
 public BuyItemGiveItemCallback(accountId, any:pack)
 {
-	SetPackPosition(pack, 16);
+	ResetPack(pack);
+	ReadPackCell(pack); // itemId
+	ReadPackCell(pack); // accountId
 	
 	new Store_BuyItemCallback:callback = Store_BuyItemCallback:ReadPackCell(pack);
 	new Handle:plugin = Handle:ReadPackCell(pack);
@@ -1131,6 +1150,7 @@ RemoveUserItem(accountId, itemId, Store_UseItemCallback:callback, Handle:plugin 
 	WritePackCell(pack, _:plugin);
 	WritePackCell(pack, _:data);
 	
+	// FIXME: If UnequipItem query fails, this pack handle leaks!
 	UnequipItem(accountId, itemId, -1, RemoveUserItemUnnequipCallback, _, pack);
 }
 
@@ -1219,6 +1239,7 @@ EquipItem(accountId, itemId, loadoutId, Store_EquipItemCallback:callback, Handle
 	WritePackCell(pack, _:plugin);
 	WritePackCell(pack, _:data);
 	
+	// FIXME: If UnequipItem query fails, this pack handle leaks!
 	UnequipItem(accountId, itemId, loadoutId, EquipUnequipItemCallback, _, pack);
 }
 
@@ -1339,7 +1360,7 @@ public T_UnequipItemCallback(Handle:owner, Handle:hndl, const String:error[], an
  * To determine how many items the player has of the same name, the callback provides the
  * itemCount[] array.
  *
- * To deremine whether or not an item is equipped in the loadout specified, the callback
+ * To determine whether or not an item is equipped in the loadout specified, the callback
  * provides the equipped[] array.
  *
  * For a full example of a usage of this method, see the store-inventory module.
