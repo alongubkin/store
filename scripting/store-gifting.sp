@@ -215,6 +215,7 @@ public DropGetCreditsCallback(credits, any:pack)
 	}
 	else
 	{
+		CloseHandle(pack);
 		PrintToChat(client, "%s%t", STORE_PREFIX, "Not enough credits", g_currencyName);
 	}
 }
@@ -891,7 +892,8 @@ GiftCredits(from, to, amount)
 
 public TakeCreditsCallback(accountId, any:pack)
 {
-	SetPackPosition(pack, 8);
+	ResetPack(pack);
+	ReadPackCell(pack); // from
 
 	new to = ReadPackCell(pack);
 	new amount = ReadPackCell(pack);
@@ -931,7 +933,8 @@ GiftItem(from, to, itemId)
 
 public RemoveUserItemCallback(accountId, itemId, any:pack)
 {
-	SetPackPosition(pack, 8);
+	ResetPack(pack);
+	ReadPackCell(pack); // from
 
 	new to = ReadPackCell(pack);
 
@@ -1025,6 +1028,7 @@ public PickupGiveCallback(accountId, any:pack)
 	decl String:itemType[32];
 	ReadPackString(pack, itemType, sizeof(itemType));
 	new value = ReadPackCell(pack);
+	CloseHandle(pack);
 
 	if (StrEqual(itemType, "credits"))
 	{

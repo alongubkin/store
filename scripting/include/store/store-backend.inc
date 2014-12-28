@@ -525,7 +525,7 @@ native Store_GetLoadoutTeam(id);
  * To determine how many items the player has of the same name, the callback provides the
  * itemCount[] array.
  *
- * To deremine whether or not an item is equipped in the loadout specified, the callback
+ * To determine whether or not an item is equipped in the loadout specified, the callback
  * provides the equipped[] array.
  *
  * For example:
@@ -720,7 +720,7 @@ native Store_SetItemEquippedState(accountId, itemId, loadoutId, bool:isEquipped,
  * To determine how many items the player has of the same name, the callback provides the
  * itemCount[] array.
  *
- * To deremine whether or not an item is equipped in the loadout specified, the callback
+ * To determine whether or not an item is equipped in the loadout specified, the callback
  * provides the equipped[] array.
  *
  * For example:

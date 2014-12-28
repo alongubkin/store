@@ -144,8 +144,9 @@ public Action:Command_PrintItemTypes(client, args)
 		
 		ResetPack(itemType);
 		new Handle:plugin = Handle:ReadPackCell(itemType);
-
-		SetPackPosition(itemType, 24);
+		ReadPackCell(itemType); // useCallback
+		ReadPackCell(itemType); // attrsCallback
+		
 		decl String:typeName[32];
 		ReadPackString(itemType, typeName, sizeof(typeName));
 
@@ -187,6 +188,7 @@ public GetCategoriesCallback(ids[], count, any:serial)
 	if (client == 0)
 		return;
 	
+	// FIXME: If one of the GetUserItems queries fails, this menu handle leaks.
 	categories_menu[client] = CreateMenu(InventoryMenuSelectHandle);
 	SetMenuTitle(categories_menu[client], "%T\n \n", "Inventory", client);
 		
@@ -588,8 +590,7 @@ public Native_CallItemAttrsCallback(Handle:plugin, params)
 	ResetPack(pack);
 
 	new Handle:callbackPlugin = Handle:ReadPackCell(pack);
-	
-	SetPackPosition(pack, 16);
+	ReadPackCell(pack); // useCallback
 
 	new callback = ReadPackCell(pack);
 
