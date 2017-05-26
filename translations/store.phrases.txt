@@ -92,6 +92,24 @@
 		"en"				"You have just received {1} {2}!"
 	}
 
+	"Received Credits Suicide"
+	{
+		"#format"			"{1:d},{2:s},{3:s}"
+		"en"				"You have just received {1} {2} for suiciding!"
+	}
+
+	"Received Credits Kill"
+	{
+		"#format"			"{1:d},{2:s},{3:N}"
+		"en"				"You have just received {1} {2} for killing {3}"
+	}
+
+	"Received Credits TeamKill"
+	{
+		"#format"			"{1:d},{2:s},{3:N}"
+		"en"				"You have just received {1} {2} for team killing {3}"
+	}
+
 	"Item Purchase Confirmation"
 	{
 		"#format"			"{1:s}"
