@@ -1,0 +1,277 @@
+"Phrases"
+{
+	"Store Menu Title"
+	{
+		"#format"			"{1:d},{2:s}"
+		"ru"				"Вы имеете {1} {2}."
+	}
+
+	"Inventory"
+	{
+		"ru"				"Инвентарь"	
+	}
+
+	"Shop"
+	{
+		"ru"				"Магазин"	
+	}
+
+	"Loadout"
+	{
+		"ru"				"Снаряжение"	
+	}
+
+	"No items in this category"
+	{
+		"ru"				"В этой категории нет предметов."
+	}
+
+	"Item type not registered"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Тип предмета '{1}' не был зарегистрирован ни одним плагином."
+	}
+
+	"Not enough credits to buy"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вам не хватает {1}, чтобы купить этот предмет."
+	}
+
+	"No item attributes"
+	{
+		"ru"				"Атрибуты не найдены."
+	}
+
+	"Equipped item"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вы экипировали {1}."
+	}
+
+	"Unequipped item"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вы убрали {1}."
+	}
+
+	"Must be alive to equip"
+	{
+		"ru"				"Вы должны быть живы, чтобы экипировать этот предмет."
+	}
+
+	"Must be alive to use"
+	{
+		"ru"				"Вы должны быть живы, чтобы использовать этот предмет."
+	}	
+
+	"Must be human to equip"
+	{
+		"ru"				"Вы должны быть человеком, чтобы экипировать этот предмет."	
+	}
+
+	"Must be human to use"
+	{
+		"ru"				"Вы должны быть человеком, чтобы использовать этот предмет."	
+	}	
+
+	"Limit item uses in a round"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вы можете использовать этот предмет только {1} раз за раунд."
+	}
+
+	"Player model unsupported"
+	{
+		"ru"				"Ваша модель игрока не поддерживает снаряжение."
+	}
+
+	"Received Credits"
+	{
+		"#format"			"{1:d},{2:s}"
+		"ru"				"Вы только что получили {1} {2}!"
+	}
+
+	"Item Purchase Confirmation"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вы уверены, что хотите купить {1}?"
+	}
+
+	"Item Purchase Successful"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вы купили '{olive}{1}{default}'!"
+	}
+
+	"Refund"
+	{
+		"ru"				"Возврат"
+	}
+
+	"Gift"
+	{
+		"ru"				"Подарить"
+	}
+	
+	"Refund Message"
+	{
+		"#format"			"{1:s},{2:d},{3:s}"
+		"ru"				"Вы вернули {1} за {2} {3}."
+	}
+
+	"Item Refund Confirmation"
+	{
+		"#format"			"{1:s},{2:d},{3:s}"
+		"ru"				"Вы уверены, что хотите вернуть предмет обратно {1} за {2} {3}?"
+	}
+
+	"Equipped item apply next spawn"
+	{
+		"ru"				"Вы экипировали предмет. Он вступит в силу в вашем следующем возрождении."
+	}
+
+	"Shop Description"
+	{
+		"ru"				"Вы можете купить классные вещи здесь!"
+	}
+
+	"Inventory Description"
+	{
+		"ru"				"Экипируйте или используйте ваши предметы."
+	}
+
+	"Refund Description"
+	{
+		"ru"				"Не довольны? Возврат здесь."
+	}
+
+	"Gift Description"
+	{
+		"ru"				"Пожертвуйте деньги или предметы для нуждающихся!"
+	}
+
+	"Loadout Description"
+	{
+		"ru"				"Настрой своё снаряжение."
+	}
+
+	"Gift Type Menu Title"
+	{
+		"ru"				"Что вы хотите подарить?"
+	}
+
+	"Gift Delivery Method"
+	{
+		"ru"				"Как вы хотите доставить подарок?"
+	}
+
+	"Gift Method Send"
+	{
+		"ru"				"Отправить игроку"
+	}
+
+	"Gift Method Drop"
+	{
+		"ru"				"Сбросить на землю"
+	}
+
+	"Item"
+	{
+		"ru"				"Предмет"
+	}
+
+	"Gift Credit Confirmation"
+	{
+		"#format"			"{1:s},{2:d},{3:s}"
+		"ru"				"Вы уверены, что хотите дать {1} {2} {3}?"
+	}
+
+	"Gift Item Confirmation"
+	{
+		"#format"			"{1:s},{2:s}"
+		"ru"				"Вы уверены, что хотите дать {1} предмет {2}?"
+	}
+
+	"Drop Credit Confirmation"
+	{
+		"#format"			"{1:d},{2:s}"
+		"ru"				"Вы уверены, что хотите выбросить {1} {2}?"
+	}
+
+	"Drop Item Confirmation"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вы уверены, что хотите выбросить {1}?"
+	}
+
+	"Gift Item Dropped"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вы выбросили {olive}{1}{default}!"
+	}
+
+	"Gift Credits Dropped"
+	{
+		"#format"			"{1:d}{2:s}"
+		"ru"				"Вы выбросили {olive}{1}{default} {2}!"
+	}
+
+	"Gift Credits Found"
+	{
+		"#format"			"{1:d},{2:s}"
+		"ru"				"Вы нашли {olive}{1}{default} {2}!"
+	}
+
+	"Gift Item Found"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вы нашли {olive}{1}{default}!"
+	}
+
+	"No items"
+	{
+		"ru"				"У вас нет предметов."
+	}
+
+	"Gift Request Accept"
+	{
+		"#format"			"{1:s},{2:s}"
+		"ru"				"{teamcolor}{1} {default}хочет дать вам {olive}{2}{default}. Напишите {teamcolor}!accept {default}чтобы принять подарок."
+	}
+
+	"Gift Waiting to accept"
+	{
+		"#format"			"{1:s}"
+		"ru"				"В ожидании пока {teamcolor}{1} {default}принимает подарок."
+	}	
+
+	"Not enough credits"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вам не хватает {1}."
+	}
+
+	"Gift accepted - sender"
+	{
+		"#format"			"{1:s}"
+		"ru"				"{teamcolor}{1} {default}принял ваш подарок."
+	}
+
+	"Gift accepted - receiver"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вы приняли подарок игрока {teamcolor}{1}{default}"
+	}
+
+	"Already purchased item"
+	{
+		"#format"			"{1:s}"
+		"ru"				"Вы уже купили этот предмет: {1}"
+	}
+	
+	"You can't wear this item"
+	{
+		"ru"				"Вы не можете носить этот предмет."
+	}
+}
